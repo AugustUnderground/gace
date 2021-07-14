@@ -1,0 +1,6 @@
+gym
+stable-baselines
+numpy
+scipy
+matplotlib
+PySpice
