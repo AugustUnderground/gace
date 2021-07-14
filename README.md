@@ -53,13 +53,19 @@ Where `<nmos|pmos>_prefix` is the location of `.pt` and input and output scaler.
 
 Registered as `gym_ad:symmetrical-amplifier-v0`.
 
-![symamp](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/sym.png)
+![sym](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/sym.png)
 
 #### Action Space
 
-
+4 `gmoverid`s and `fug`s for each building block, as well as 2 `m`irror ratios.
+`(, 10)` in total.
 
 #### Observation Space
 
+`(, 448)`
+
 ### Miller Amplifier
 
+**WIP**
+
+![moa](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/moa.png)
