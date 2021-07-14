@@ -53,5 +53,13 @@ Where `<nmos|pmos>_prefix` is the location of `.pt` and input and output scaler.
 
 Registered as `gym_ad:symmetrical-amplifier-v0`.
 
+![symamp](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/sym.png)
+
+#### Action Space
+
+
+
+#### Observation Space
+
 ### Miller Amplifier
 
