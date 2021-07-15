@@ -91,7 +91,9 @@
 
     (setv self.op-params ["w" "l" "vdsat" "id" "gds" "gm" "gmbs" "cgg"]
           self.po-params ["fug" "gmoverid" "self_gain" "jd"]
-          self.ac-params ["A0dB" "f3dB" "fug" "PM" "GM"]))
+          self.ac-params ["A0dB" "f3dB" "fug" "PM" "GM"])
+
+    (setv self.reset-counter 0))
   
   (defn render [self &optional [mode "human"]]
     (cond [(= mode "ac")
@@ -133,6 +135,7 @@
                                                   :nominal-temperature temp))
 
     (setv self.moves 0)
+    (setv self.reset-counter (inc self.reset-counter))
     (first (self.feedback)))
 
   (defn op-simulation [self]
@@ -205,7 +208,8 @@
       ac-data))
 
   (defn reward [self performance]
-    (- (.sum (np.abs (- performance self.target)))))
+    (- (np.mean (!= performance self.target))))
+    ;(.sum (np.abs (- performance self.target))))
   
   (defn feedback [self]
     (let [ac-dict (self.ac-simulation)

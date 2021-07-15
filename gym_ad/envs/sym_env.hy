@@ -1,7 +1,12 @@
+(import os)
+(import sys)
+;(import multiprocess)
 (import [functools [partial]])
 
 (import [numpy :as np])
 (import [pandas :as pd])
+
+(import [skopt [gp-minimize]])
 
 (import gym)
 (import [gym.spaces [Box Discrete]])
@@ -17,6 +22,8 @@
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
+
+;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
 (defclass SymAmpCkt [SubCircuitFactory]
   (setv NAME "symamp"
@@ -44,7 +51,7 @@
   (defn __init__ [self &optional [nmos-prefix None] [pmos-prefix None] [lib-path None]
                                  [params-x ["gmid" "fug" "Vds" "Vbs"]]
                                  [params-y ["jd" "L" "gdsw" "Vgs"]]
-                                 [max-moves 200]
+                                 [max-moves 200] [close-target True]
                                  [target [48.0 1e4 4e6 30 0]]
                                  [target-tolerance 1e-3]
                                  [I-B0 10e-6] [M-lo 0.1] [M-hi 10.0]
@@ -57,12 +64,35 @@
     (if-not (and nmos-prefix pmos-prefix lib-path)
       (raise (TypeError f"SymAmpEnv requires 'nmos_prefix', 'pmos_prefix' and 'lib_path' kwargs.")))
 
-    (setv denorm-action (fn [action-lo action-hi action]
-          (+ (* (/ (+ action 1.0) 2.0) (- action-hi action-lo)) action-lo)))
+    (setv self.last-reward -Inf
+          self.reset-close-to-target close-target)
 
-    (setv self.gmid (partial denorm-action gmid-lo gmid-hi)
-          self.fug  (partial denorm-action fug-lo fug-hi)
-          self.m    (partial denorm-action M-lo M-hi))
+    (setv self.gmid-lo gmid-lo
+          self.gmid-hi gmid-hi
+          self.fug-lo fug-lo
+          self.fug-hi fug-hi
+          self.m-lo M-lo
+          self.m-hi M-hi)
+
+    (setv self.denorm-action 
+          (fn [action-lo action-hi action]
+            (+ (* (/ (+ action 1.0) 2.0) 
+                  (- action-hi action-lo)) 
+               action-lo)))
+
+    (setv self.d-gmid (partial self.denorm-action gmid-lo gmid-hi)
+          self.d-fug  (partial self.denorm-action fug-lo fug-hi)
+          self.d-m    (partial self.denorm-action M-lo M-hi))
+
+    (setv self.norm-action 
+          (fn [action-lo action-hi action]
+            (- (* 2.0 (/ (- action action-lo) 
+                         (- action-hi action-lo))) 
+               1.0)))
+
+    (setv self.n-gmid (partial self.norm-action gmid-lo gmid-hi)
+          self.n-fug  (partial self.norm-action fug-lo fug-hi)
+          self.n-m    (partial self.norm-action M-lo M-hi))
 
     (setv self.params-x params-x
           self.params-y params-y
@@ -76,7 +106,7 @@
           self.V-OCM vo-cm
           self.V-ICM vi-cm)
 
-    (setv self.target target
+    (setv self.target (np.array target)
           self.target-tolerance target-tolerance)
 
     (setv self.freq-start freq-start
@@ -99,6 +129,28 @@
                                       :high (np.float32 (np.repeat np.inf self.obs-dim))
                                       :shape (, self.obs-dim)
                                       :dtype np.float32)))
+
+  (defn reset [self &optional [target None] [init-act None] [temp 27]]
+    (let [θ (if (> self.reset-counter 0)
+                (np.log10 self.reset-counter)
+                self.reset-counter)
+          new-target (or target (* θ (np.random.rand (len self.target))))
+          reset-obs (.reset (super) :temp temp)]
+      (cond [(is-not init-act None) 
+             (-> init-act (self.step) (first))]
+            [self.reset-close-to-target 
+             (-> (fn [act] (-> act (self.step) (second) (-)))
+                 (gp-minimize [ #* (repeat (, -1.0 1.0) self.act-dim) ] 
+                              :acq-func "PI"
+                              :n-calls 15
+                              :n-random-starts 7
+                              :noise 1e-3
+                              :random-state 666
+                              :n-jobs 1)
+                 (. x)
+                 (self.step)
+                 (first))]
+            [True reset-obs])))
 
   (defn electric2geometric [self gmid_ncm12 gmid_ndp12 gmid_pcm212 gmid_ncm32  
                             fug_ncm12  fug_ndp12  fug_pcm212  fug_ncm32
@@ -154,14 +206,20 @@
       char))
 
   (defn scale-action [self action]
-    (let [gmids (self.gmid (get action (slice 0 self.num-gmid)))
-          fugs  (self.fug (get action (slice self.num-gmid (+ self.num-gmid self.num-fug))))
-          ms    (self.m (get action (slice (+ self.num-gmid self.num-fug) None)))]
+    (let [gmids (self.n-gmid (get action (slice 0 self.num-gmid)))
+          fugs  (self.n-fug (get action (slice self.num-gmid (+ self.num-gmid self.num-fug))))
+          ms    (self.n-m (get action (slice (+ self.num-gmid self.num-fug) None)))]
+      (.flatten (np.hstack [gmids fugs ms]))))
+
+  (defn unscale-action [self action]
+    (let [gmids (self.d-gmid (get action (slice 0 self.num-gmid)))
+          fugs  (self.d-fug (get action (slice self.num-gmid (+ self.num-gmid self.num-fug))))
+          ms    (self.d-m (get action (slice (+ self.num-gmid self.num-fug) None)))]
       (.flatten (np.hstack [gmids fugs ms]))))
 
   (defn step [self action]
-    (let [scaled-action (self.scale-action action)
-          sizing (self.electric2geometric #* scaled-action) 
+    (let [real-action (self.unscale-action (np.array action))
+          sizing (self.electric2geometric #* real-action) 
           sizing-data (pd.concat (.values sizing) :names (.keys sizing))
           _ (setv sizing-data.index (.keys sizing))
 
@@ -183,6 +241,7 @@
              reward ) (self.feedback)
           done        (self.finished self.moves reward)
           info        (self.information) ]
+    (setv self.last-reward reward)
     (, observation reward done info)))
 
   (defn render [self &optional [mode "ascii"]]

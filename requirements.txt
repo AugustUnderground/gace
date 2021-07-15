@@ -5,5 +5,5 @@ numpy
 scipy
 matplotlib
 PySpice
-skopt
+scikit-optimize
 torch
