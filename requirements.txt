@@ -6,3 +6,4 @@ scipy
 matplotlib
 PySpice
 skopt
+torch
