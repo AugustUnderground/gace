@@ -1,6 +1,8 @@
+hy
 gym
-stable-baselines
+stable-baselines3
 numpy
 scipy
 matplotlib
 PySpice
+skopt
