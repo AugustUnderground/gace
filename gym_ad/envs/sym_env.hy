@@ -157,6 +157,8 @@
                             MN MP]
     (let [char {}
           V-X 0.2
+          MN 1
+          MP 4
           I-B1 (* MN self.I-B0)
           I-B2 (* 0.5 I-B1 MP)
           input-pcm212 (pd.DataFrame (np.array [[gmid-pcm212 fug-pcm212 (- self.V-DD self.V-OCM) 0.0]])

@@ -131,7 +131,8 @@
                                                   :temperature temp
                                                   :nominal-temperature temp))
 
-    (setv self.dc-simulator (self.dc-tb.simulator :temperature temp
+    (setv self.dc-simulator (self.dc-tb.simulator ;:simulator "ngspice-subprocess"
+                                                  :temperature temp
                                                   :nominal-temperature temp))
 
     (setv self.moves 0)
@@ -143,6 +144,7 @@
                             (.format "@M.XOP.{}[{}]" (.upper d) (.lower p)))
           _ (self.dc-simulator.save-internal-parameters #* save-params)
           _ (logging.disable logging.FATAL)
+          ;_ (print self.dc-simulator)
           op-analysis (self.dc-simulator.operating-point)
           op-data (dfor (, d p) (filter #%(not-in "cgg" %1) 
                                         (product self.devices self.op-params))
