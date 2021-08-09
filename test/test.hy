@@ -43,9 +43,9 @@
 (setv model (TD3 "MlpPolicy" nenv :action-noise action-noise :verbose 1))
 
 ;; Train
-(model.learn :total-timesteps 100 :log-interval 1)
+(model.learn :total-timesteps 10000 :log-interval 1)
 
-
+(nenv.render "bode")
 
 
 
