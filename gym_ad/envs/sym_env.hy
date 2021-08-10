@@ -105,8 +105,8 @@
 
     ;; Specify geometric and electric parameters, these have to align with the
     ;; parameters defined in the netlist.
-    (setv self.geometric-parameters [ "Lcm1" "Lcm2" "Lcm3" "Ld" "Mcm11" "Mcm12"
-                                      "Mcm21" "Mcm22" "Mcm31" "Mcm32" "Md"
+    (setv self.geometric-parameters [ "Lcm1" "Lcm2" "Lcm3" "Ld" 
+                                      "Mcm11" "Mcm12" "Mcm21" "Mcm22" "Mcm31" "Mcm32" "Md"
                                       "Wcm1" "Wcm2" "Wcm3" "Wd" ]
           self.electric-parameters [ "gmid_cm1" "gmid_cm2" "gmid_cm3" "gmid_dp1" 
                                      "fug_cm1" "fug_cm2" "fug_cm3" "fug_dp1" ])
@@ -117,55 +117,55 @@
     (setv self.action-space (Box :low -1.0 :high 1.0 :shape (, 8) 
                                  :dtype np.float32)))
 
-  (defn electric2geometric [ self gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
-                                  fug-cm1  fug-cm2  fug-cm3  fug-dp1 ]
-    """
-    Takes electric parameters for each building block in the circuit and
-    transforms them into corresponding geometric parameters with previosly
-    trained machine learning models.
-    """
-    (let [vx 1.25 mn 1 mp 4
-          i1 (* mn self.i0)
-          i2 (* 0.5 i1 mp)
-          (, jd l gdsw vgs vdsat gmbsw) (self.nmos (np.array [[gmid-cm1 fug-cm1 0.5 1.0]]))
-
-          (, ) (self.pmos (np.array [[gmid-cm2 fug-cm2 0.5 1.0]]))
-          (, ) (self.nmos (np.array [[gmid-cm3 fug-cm3 0.5 1.0]]))
-          (, ) (self.nmos (np.array [[gmid-dp1 fug-dp1 0.5 1.0]]))
-          ]
-      {
-
-      }
-    ))
-
   (defn step [self action]
-    (let [real-action (self.unscale-action (np.array action))
-          sizing (self.electric2geometric #* real-action) 
-          sizing-data (pd.concat (.values sizing) :names (.keys sizing))
-          _ (setv sizing-data.index (.keys sizing))
+    """
+    Takes an array of electric parameters for each building block and 
+    converts them to sizing parameters for each parameter specified in the
+    netlist. This is passed to the parent class where the netlist ist modified
+    and then simulated, returning observations, reward, done and info.
 
-          _ (for [device sizing-data.index]
-              (setv (-> self.dc-amplifier (.element device) (. width)) 
-                    (-> sizing-data (. loc) (get device) (. W))
-                    (-> self.dc-amplifier (.element device) (. length)) 
-                    (-> sizing-data (. loc) (get device) (. L))
-                    (-> self.dc-amplifier (.element device) (. multiplier)) 
-                    (-> sizing-data (. loc) (get device) (. M)))
-              (setv (-> self.ac-amplifier (.element device) (. width)) 
-                    (-> sizing-data (. loc) (get device) (. W))
-                    (-> self.ac-amplifier (.element device) (. length)) 
-                    (-> sizing-data (. loc) (get device) (. L))
-                    (-> self.ac-amplifier (.element device) (. multiplier)) 
-                    (-> sizing-data (. loc) (get device) (. M))))
-          _ (setv self.moves (inc self.moves))
-          (, observation 
-             reward ) (self.feedback)
-          done        (self.finished self.moves reward)
-          info        (self.information) ]
-    (setv self.last-reward reward)
-    (, observation reward done info)))
+    TODO: Implement sizing procedure.
+    """
+
+    (let [(, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
+             fug-cm1  fug-cm2  fug-cm3  fug-dp1 
+             rcm1 rcm2 ) action
+          
+          (, Mcm11 Mcm12)    (dec2frac rcm1)
+          (, Mcm21 Mcm22)    (dec2frac rcm2)
+          (, Mcm31 Mcm32 Md) (, 1 1 1)
+
+          vx 1.25 
+          i1 (* self.i0 (/ Mcm11 Mcm12))
+          i2 (* 0.5 i1 (/ Mcm21 Mcm22))
+
+          cm1 (self.nmos (np.array [[gmid-cm1 fug-cm1 0.5 1.0]]))
+          cm2 (self.pmos (np.array [[gmid-cm2 fug-cm2 0.5 1.0]]))
+          cm3 (self.nmos (np.array [[gmid-cm3 fug-cm3 0.5 1.0]]))
+          dp1 (self.nmos (np.array [[gmid-dp1 fug-dp1 0.5 1.0]]))
+
+          Lcm1 (get cm1 1)
+          Lcm2 (get cm2 1)
+          Lcm3 (get cm3 1)
+          Ldp1 (get dp1 1)
+
+          Wcm1 (/ self.i0 (get cm1 0))
+          Wcm2 (/ (* 0.5 i1) (get cm2 0))
+          Wcm3 (/ i2 (get cm3 0))
+          Wdp1 (/ (* 0.5 i1) (get dp1 0)) 
+
+          sizing { "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Ld" Ldp1
+                   "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wd" Wdp1
+                   "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31
+                   "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 
+                   "Md" Md } ]
+      (.step (super) sizing)))
 
   (defn render [self &optional [mode "ascii"]]
+    """
+    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
+    https://github.com/Blokkendoos/AACircuit
+    """
     (cond [(= mode "ascii")
            (print f"
 o-------------o---------------o------------o--------------o----------o VDD

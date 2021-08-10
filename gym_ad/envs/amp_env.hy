@@ -1,4 +1,7 @@
 (import [itertools [product]])
+(import [collections.abc [Iterable]])
+(import [fractions [Fraction]])
+(import [decimal [Decimal]])
 
 (import [torch :as pt])
 (import [numpy :as np])
@@ -16,26 +19,56 @@
 
 (defn map2dict [java-map]
   """
-  Convert a java Map to a python dict.
+  Convert a java Map to a python dict. 
+  **DOESN'T WORK FOR NESTED MAPS!**
   Arguments:
     java-map: java Map
   Returns:    dict
   """
   (dfor k (-> java-map (.keySet) (.toArray))
-    [k (if (in (type (setx w (.get java-map k))) [float int])
-        w (np.array (list w)))]))
+    [k (if (isinstance (setx w (.get java-map k)) Iterable)
+        (np.array (list w)) w)]))
 
 (defn scale-value ^float [^float x ^float x-min ^float x-max]
   """
   Scale a value between [0;1]
+    x′ = (x - x_min) ÷ (x_max - x_min)
   """
   (/ (- x x-min) (- x-max x-min)))
 
+(defn unscale-value ^float [^float x′ ^float x-min ^float x-max]
+  """
+  Scales a value ∈ [0;1] back to its original.
+    x = (x_max - x_min) · x′ + x_min
+  """
+  (+ (* (- x-max x-min) x′) x-min))
+
+(defn dec2frac ^tuple [^float ratio]
+  """
+  Turns a float decimal into an integer fraction.
+  """
+  (as-> ratio it (str it) (Decimal it) (Fraction it) 
+                 (, it.numerator it.denominator)))
+
+(defn frac2dec ^float [^int num ^int den]
+  """
+  Turns a fraction into a float ratio.
+  """
+  (/ num den))
+
 (defclass AmplifierEnv [gym.Env]
+  """
+  Abstract parent class for all analog amplifier environments.
+  """
+
   (setv metadata {"render.modes" ["human"]})
 
   (defn __init__ [self amplifier lib-path sim-path ckt-path
                        max-moves target-tolerance ]
+    """
+    Initialzies the basics required by every amplifier implementing this
+    interface.
+    """
 
     (.__init__ (super AmplifierEnv self))
 
@@ -86,25 +119,62 @@
     (setv self.lib-path lib-path
           self.sim-path sim-path
           self.ckt-path ckt-path)
-    (setv self.op (amplifier.build self.sim-path self.lib-path self.ckt-path))
-    (.start self.op))
-  
-  (defn random-parameters [self]
-    """
-    Generate random Sizing parameters.
-    """
-    (-> self.op (.getRandomValues) (map2dict)))
 
-  (defn render [self &optional [mode "human"]]
-    ; TODO FIXME Amplifier symbol
-    (print "Generic amplifier.")
-    None)
+    (setv self.op None))
+    ;; Reset should take care of this?
+    ;(setv self.op (amplifier.build self.sim-path self.lib-path self.ckt-path))
+    ;(.start self.op)
+  
+  (defn render [self &optional ^str [mode "human"]]
+    """
+    Prints a generic ASCII Amplifier symbol for 'human' mode, in case the
+    derived amplifier doesn't implement its own render method (which it
+    should).
+    """
+    (let [ascii-amp (.format "
+            VDD
+             |         
+          |\ |         
+          | \|   Generic Amplifier Subcircuit
+  INP ----+  + 
+          |   \
+          |    \
+    B ----+ op  >---- O
+          |    /
+          |   /
+  INN ----+  +
+          | /|
+          |/ |
+             |
+            VSS ") ]
+      (cond [(= mode "human")
+             (print ascii-amp)
+             ascii-amp]
+          [True 
+           (raise (NotImplementedError f"Only 'human' mode is implemented."))])))
 
   (defn close [self]
-    ; TODO FIXME DESTROY / CLOSE SPECTRE SESSION
-    None)
+    """
+    Closes the spectre session.
+    """
+    (del self.op)
+    (setv self.op None))
 
   (defn reset [self]
+    """
+    If not running, this creates a new spectre session. The `moves` counter is
+    reset, while the reset counter is increased. If `same-target` is false, a
+    random target will be generated otherwise, the given one will be used.
+    If `close-targe` is true, an initial sizing will be found via bayesian
+    optimization, placing the agent fairly close to the target.
+
+    Finally, a simulation is run and the observed perforamnce returned.
+    """
+
+    (unless self.op
+      (setv self.op (amplifier.build self.sim-path self.lib-path self.ckt-path))
+      (.start self.op))
+
     (setv self.moves 0)
     (setv self.reset-counter (inc self.reset-counter))
 
@@ -113,32 +183,55 @@
 
     (setv parameters 
           (if self.close-target
-            (self.random-parameters) 
+              ; TODO FIXME IMPLEMENT CLOSE TARGET
+            (self.random-parameters)
             (self.random-parameters)))
 
     (for [(, param value) parameters]
       (self.op.set param value))
 
     (self.simulate)
-    (self.observe))
+    (self.observation))
 
   (defn random-target ^dict [self]
+    """
+    Generate a random target specification.
+    """
     (dfor pp self.performance-parameters
       ; TODO FIXME RETURN ACHIEVABLE TARGET PERFORAMNCE
       [pp (np.random.rand)]))
 
+  (defn random-parameters [self]
+    """
+    Generate random Sizing parameters.
+    """
+    (-> self.op (.getRandomValues) (map2dict)))
+
   (defn simulate [self]
+    """
+    Run a simulation with the current parameters and update the performances.
+    """
     (.simulate self.op)
     (setv self.performance (map2dict (.getPerformanceValues self.op))
-          self.waveforms   (map2dict (.getWaves self.op))))
+          self.waveforms   (map2dict (.getWaves self.op)))
+    self.performance)
 
-  (defn step [self ^dict action]
+  (defn step ^tuple [self ^dict action]
+    """
+    Takes geometric parameters as dictionary and sets them in the netlist.
+    This method is supposed to be called from a derived class, after converting
+    electric parameters to geometric ones.
+    """
     (for [(, param value) (.items action)]
       (self.op.set param value))
       (self.simulate)
       (, (.observation self) (.reward self) (.done self) (.information self)))
  
   (defn observation [self]
+    """
+    Returns a 'observation-space' conform dictionary with the current state of
+    the circuit and its performance.
+    """
     (let [dist (dfor p self.performance-parameters
                    [(.format "∆_{}" p) 
                     (np.abs (- (get self.performance p) 
@@ -146,17 +239,31 @@
           targ (dfor (, p t) (.items self.target) [(.format "t_{p}") t]) ]
       (| self.performance targ dist self.waveforms)))
 
-  (defn reward ^float [self &optional ^dict [performance self.perforamnce]]
-      ; TODO FIXME RETURN ACTUAL REWARD
-    (np.random.rand))
+  (defn reward ^float [self &optional ^dict [performance self.perforamnce]
+                                      ^dict [target self.target]]
+    """
+    Calculates a reward based on the target and the current perforamnces.
+
+    TODO: Try different reward / cost functions.
+    """
+    (- (np.sum) (lfor p (.keys performance)
+                      (* (np.abs (/ (- (get performance p) (get target p)) 
+                                    (get target p))) 100))))
  
-  (defn done ^bool [self &optional ^int   [moves self.moves] 
-                                       ^float [reward self.reward]]
-    ; TODO FIXME RETURN ACTUAL DONE FLAG
-    (np.random.choice [True False]))
+  (defn done ^bool [self]
+    """
+    Returns True if the target is met (under consideration of the
+    'target-tolerance'), or if moves > max-moves, otherwise False is returned.
+    """
+    (or (> self.moves self.max-moves) 
+        (<= (np.abs (.reward self)) self.target-tolerance)))
 
   (defn info [self]
-    ; TODO FIXME SEND USEFUL INFORMATION
+    """
+    Returns very useful information about the current state of the circuit,
+    simulator and live in general.
+    """
+    ; TODO FIXME: SHOW USEFUL INFORMATION
     {"nothing" None
      "to" 666
      "see" "here"}))
