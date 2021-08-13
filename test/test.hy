@@ -1,3 +1,4 @@
+(import os)
 (import logging)
 (import [icecream [ic]])
 (import [numpy :as np])
@@ -14,27 +15,19 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 
+(setv HOME (os.path.expanduser "~"))
+
 ;; Create Environment
 (setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
-                    :nmos-path "./models/xh035-nmos"
-                    :pmos-path "./models/xh035-pmos"
-                    :lib-path "/home/ynk/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
-                    :jar-path "/home/ynk/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
-                    :ckt-path "./libs"
+                    :nmos-path f"./models/xh035-nmos"
+                    :pmos-path f"./models/xh035-pmos"
+                    :pdk-path f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
+                    :jar-path f"{HOME}/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
+                    :ckt-path f"./libs"
                     :close-target True))
-
-;; Test
-(setv obs (.reset env))
-
-(setv act (.sample env.action-space))
-
-(setv ob (.step env act))
-
 
 ;; Check if no Warnings
 (check-env env :warn True)
-
-(setv p (env.nmos.predict [[0.5 0.5 0.5 0.5]]))
 
 ;; Vectorize for normalization
 (setv venv (DummyVecEnv [#%(identity env)]))
@@ -53,9 +46,20 @@
 ;; Train
 (model.learn :total-timesteps 10000 :log-interval 1)
 
-(nenv.render "bode")
+
+;; Test
+(setv obs (.reset env))
+(setv act (.sample env.action-space))
+(setv ob (.step env act))
 
 
+
+
+(setv df (pd.DataFrame :columns ["A" "B" "C"]))
+
+(setv dd {"A" 1 "B" 2 "C" 3 "D" 5})
+
+(df.append dd :ignore-index True)
 
 
 
