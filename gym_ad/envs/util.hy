@@ -62,11 +62,12 @@
 
 (defclass Loss []
   """
-  A purely static collection of loss functions.
+  A purely static collection of loss functions. All the functions here can
+  only operate on numpy arrays.
   """
 
   #@(staticmethod
-    (defn MAPE [A F]
+    (defn MAPE ^float [^np.array A ^np.array F]
       """
       Mean Absolute Percentage Error:
                              n
@@ -76,20 +77,44 @@
       (* (/ 100 (len A)) (np.sum (np.abs (/ (- A F) A))))))
 
   #@(staticmethod
-    (defn SMAPE [A F]
-    """
-    Symmetric Mean Absolute Percentage Error:
-                            n        | F_t - A_t |
-      SMAPE = ( 100 / n ) · ∑    --------------------
-                          t = 1   (|A_t| + |F_t|) / 2
-    """ 
+    (defn SMAPE ^float [^np.array A ^np.array F]
+      """
+      Symmetric Mean Absolute Percentage Error:
+                              n        | F_t - A_t |
+        SMAPE = ( 100 / n ) · ∑    --------------------
+                            t = 1   (|A_t| + |F_t|) / 2
+      """ 
       (* (/ 100 (len A)) 
          (np.sum (/ (np.abs (- F A)) 
                     (/ (+ (np.abs A) (np.abs F)) 2))))))
 
-  ;#@(staticmethod
-  ;  (defn MDA []))
-  ;#@(staticmethod
-  ;  (defn MASE []))
+  #@(staticmethod
+    (defn MAE ^float [^np.array X ^np.array Y]
+      """
+      Mean Absolute Error:
 
-)
+               ∑ | y - x |
+        MAE = ------------
+                   n
+      """
+      (/ (np.sum (np.abs (- Y X))) (len X))))
+
+  #@(staticmethod
+    (defn MSE ^float [ ^np.array X ^np.array Y]
+      """
+      Mean Squared Error:
+                          2
+               ∑ ( y - x )
+        MAE = ------------
+                   n
+      """
+      (/ (np.sum (np.power (- X Y) 2)) (len X))))
+
+  #@(staticmethod
+    (defn RMSE ^float [^np.array X ^np.array Y]
+      """
+      Root Mean Squared Error:
+
+        RMSE = √( MSE(x, y) )
+      """
+      (np.sqrt (Loss.MSE X Y)))))
