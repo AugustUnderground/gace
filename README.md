@@ -21,17 +21,19 @@ After installing:
 ```python
 import gym
 
-env = gym.make( 'gym_ad:symmetrical-amplifier-v0'
-              , nmos_path   = '/path/to/models/nmos'
-              , pmos_path   = '/path/to/models/pmos'
-              , lib_path    = '/path/to/pdk/technology/.../cadence/.../mos'
-              , ckt_path    = '/path/to/testbenches'
-              , jar_path    = '/path/to/edlab/eda/characterization-with-dependencies.jar'
+env = gym.make( 'gym_ad:sym-amp-xh035-v0'
+              , nmos_path = '/path/to/models/nmos'
+              , pmos_path = '/path/to/models/pmos'
+              , pdk_path  = '/path/to/pdk/technology/.../cadence/.../mos'
+              , ckt_path  = '/path/to/testbenches'
+              , jar_path  = '/path/to/edlab/eda/characterization-with-dependencies.jar'
               , )
 ```
 
 Where `<nmos|pmos>_path` is the location of the corresponding `model.pt` and
-input and output scalers `scale.<X|Y>`.
+input and output scalers `scale.<X|Y>`. The `pdk_path` should point to where
+spectre can find the models referenced in the netlists, which in turn are given
+by the lcoation pointed to by `ckt_path`.
 
 ## Environments
 
@@ -92,8 +94,12 @@ derived.
 
 ### Miller Amplifier
 
-**WIP**
+![moa](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/moa.png)
 
 Registered as `gym_ad:miller-amp-xh035-v0`.
 
-![moa](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/moa.png)
+#### Action Space
+
+4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance
+and the mirror ratios `MNCM12` and `MNCM13` in reference to `MNCM11`. 
+`(, 12) ∈ [-1.0; 1.0]` in total.

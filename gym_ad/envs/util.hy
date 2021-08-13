@@ -20,8 +20,8 @@
   Returns:    dict
   """
   (dfor k (-> java-map (.keySet) (.toArray))
-    [k (if (isinstance (setx w (.get java-map k)) Iterable)
-        (np.array (list w)) w)]))
+    [(str k) (if (isinstance (setx w (.get java-map k)) Iterable)
+                 (np.array (list w)) w)]))
 
 (defn scale-value ^float [^float x ^float x-min ^float x-max
                 &optional ^float [a -1.0] ^float [b 1.0]]
@@ -74,7 +74,7 @@
         MAPE = ( 100 / n ) · ∑  | (A_t - F_t) / A_t |
                            t = 1
       """
-      (* (/ 100 (len A)) (np.sum (np.abs (/ (- A F) A))))))
+      (.item (* (/ 100 (len A)) (np.sum (np.abs (/ (- A F) A)))))))
 
   #@(staticmethod
     (defn SMAPE ^float [^np.array A ^np.array F]
@@ -84,9 +84,9 @@
         SMAPE = ( 100 / n ) · ∑    --------------------
                             t = 1   (|A_t| + |F_t|) / 2
       """ 
-      (* (/ 100 (len A)) 
-         (np.sum (/ (np.abs (- F A)) 
-                    (/ (+ (np.abs A) (np.abs F)) 2))))))
+      (.item (* (/ 100 (len A)) 
+                  (np.sum (/ (np.abs (- F A)) 
+                             (/ (+ (np.abs A) (np.abs F)) 2)))))))
 
   #@(staticmethod
     (defn MAE ^float [^np.array X ^np.array Y]
@@ -97,7 +97,7 @@
         MAE = ------------
                    n
       """
-      (/ (np.sum (np.abs (- Y X))) (len X))))
+      (.item (/ (np.sum (np.abs (- Y X))) (len X)))))
 
   #@(staticmethod
     (defn MSE ^float [ ^np.array X ^np.array Y]
@@ -108,7 +108,7 @@
         MAE = ------------
                    n
       """
-      (/ (np.sum (np.power (- X Y) 2)) (len X))))
+      (.item (/ (np.sum (np.power (- X Y) 2)) (len X)))))
 
   #@(staticmethod
     (defn RMSE ^float [^np.array X ^np.array Y]
@@ -117,4 +117,4 @@
 
         RMSE = √( MSE(x, y) )
       """
-      (np.sqrt (Loss.MSE X Y)))))
+      (.item (np.sqrt (Loss.MSE X Y))))))

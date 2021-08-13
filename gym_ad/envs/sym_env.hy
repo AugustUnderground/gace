@@ -37,14 +37,14 @@
     - See AmplifierEnv
 
   Action Space:
-    Continuous Box a: (10,) ∈ [0;1]
+    Continuous Box a: (10,) ∈ [1.0;1.0]
 
     Where
     a = [ gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1 
           fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-          rcm1 rcm2 ] 
+          mcm1 mcm2 ] 
 
-      rcm1 and rcm2 are the mirror ratios of the corresponding current mirrors.
+      mcm1 and mcm2 are the mirror ratios of the corresponding current mirrors.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
@@ -87,11 +87,13 @@
     """
 
     (if-not (and pdk-path jar-path ckt-path)
-      (raise (TypeError f"SymAmpXH035Env requires 'lib_path', 'ckt-path' and 'jar-path' kwargs.")))
+      (raise (TypeError f"SymAmpXH035Env requires 'pdk-path', 'ckt-path' and 'jar-path' kwargs.")))
 
     ;; Launch JVM and import the Corresponding Amplifier Characterization Library
-    ; f"/home/ynk/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
-    (jpype.startJVM :classpath jar-path)
+    ; f"$HOME/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
+    (unless (.isJVMStarted jpype)
+      (jpype.startJVM :classpath jar-path))
+
     (import [edlab.eda.characterization [Opamp2XH035Characterization]])
     
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
@@ -102,13 +104,15 @@
                                      f"{pmos-path}/scale.X" 
                                      f"{pmos-path}/scale.Y"))
 
-    ;; Specify constants as they are defined in the netlist. 
-    (setv self.vs   0.5
-          self.cl   5e-12
-          self.rl   100e6
-          self.i0   3e-6
-          self.vsup 3.3
-          self.fin  1e3)
+    ;; Specify constants as they are defined in the netlist and by the PDK.
+    (setv self.vs   0.5       ; 
+          self.cl   5e-12     ; Load Capacitance
+          self.rl   100e6     ; Load Resistance
+          self.i0   3e-6      ; Bias Current
+          self.vsup 3.3       ; Supply Voltage
+          self.fin  1e3       ; Input Frequency
+          self.rs   100       ; Sheet Resistance
+          self.cx   0.85e-15)
 
     ;; Initialize parent Environment.
     (.__init__ (super SymAmpXH035Env self) Opamp2XH035Characterization
@@ -123,10 +127,12 @@
     ;; Specify geometric and electric parameters, these have to align with the
     ;; parameters defined in the netlist.
     (setv self.geometric-parameters [ "Lcm1" "Lcm2" "Lcm3" "Ld" 
-                                      "Mcm11" "Mcm12" "Mcm21" "Mcm22" "Mcm31" "Mcm32" "Md"
+                                      "Mcm11" "Mcm12" "Mcm21" "Mcm22" 
+                                      "Mcm31" "Mcm32" "Md"
                                       "Wcm1" "Wcm2" "Wcm3" "Wd" ]
           self.electric-parameters [ "gmid_cm1" "gmid_cm2" "gmid_cm3" "gmid_dp1" 
-                                     "fug_cm1" "fug_cm2" "fug_cm3" "fug_dp1" ])
+                                     "fug_cm1" "fug_cm2" "fug_cm3" "fug_dp1" 
+                                     "mcm1" "rmc2" ])
 
     ;; The action space consists of 10 parameters ∈ [0;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
@@ -141,6 +147,12 @@
                                            1e9 5e8 1e9 1e9      ; fug max
                                            10.0 5.0]))          ; Ratio max
 
+    ;; The `Box` type observation space consists of perforamnces, the distance
+    ;; to the target, as well as general information about the current
+    ;; operating point.
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
+                                      :shape (, 202)  :dtype np.float32))
+ 
     ;; Loss function used for reward calculation. Either write your own, or
     ;; checkout util.Loss for more loss funtions provided with this package. 
     ;; Mean Absolute Percentage Error (MAPE)
@@ -158,12 +170,12 @@
 
     (let [(, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
              fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-             rcm1 rcm2 ) (unscale-value action self.action-scale-min 
+             mcm1 mcm2 ) (unscale-value action self.action-scale-min 
                                                self.action-scale-max)
           
-          (, Mcm11 Mcm12)    (dec2frac rcm1)
-          (, Mcm21 Mcm22)    (dec2frac rcm2)
-          (, Mcm31 Mcm32 Md) (, 1 1 1)
+          (, Mcm11 Mcm12)      (dec2frac mcm1)
+          (, Mcm21 Mcm22)      (dec2frac mcm2)
+          (, Mcm31 Mcm32 Mdp1) (, 2 2 2)
 
           vx 1.25 
           i1 (* self.i0 (/ Mcm11 Mcm12))
@@ -193,8 +205,37 @@
                    "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1
                    "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31
                    "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 
-                   "Md"    Md }]
+                   "Md"    Mdp1 }]
       (.step (super) sizing)))
+  
+  (defn target-specification ^dict [self &optional [noisy True]]
+    """
+    Generate a noisy target specification.
+    """
+    {"a_0"       (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
+     "ugbw"      (+ 3000000.0  (if noisy (np.random.normal 0 5e6) 0))
+     "pm"        (+ 65.0       (if noisy (np.random.normal 0 3.0) 0))
+     "gm"        (+ -30.0      (if noisy (np.random.normal 0 2.5) 0))
+     "sr_r"      (+ 4000000.0  (if noisy (np.random.normal 0 5e6) 0))
+     "sr_f"      (+ -4000000.0 (if noisy (np.random.normal 0 5e6) 0))
+     "vn_1Hz"    (+ 5e-06      (if noisy (np.random.normal 0 5e-7) 0))
+     "vn_10Hz"   (+ 2e-06      (if noisy (np.random.normal 0 5e-7) 0))
+     "vn_100Hz"  (+ 5e-07      (if noisy (np.random.normal 0 5e-8) 0))
+     "vn_1kHz"   (+ 1.5e-07    (if noisy (np.random.normal 0 5e-8) 0))
+     "vn_10kHz"  (+ 6e-08      (if noisy (np.random.normal 0 5e-9) 0))
+     "vn_100kHz" (+ 4e-08      (if noisy (np.random.normal 0 5e-9) 0))
+     "psrr_p"    (+ 90.0       (if noisy (np.random.normal 0 5.0) 0))
+     "psrr_n"    (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
+     "cmrr"      (+ 100        (if noisy (np.random.normal 0 10.0) 0))
+     "v_il"      (+ 0.5        (if noisy (np.random.normal 0 5e-2) 0))
+     "v_ih"      (+ 3.0        (if noisy (np.random.normal 0 5e-1) 0))
+     "v_ol"      (+ 1.5        (if noisy (np.random.normal 0 5e-2) 0))
+     "v_oh"      (+ 1.5        (if noisy (np.random.normal 0 5e-2) 0))
+     "i_out_min" (+ -2.5       (if noisy (np.random.normal 0 5e-2) 0))
+     "i_out_max" (+ 2.5        (if noisy (np.random.normal 0 5e-2) 0))
+     "voff_stat" (+ 3e-3       (if noisy (np.random.normal 0 5e-4) 0))
+     "voff_sys"  (+ -1.5e-3    (if noisy (np.random.normal 0 5e-4) 0))
+     "A"         (+ 5e-10      (if noisy (np.random.normal 0 5e-11) 0))})
 
   (defn render [self &optional [mode "ascii"]]
     """

@@ -59,13 +59,7 @@
     
     ;; If `True` the agent will be reset in a location close to the target.
     (setv self.close-target close-target)
-
-    ;; The `Box` type observation space consists of perforamnces, the distance
-    ;; to the target, as well as general information about the current
-    ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 202) :dtype np.float32))
-                                     
+                                    
     ;; The amplifier object `op` communicates through java with spectre and
     ;; returns performances and other simulation / analyses results.
     (setv self.sim-path sim-path
@@ -150,35 +144,6 @@
     (.simulate self)
     (.observation self))
 
-  (defn target-specification ^dict [self &optional [noisy True]]
-    """
-    Generate a noisy target specification.
-    """
-    {"a_0"       (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
-     "ugbw"      (+ 3000000.0  (if noisy (np.random.normal 0 5e6) 0))
-     "pm"        (+ 65.0       (if noisy (np.random.normal 0 3.0) 0))
-     "gm"        (+ -30.0      (if noisy (np.random.normal 0 2.5) 0))
-     "sr_r"      (+ 4000000.0  (if noisy (np.random.normal 0 5e6) 0))
-     "sr_f"      (+ -4000000.0 (if noisy (np.random.normal 0 5e6) 0))
-     "vn_1Hz"    (+ 5e-06      (if noisy (np.random.normal 0 5e-7) 0))
-     "vn_10Hz"   (+ 2e-06      (if noisy (np.random.normal 0 5e-7) 0))
-     "vn_100Hz"  (+ 5e-07      (if noisy (np.random.normal 0 5e-8) 0))
-     "vn_1kHz"   (+ 1.5e-07    (if noisy (np.random.normal 0 5e-8) 0))
-     "vn_10kHz"  (+ 6e-08      (if noisy (np.random.normal 0 5e-9) 0))
-     "vn_100kHz" (+ 4e-08      (if noisy (np.random.normal 0 5e-9) 0))
-     "psrr_p"    (+ 90.0       (if noisy (np.random.normal 0 5.0) 0))
-     "psrr_n"    (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
-     "cmrr"      (+ 100        (if noisy (np.random.normal 0 10.0) 0))
-     "v_il"      (+ 0.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "v_ih"      (+ 3.0        (if noisy (np.random.normal 0 5e-1) 0))
-     "v_ol"      (+ 1.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "v_oh"      (+ 1.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "i_out_min" (+ -2.5       (if noisy (np.random.normal 0 5e-2) 0))
-     "i_out_max" (+ 2.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "voff_stat" (+ 3e-3       (if noisy (np.random.normal 0 5e-4) 0))
-     "voff_sys"  (+ -1.5e-3    (if noisy (np.random.normal 0 5e-4) 0))
-     "A"         (+ 5e-10      (if noisy (np.random.normal 0 5e-11) 0))})
-
   (defn starting-point ^dict [self &optional ^bool [random False] 
                                              ^bool [noise True]]
     """
@@ -192,7 +157,8 @@
                                       (.getInitValues self.op)))]
       (if noise
         (dfor (, p s) (.items sizing)
-          [p (+ s (np.random.normal 0 1e-7))])
+          [p (if (or (.startswith p "W") (.startswith p "L")) 
+                 (+ s (np.random.normal 0 1e-7)) s)])
         sizing)))
 
   (defn simulate ^dict [self]
@@ -225,8 +191,8 @@
     the circuit and its performance.
     """
     (let [(, perf targ) (np.array (list (zip #* (lfor pp self.performance-parameters 
-                                                      [ (get self.performance pp)
-                                                         (get self.target pp)]))))
+                                                      [(get self.performance pp)
+                                                       (get self.target pp)]))))
 
           dist (np.abs (- perf targ))
 
@@ -258,7 +224,7 @@
           params    (or params self.performance-parameters)
           perf      (np.array (list (map perf-dict.get params)))
           targ      (np.array (list (map targ-dict.get params)))]
-        (- (self.loss perf targ))))
+      (- (self.loss perf targ))))
  
   (defn done ^bool [self]
     """
@@ -269,7 +235,7 @@
                                     self.performance-parameters)))
           targ (np.array (list (map self.target.get 
                                     self.performance-parameters)))
-          loss (loss.MAE perf targ)]
+          loss (Loss.MAE perf targ)]
 
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.

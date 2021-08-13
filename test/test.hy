@@ -1,5 +1,6 @@
 (import os)
 (import logging)
+(import pprint)
 (import [icecream [ic]])
 (import [numpy :as np])
 (import gym)
@@ -15,7 +16,9 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 
-(setv HOME (os.path.expanduser "~"))
+(setv pp    (-> pprint (.PrettyPrinter :indent 2) (. pprint))
+      HOME  (os.path.expanduser "~"))
+
 
 ;; Create Environment
 (setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
@@ -52,7 +55,7 @@
 (setv act (.sample env.action-space))
 (setv ob (.step env act))
 
-
+(pp env.performance)
 
 
 (setv df (pd.DataFrame :columns ["A" "B" "C"]))
