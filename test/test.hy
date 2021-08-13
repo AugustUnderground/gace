@@ -14,19 +14,27 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 
-(setv oe (SimpleMultiObsEnv :random-start False))
-(setv o (.reset oe))
-()
-
 ;; Create Environment
-(setv env (gym.make "gym_ad:symmetrical-amplifier-v0" 
-                    :nmos-prefix "./models/90nm-nmos"
-                    :pmos-prefix "./models/90nm-pmos"
-                    :lib-path "./libs/90nm_bulk.lib"
+(setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
+                    :nmos-path "./models/xh035-nmos"
+                    :pmos-path "./models/xh035-pmos"
+                    :lib-path "/home/ynk/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
+                    :jar-path "/home/ynk/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
+                    :ckt-path "./libs"
                     :close-target True))
+
+;; Test
+(setv obs (.reset env))
+
+(setv act (.sample env.action-space))
+
+(setv ob (.step env act))
+
 
 ;; Check if no Warnings
 (check-env env :warn True)
+
+(setv p (env.nmos.predict [[0.5 0.5 0.5 0.5]]))
 
 ;; Vectorize for normalization
 (setv venv (DummyVecEnv [#%(identity env)]))

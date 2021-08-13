@@ -1,6 +1,9 @@
 (import [torch :as pt])
 (import [numpy :as np])
 (import [pandas :as pd])
+(import [joblib :as jl])
+
+(import [.util [*]])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -8,29 +11,7 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defclass PrimitiveDevice []
-  """
-  This class represents a generic primitive device.
-  """
-  (defn __init__ [self]
-    """
-    Constructs a primitive device.
-    Arguments:
-      prefix:   Directory containing a torchscript *.pt and *.X *.Y scalers.
-      params-x: Names of input parameters.
-      params-y: Names of output parameters.
-    """
-    (setv self.model None))
-
-  (defn predict [self X]
-  """
-  Make a prediction based on electrical characteristics.
-  Arguments:
-    X: pandas Data Frame containing at least `params-x`.
-  """
-    (with [_ (pt.no-grad)] X)))
-
-(defclass PTM [PrimitiveDevice]
+(defclass PrimitiveDeviceDf []
   """
   This class represents a predicitve technology model primitive device, with
   custom scaling.
@@ -54,11 +35,11 @@
     (-> self.model (.cpu) (.eval)))
 
   (defn predict ^pd.DataFrame [self ^pd.DataFrame X]
-  """
-  Make a prediction based on electrical characteristics.
-  Arguments:
-    X: pandas Data Frame containing at least `params-x`.
-  """
+    """
+    Make a prediction based on electrical characteristics.
+    Arguments:
+      X: pandas Data Frame containing at least `params-x`.
+    """
     (with [_ (pt.no-grad)]
       (let [_ (setv X.fug (np.log10 X.fug.values))
             X′ (-> X (get self.params-x) (. values) (self.scale-x.transform))
@@ -70,52 +51,55 @@
         Y))))
 
 
-(defclass XFAB [PrimitiveDevice]
+(defclass PrimitiveDevice []
   """
   This class represents a specific XFAB device. It expects a scaled 
   numpy array ∈ [0;1] as input.
   """
-  (defn __init__ [self ^str model-path ^str scale-y-path ^str scale-x-path]
+  (defn __init__ [self ^str model-path ^str scale-x-path ^str scale-y-path]
     """
-    Constructs an X-FAB XH035 primitive device trained in a specific way.
+    Constructs a primitive device that can handle pre-scaled input for
+    predictions: X ∈ [0;1].
     This is not portable and only works with the 'correct' models.
     Arguments:
       model-path: Directory pointing to a torchscript *.pt model.
     """
     (setv self.path     model-path
           self.params-x ["gmoverid" "fug" "Vds" "Vbs"]
-          self.params-y ["idoverw" "L" "gdsoverw" "Vgs" "vdsat" "gmbsoverw"]
+          self.params-y ["idoverw" "L" "gdsoverw" "Vgs"]
           self.trafo-x  ["fug"]
-          self.trafo-y  ["idoverw" "gdsoverw" "gmbsoverw"]
-          self.mask-x   (lfor px self.params-x (int (in px self.trafo-x)))
-          self.mask-y   (lfor py self.params-y (int (in py self.trafo-y))))
+          self.trafo-y  ["idoverw" "gdsoverw"]
+          self.mask-x   (np.array (lfor px self.params-x (int (in px self.trafo-x))))
+          self.mask-y   (np.array (lfor py self.params-y (int (in py self.trafo-y)))))
 
-    (setv self.scale-x (jl.load scale-x-path)
-          self.scale-y (jl.load scale-y-path))
+    (setv self.scaler-x (jl.load scale-x-path)
+          self.scaler-y (jl.load scale-y-path)
+          self.scale-x  (fn [X] (self.scaler-x.transform X))
+          self.scale-y  (fn [Y] (self.scaler-y.inverse-transform Y)))
+
+    (setv self.trafo-x  (fn [X] (+ (* (np.log10 (np.abs X) 
+                                                :where (> (np.abs X) 0)) 
+                                      self.mask-x) 
+                                   (* X (- 1 self.mask-x))))
+          self.trafo-y  (fn [Y] (+ (* (np.power 10 Y) self.mask-y) 
+                                   (* Y (- 1 self.mask-y)))))
 
     (setv self.model (-> self.path (pt.jit.load) (.cpu) (.eval))))
   
-  (defn transform ^np.array [self ^np.array X ^np.array m]
-    """
-    Transform an array based on a given mask.
-      log10(X · m) + (X * !m)
-    """
-    (-> X (* m) (np.ma.log10) (.filled 0) (+ (* X (- 1 m)))))
-
-  (defn predict ^np.array [self ^np.array X &optional ^bool [scaled True]]
+  (defn predict ^np.array [self ^np.array X]
   """
   Make a prediction based on electrical characteristics.
   Arguments:
-    X:      numpy array of inputs.
-    scaled: if True (default) the input is assumed to be already transformed
-            and scaled, i.e. X ∈ [0;1].
-  Returns:  numpy array with outputs of machine learning model.
+    X:      numpy array of inputs. Shape: (1, 4)
+  Returns:  numpy array with re-scaled and transformed outputs of machine
+            learning model.
   """
-    (-> (np.apply-along-axis 
-          (fn [x]
-            (with [_ (pt.no-grad)]
-              (-> x (pt.from-numpy) (self.model) (.numpy))))
-          1 (np.float32 (if scaled X (-> X (self.transform self.mask-x) 
-                                           (self.scale-x.transform)))))
-        (self.scale-y.inverse-transform)
-        (self.transform self.mask-y))))
+    (with [_ (pt.no-grad)]
+      (-> X (self.trafo-x) 
+            (self.scale-x) 
+            (np.float32) 
+            (pt.from-numpy) 
+            (self.model) 
+            (.numpy) 
+            (self.scale-y) 
+            (self.trafo-y)))))
