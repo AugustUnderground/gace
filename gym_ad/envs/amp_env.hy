@@ -1,18 +1,13 @@
-(import [itertools [product]])
-
+(import [h5py :as h5])
 (import [torch :as pt])
 (import [numpy :as np])
 (import [pandas :as pd])
 (import [joblib :as jl])
-(import [scipy [interpolate]])
-(import [matplotlib.pyplot :as plt])
 
 (import gym)
-(import [gym.spaces [Box Discrete]])
+(import [gym.spaces [Dict Box Discrete Tuple]])
 
-(import [PySpice.Spice.Netlist [Circuit SubCircuitFactory]])
-(import [PySpice.Spice.Library [SpiceLibrary]])
-(import [PySpice.Unit [*]])
+(import [.util [*]])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -20,220 +15,249 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defclass PrimitiveDevice []
-  (defn __init__ [self prefix params-x params-y]
-    (setv self.prefix prefix
-          self.params-x params-x
-          self.params-y params-y)
-
-    (setv self.model (pt.jit.load f"{self.prefix}.pt")
-          self.scale-x (jl.load f"{self.prefix}.X")
-          self.scale-y (jl.load f"{self.prefix}.Y"))
-    
-    (-> self.model (.cpu) (.eval)))
-
-  (defn predict [self X]
-    (with [_ (pt.no-grad)]
-      (let [_ (setv X.fug (np.log10 X.fug.values))
-            X′ (-> X (get self.params-x) (. values) (self.scale-x.transform))
-            Y′ (-> X′ (np.float32) (pt.from-numpy) (self.model) (.numpy))
-            Y  (pd.DataFrame (self.scale-y.inverse-transform Y′)
-                             :columns self.params-y)]
-        (setv Y.jd (np.power 10 Y.jd.values))
-        (setv Y.gdsw (np.power 10 Y.gdsw.values))
-        Y))))
-
-(defn ac-testbench [lib-path vdd vin iref cl]
-  (setv spice-lib (SpiceLibrary lib-path))
-  (setv tb (Circuit "ac_testbench"))
-  (tb.include (get spice-lib "nmos"))
-  (tb.I "bias" 0 "R" (u-A iref))
-  (tb.VoltageSource "dd" "DD" 0 (u-V vdd))
-  (tb.C "L" "O" 0 (u-F cl))
-  (tb.VoltageSource "ip" "P" 0 (u-V vin))
-  (tb.SinusoidalVoltageSource "in" "N" "E" 
-                              :dc-offset (u-V 0.0) 
-                              :ac-magnitude (u-V -1.0))
-  (tb.VoltageControlledVoltageSource "in" "E" 0 "O" 0 (u-V 1.0))
-  tb)
-
-(defn dc-testbench [lib-path vdd vin vout iref cl]
-  (setv spice-lib (SpiceLibrary lib-path))
-  (setv tb (Circuit "dc_testbench"))
-  (tb.include (get spice-lib "nmos"))
-  (tb.I "bias" 0 "R" (u-A iref))
-  (tb.VoltageSource "dd" "DD" 0 (u-V vdd))
-  (tb.C "L" "O" 0 (u-F cl))
-  (tb.VoltageSource "ip" "P" 0 (u-V vin))
-  (tb.VoltageSource "in" "N" 0 (u-V vin))
-  (tb.VoltageSource "out" "O" 0 (u-V vout))
-  tb)
-
 (defclass AmplifierEnv [gym.Env]
-  (setv metadata {"render.modes" ["human" "ac" "dc" "bode"]})
+  """
+  Abstract parent class for all analog amplifier environments.
+  """
 
-  (defn __init__ [self amplifier lib-path vdd vi-cm vo-cm i-ref cl]
+  (setv metadata {"render.modes" ["human"]})
+
+  (defn __init__ [self amplifier ^str sim-path ^str pdk-path ^str ckt-path 
+                  ^int max-moves 
+       &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
+                 ^bool  [data-log-path ""]] 
+    """
+    Initialzies the basics required by every amplifier implementing this
+    interface.
+    """
+
     (.__init__ (super AmplifierEnv self))
-    (setv self.lib-path lib-path)
 
-    (setv self.ac-tb (ac-testbench self.lib-path vdd vi-cm i-ref cl))
-    (self.ac-tb.subcircuit amplifier)
-    (self.ac-tb.X "OP" amplifier.NAME "R" "P" "N" "O" 0 "DD")
-    (setv self.ac-amplifier (first self.ac-tb.subcircuits))
+    ;; Logging the data means, a dataframe containing the sizing and
+    ;; performance parameters will be written to an HDF5.
+    ;; If no `data-log-path` is provided, the data will be discarded after each
+    ;; episode.
+    (setv self.data-log-path  data-log-path
+          self.data-log       (pd.DataFrame))
 
-    (setv self.dc-tb (dc-testbench self.lib-path vdd vi-cm vo-cm i-ref cl))
-    (self.dc-tb.subcircuit amplifier)
-    (self.dc-tb.X "OP" amplifier.NAME "R" "P" "N" "O" 0 "DD")
-    (setv self.dc-amplifier (first self.dc-tb.subcircuits)
-          self.devices (list (filter #%(-> %1 (.upper) (.startswith "M")) 
-                                     (list self.dc-amplifier.element-names)))
-          self.num-devices (len self.devices))
+    ;; Initialize parameters
+    (setv self.last-reward    (- np.inf)
+          self.max-moves      max-moves
+          self.reset-counter  0)
 
-    (setv self.op-params ["w" "l" "vdsat" "id" "gds" "gm" "gmbs" "cgg"]
-          self.po-params ["fug" "gmoverid" "self_gain" "jd"]
-          self.ac-params ["A0dB" "f3dB" "fug" "PM" "GM"])
+    ;; Define list of universal performances for all Amplifiers
+    (setv self.performance-parameters ["a_0" "ugbw" "pm" "gm" "sr_r" "sr_f"
+                                       "vn_1Hz" "vn_10Hz" "vn_100Hz" "vn_1kHz"
+                                       "vn_10kHz" "vn_100kHz" "psrr_p"
+                                       "psrr_n" "cmrr" "v_il" "v_ih" "v_ol"
+                                       "v_oh" "i_out_min" "i_out_max"
+                                       "voff_stat" "voff_sys" "A"])
+    
+    ;; This parameters specifies at which point the specification is considered
+    ;; 'met' and the agent recieves its award.
+    (setv self.target-tolerance target-tolerance)
+    
+    ;; If `True` the agent will be reset in a location close to the target.
+    (setv self.close-target close-target)
+                                    
+    ;; The amplifier object `op` communicates through java with spectre and
+    ;; returns performances and other simulation / analyses results.
+    (setv self.sim-path sim-path
+          self.pdk-path pdk-path
+          self.ckt-path ckt-path)
 
-    (setv self.reset-counter 0))
+    (setv self.op None
+          self.amplifier amplifier))
   
-  (defn render [self &optional [mode "human"]]
-    (cond [(= mode "ac")
-           (print self.ac-tb)]
-          [(= mode "dc")
-           (print self.dc-tb)]
-          [(= mode "human")
-           (self.render :mode "ac")
-           (self.render :mode "dc")]
-          [(= mode "bode")
-           (let [(, fig (, ax1 ax2)) (plt.subplots 2 1 :figsize (, 10 10))]
-            (ax1.plot self.freq self.gain :label "Simulated Gain")
-            (ax1.set-title "Loop Gain")
-            (ax1.set-xscale "log")
-            (ax1.set-ylabel "Gain [dB]")
-            (ax1.grid "on")
-
-            (ax2.plot self.freq self.phase :label "Simulated Phase")
-            (ax2.set-title "Phase")
-            (ax2.set-xscale "log")
-            (ax2.set-xlabel "Frequency [Hz]")
-            (ax2.set-ylabel "Phase [deg]")
-            (ax2.grid "on")
-
-            (plt.show))]
-          [True
-           (raise (NotImplementedError f"Mode {mode} not implented. Use 'human'."))]))
+  (defn render [self &optional ^str [mode "human"]]
+    """
+    Prints a generic ASCII Amplifier symbol for 'human' mode, in case the
+    derived amplifier doesn't implement its own render method (which it
+    should).
+    """
+    (let [ascii-amp (.format "
+            VDD
+             |         
+          |\ |         
+          | \|   Generic Amplifier Subcircuit
+  INP ----+  + 
+          |   \
+          |    \
+    B ----+ op  >---- O
+          |    /
+          |   /
+  INN ----+  +
+          | /|
+          |/ |
+             |
+            VSS ") ]
+      (cond [(= mode "human")
+             (print ascii-amp)
+             ascii-amp]
+          [True 
+           (raise (NotImplementedError f"Only 'human' mode is implemented."))])))
 
   (defn close [self]
-    ; TODO FIXME DESTROY NETLIST / SIMULATOR / PYSPICE OBJECT
-    None)
+    """
+    Closes the spectre session.
+    """
+    (.stop self.op)
+    (del self.op)
+    (setv self.op None))
 
-  (defn reset [self &optional [temp 27.0]]
-    (setv self.ac-simulator (self.ac-tb.simulator :simulator "ngspice-subprocess"
-                                                  :temperature temp
-                                                  :nominal-temperature temp))
+  (defn reset ^np.array [self]
+    """
+    If not running, this creates a new spectre session. The `moves` counter is
+    reset, while the reset counter is increased. If `same-target` is false, a
+    random target will be generated otherwise, the given one will be used.
+    If `close-target` is true, an initial sizing will be found via bayesian
+    optimization, placing the agent fairly close to the target.
 
-    (setv self.dc-simulator (self.dc-tb.simulator ;:simulator "ngspice-subprocess"
-                                                  :temperature temp
-                                                  :nominal-temperature temp))
+    Finally, a simulation is run and the observed perforamnce returned.
+    """
 
-    (setv self.moves 0)
-    (setv self.reset-counter (inc self.reset-counter))
-    (first (self.feedback)))
+    (unless self.op
+      (setv self.op (self.amplifier.build self.sim-path 
+                                          self.pdk-path 
+                                          self.ckt-path))
+      (.start self.op))
 
-  (defn op-simulation [self]
-    (let [save-params (lfor (, d p) (product self.devices self.op-params) 
-                            (.format "@M.XOP.{}[{}]" (.upper d) (.lower p)))
-          _ (self.dc-simulator.save-internal-parameters #* save-params)
-          _ (logging.disable logging.FATAL)
-          ;_ (print self.dc-simulator)
-          op-analysis (self.dc-simulator.operating-point)
-          op-data (dfor (, d p) (filter #%(not-in "cgg" %1) 
-                                        (product self.devices self.op-params))
-                        [(.format "{}:{}" d p) 
-                         (->> p (.format "@M.XOP.{}[{}]" (.upper d) (.lower p)) 
-                                (get op-analysis) 
-                                (.item))])
-          _ (for [d self.devices]
-              (let [gm   (.item (get op-analysis (.format "@m.xop.{}[gm]" d)))
-                    cgg  (.item (get op-analysis (.format "@m.xop.{}[cgg]" d)))
-                    ids  (.item (get op-analysis (.format "@m.xop.{}[id]" d)))
-                    gds  (.item (get op-analysis (.format "@m.xop.{}[gds]" d)))
-                    w    (.item (get op-analysis (.format "@m.xop.{}[W]" d)))]
-                (setv (get op-data (.format "{}:fug" d )) (/ gm (* 2.0 np.pi cgg)))
-                (setv (get op-data (.format "{}:gmoverid" d )) (/ gm ids))
-                (setv (get op-data (.format "{}:self_gain" d )) (/ gm gds))
-                (setv (get op-data (.format "{}:jd" d )) (/ ids w))))
-          _ (logging.disable logging.NOTSET)]
-      op-data))
+    ;; Reset the step counter and increase the reset counter.
+    (setv self.moves         (int 0)
+          self.reset-counter (inc self.reset-counter))
 
-  (defn ac-simulation [self]
-    (let [_ (logging.disable logging.FATAL)
-          ac-analysis (self.ac-simulator.ac :start-frequency (u-Hz self.freq-start) 
-                                            :stop-frequency  (u-Hz self.freq-stop) 
-                                            :number-of-points 10
-                                            :variation "dec")
+    ;; Clear the data log. If self.log-data == True the data will be written to
+    ;; an HDF5 in the `done` function, otherwise it will be discarded.
+    (setv self.data-log (pd.DataFrame))
 
-          freq (-> ac-analysis (. frequency) (np.array))
-          gain (- (-> ac-analysis (get "O") (np.absolute) (np.log10) (* 20))
-                  (-> ac-analysis (get "N") (np.absolute) (np.log10) (* 20)))
-          phase (- (-> ac-analysis (get "O") (np.angle :deg True))
-                   (-> ac-analysis (get "N") (np.angle :deg True)))
-          
-          gf ((juxt #%(get gain %1) #%(get freq %1)) (np.argsort gain))
-          pf ((juxt #%(get phase %1) #%(get freq %1)) (np.argsort phase))
+    ;; Starting parameters are either random or close to a known solution.
+    (setv parameters (if self.close-target
+                        (self.starting-point :random False :noise True)
+                        (self.random-parameters :random True :noise False)))
 
-          A0dB (interpolate.pchip-interpolate freq gain [1.0])
-          A3dB (- A0dB 3)
-          f3dB (interpolate.pchip-interpolate #* gf [A3dB])
-          fug  (if (> A0dB 0) 
-                   (interpolate.pchip-interpolate #* gf [0.0])
-                   (np.array self.freq-stop))
-          fp0  (interpolate.pchip-interpolate #* pf [0.0])
-          PM   (if (> A0dB 0)
-                   (interpolate.pchip-interpolate freq phase [fug])
-                   (np.zeros 1))
-          GM   (interpolate.pchip-interpolate freq gain [fp0]) 
+    (for [(, param value) (.items parameters)]
+      (self.op.set (str param) (np.float64 value)))
 
-          ac-data { "freq"  freq
-                    "gain"  gain
-                    "phase" phase 
-                    "A0dB"  (-> A0dB (.flatten) (first))
-                    "A3dB"  (-> A3dB (.flatten) (first))
-                    "f3dB"  (-> f3dB (.flatten) (first))
-                    "fug"   (-> fug  (.flatten) (first))
-                    "fp0"   (-> fp0  (.flatten) (first))
-                    "PM"    (-> PM   (.flatten) (first))
-                    "GM"    (-> GM   (.flatten) (first)) }
-          _ (logging.disable logging.NOTSET)]
-      (setv self.freq freq
-            self.gain gain
-            self.phase phase)
-      ac-data))
+    ;; Target can be random or close to a known acheivable.
+    (setv self.target (self.target-specification :noisy True))
 
-  (defn reward [self performance]
-    (- (np.mean (!= performance self.target))))
-    ;(.sum (np.abs (- performance self.target))))
-  
-  (defn feedback [self]
-    (let [ac-dict (self.ac-simulation)
-          op-dict (self.op-simulation) 
-          op-vals (-> op-dict (.values) (np.fromiter :dtype np.float32))
-          ac-vals (np.array (lfor p ["gain" "phase" "freq"] (get ac-dict p)))
-          pp-vals (np.array (lfor p ["A0dB" "f3dB" "fug" "PM" "GM"] 
-                                    (get ac-dict p)))
-          obs (np.hstack (tuple (map #%(.flatten %1) [op-vals pp-vals ac-vals]))) 
-          rew (self.reward pp-vals) ]
-      (, obs rew)))
+    (.simulate self)
+    (.observation self))
 
-  (defn finished [self moves reward]
-    (bool (or (> moves self.max-moves)
-              (< (np.abs reward) self.target-tolerance))))
+  (defn starting-point ^dict [self &optional ^bool [random False] 
+                                             ^bool [noise True]]
+    """
+    Generate a starting point for the agent.
+    Arguments:
+      [random]:   Random starting point. (default = False)
+      [noise]:    Add noise to found starting point. (default = True)
+    Returns:      Starting point sizing.
+    """
+    (let [sizing (map2dict (if random (.getRandomValues self.op)
+                                      (.getInitValues self.op)))]
+      (if noise
+        (dfor (, p s) (.items sizing)
+          [p (if (or (.startswith p "W") (.startswith p "L")) 
+                 (+ s (np.random.normal 0 1e-7)) s)])
+        sizing)))
 
-  (defn information [self]
-    (let [op-params (lfor (, d p) (product self.devices self.op-params) 
-                                  (.format "{}:{}" d p))
-          po-params (lfor (, d p) (product self.devices self.po-params) 
-                                  (.format "{}:{}" d p))]
-      { "obskey" (flatten [ op-params 
-                            po-params 
-                            self.ac-params 
-                            ["gain" "phase" "freq"]])})))
+  (defn simulate ^dict [self]
+    """
+    Run a simulation with the current parameters and update the performances.
+
+    TODO: Extract waveforms and add to observation space.
+    """
+    (.simulate self.op)
+    (setv self.performance (map2dict (.getPerformanceValues self.op)))
+    self.performance)
+
+  (defn step ^tuple [self ^dict action]
+    """
+    Takes geometric parameters as dictionary and sets them in the netlist.
+    This method is supposed to be called from a derived class, after converting
+    electric parameters to geometric ones.
+    """
+    (for [(, param value) (.items action)]
+      (self.op.set param value))
+
+    (setv self.data-log (self.data-log.append (self.simulate) 
+                                              :ignore-index True))
+    
+    (, (.observation self) (.reward self) (.done self) (.info self)))
+ 
+  (defn observation ^np.array [self]
+    """
+    Returns a 'observation-space' conform dictionary with the current state of
+    the circuit and its performance.
+    """
+    (let [(, perf targ) (np.array (list (zip #* (lfor pp self.performance-parameters 
+                                                      [(get self.performance pp)
+                                                       (get self.target pp)]))))
+
+          dist (np.abs (- perf targ))
+
+          stat (np.array (lfor sp (.keys self.performance) 
+                                  :if (not-in sp self.performance-parameters) 
+                               (get self.performance sp)))
+          obs (-> (, perf targ dist stat) 
+                  (np.hstack) 
+                  (np.squeeze) 
+                  (np.float32))]
+      (np.where (np.isnan obs) (- np.inf) obs)))
+
+  (defn reward ^float [self &optional ^dict [performance {}]
+                                      ^dict [target {}]
+                                      ^list [params []]]
+    """
+    Calculates a reward based on the target and the current perforamnces.
+    Arguments:
+      [performance]:  Dictionary with performances.
+      [target]:       Dictionary with target values.
+      [params]:       List of parameters.
+      
+      **NOTE**: Both dictionaries must include the keys defined in `params`.
+    If no arguments are provided, the current state of the object is used to
+    calculate the reward.
+    """
+    (let [perf-dict (or performance self.performance) 
+          targ-dict (or target self.target)
+          params    (or params self.performance-parameters)
+          perf      (np.array (list (map perf-dict.get params)))
+          targ      (np.array (list (map targ-dict.get params)))]
+      (- (self.loss perf targ))))
+ 
+  (defn done ^bool [self]
+    """
+    Returns True if the target is met (under consideration of the
+    'target-tolerance'), or if moves > max-moves, otherwise False is returned.
+    """
+    (let [perf (np.array (list (map self.performance.get 
+                                    self.performance-parameters)))
+          targ (np.array (list (map self.target.get 
+                                    self.performance-parameters)))
+          loss (Loss.MAE perf targ)]
+
+      ;; If a log path is defined, a HDF5 data log is kept with all the sizing
+      ;; parameters and corresponding performances.
+      (when self.data-log-path
+        (with [h5-file (h5.File self.data-log-path "a")]
+          (for [col self.data-log]
+            (setv (get h5-file col) (.to-numpy (get self.data-log col))))))
+
+      (or (> self.moves self.max-moves) 
+          (< loss self.target-tolerance))))
+
+  (defn info ^dict [self]
+    """
+    Returns very useful information about the current state of the circuit,
+    simulator and live in general.
+    """
+    {"observation-key" (+ (list (sum (zip #* (lfor pp self.performance-parameters 
+                                                   (, f"performance_{pp}"
+                                                      f"target_{pp}"
+                                                      f"distance_{pp}"))) 
+                                     (,)))
+                          (lfor sp (.keys self.performance) 
+                                   :if (not-in sp self.performance-parameters) 
+                               sp))
+     #_ /}))

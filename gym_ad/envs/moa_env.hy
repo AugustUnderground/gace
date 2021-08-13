@@ -1,13 +1,23 @@
+(import os)
+(import sys)
+(import [functools [partial]])
+
+(import [torch :as pt])
 (import [numpy :as np])
 (import [pandas :as pd])
-;(import [matplotlib.pyplot :as plt])
+
+(import [skopt [gp-minimize]])
 
 (import gym)
-(import [gym.spaces [Box Discrete]])
+(import [gym.spaces [Dict Box Discrete Tuple]])
 
-(import [PySpice.Spice.Netlist [Circuit SubCircuitFactory]])
-(import [PySpice.Spice.Library [SpiceLibrary]])
-(import [PySpice.Unit [*]])
+(import [.amp_env [*]])
+(import [.prim_dev [*]])
+(import [.util [*]])
+
+(import jpype)
+(import jpype.imports)
+(import [jpype.types [*]])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -15,202 +25,235 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defclass MillerAmpCkt [SubCircuitFactory]
-  (setv NAME "miller"
-        NODES (, 10 11 12 13 14 15)) ; REF INP INN OUT GND VDD
-  (defn __init__ [self, C_C]
-    (.__init__ (super))
-    ; Biasing Current Mirror
-    (self.MOSFET "NCM11" 10 10 14 14 :model "nmos")
-    (self.MOSFET "NCM12" 16 10 14 14 :model "nmos")
-    ; Differential Pair
-    (self.MOSFET "ND11"  17 11 16 14 :model "nmos")
-    (self.MOSFET "ND12"  18 12 16 14 :model "nmos")
-    ;  PMOS Current Mirrors
-    (self.MOSFET "PCM21" 17 17 15 15 :model "pmos")
-    (self.MOSFET "PCM22" 18 17 15 15 :model "pmos")
-    ; Output Stage
-    (self.MOSFET "PCS"   13 18 15 15 :model "pmos")
-    (self.MOSFET "NCM13" 13 10 14 14 :model "nmos")
-    ; Compensation
-    (self.C "c" 18 13 C_C@u_F)))
+;; THIS WILL BE FIXED IN HY 1.0!
+;(import multiprocess)
+;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass SymAmpEnv [AmplifierEnv]
-  (setv metadata {"render.modes" ["human" "ac" "dc" "ascii"]})
+(defclass MillerAmpXH035Env [AmplifierEnv]
+  """
+  Derived amplifier class, implementing the Miller Amplifier in the XFAB
+  XH035 Technology. Only works in combinatoin with the right netlists.
+  Observation Space:
+    - See AmplifierEnv
 
-  (defn __init__ [self &optional [nmos-prefix None] [pmos-prefix None] [lib-path None]
-                                 [params-x ["gmid" "fug" "Vds" "Vbs"]]
-                                 [params-y ["jd" "L" "gdsw" "Vgs"]]
-                                 [max-moves 200]
-                                 [target [48.0 1e4 4e6 30 0]]
-                                 [target-tolerance 1e-3]
-                                 [I-B0 10e-6] [M-lo 0.1] [M-hi 10.0]
-                                 [gmid-lo 5.0] [gmid-hi 15.0]
-                                 [fug-lo 6.0] [fug-hi 11.0]
-                                 [freq-start 1.0] [freq-stop 1e11] 
-                                 [vdd 1.2] [vi-cm 0.6] [vo-cm 0.6] 
-                                 [i-ref 10e-6] [cl 15e-12]]
+  Action Space:
+    Continuous Box a: (10,) ∈ [-1.0;1.0]
 
-    (if-not (and nmos-prefix pmos-prefix lib-path)
-      (raise (TypeError f"SymAmpEnv requires 'nmos_prefix', 'pmos_prefix' and 'lib_path' kwargs.")))
+    Where
+    a = [ gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1 
+          fug-cm1  fug-cm2  fug-cm3  fug-dp1 
+          mcm1 mcm2 ] 
 
-    (setv self.params-x params-x
-          self.params-y params-y
-          self.nmos (PrimitiveDevice nmos-prefix self.params-x self.params-y)
-          self.pmos (PrimitiveDevice pmos-prefix self.params-x self.params-y))
+      mcm1 and mcm2 are the mirror ratios of the corresponding current mirrors.
+  """
 
-    (setv self.max-moves max-moves)
+  (setv metadata {"render.modes" ["human" "ascii"]})
 
-    (setv self.I-B0 I-B0
-          self.V-DD vdd
-          self.V-OCM vo-cm
-          self.V-ICM vi-cm)
+  (defn __init__ [self &optional ^str [nmos-path None]  ^str [pmos-path None] 
+                                 ^str [jar-path None]   ^str [sim-path "/tmp"] 
+                                 ^str [pdk-path None]   ^str [ckt-path None]
+                                 ^int [max-moves 200]   ^bool [close-target True]
+                                 ^float [target-tolerance 1e-3] 
+                                 ^dict [target None]]
+    """
+    Constructs a Symmetrical Amplifier Environment with XH035 device models and
+    the corresponding netlist.
+    Arguments:
+      nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
+                  `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
+      pmos-path:  Same as 'nmos-path', but for PMOS model.
 
-    (setv self.target target
-          self.target-tolerance target-tolerance)
+      jar-path:   Path to edlab.eda.characterization jar, something like
+                  $HOME/.m2/repository/edlab/eda/characterization/$VERSION/characterization-$VERSION-jar-with-dependencies.jar
+                  Has to be 'with-dependencies' otherwise waveforms can't be
+                  loaded etc.
+      sim-path:   Path to where the simulation results will be stored. Default
+                  is /tmp.
+      pdk-path:   Path to PDK
+                  /path/to/pdk/tech/XXX/cadence/vX_X/spectre/vX_X_X/mos
+      ckt-path:   Path where the amplifier netlist and testbenches are located.
+      
+      max-moves:  Maximum amount of steps the agent is allowed to take per
+                  episode, before it counts as failed. Default = 200.
+      
+      close-target: If True (default), on each reset, a random target will be
+                    chosen and by bayesian optimization, a location close to it
+                    will be found for the starting point of the agent. This
+                    increases the reset time significantly.
+      target-tolerance: (| target - performance | <= tolerance) ? Success.
+      target: Specific target, if given, no random targets will be generated,
+              and the agent tries to find the same one over and over again.
 
-    (setv self.freq-start freq-start
-          self.freq-stop  freq-stop)
+    """
 
-    (setv self.op-amp (SymAmpCkt))
-    (setv self.lib-path lib-path)
+    (if-not (and pdk-path jar-path ckt-path)
+      (raise (TypeError f"SymAmpXH035Env requires 'pkd-path', 'ckt-path' and 'jar-path' kwargs.")))
 
-    (.__init__ (super SymAmpEnv self) self.op-amp self.lib-path vdd vi-cm vo-cm i-ref cl)
+    ;; Launch JVM and import the Corresponding Amplifier Characterization Library
+    ; f"$HOME/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
+    (unless (.isJVMStarted jpype)
+      (jpype.startJVM :classpath jar-path))
+    
+    (import [edlab.eda.characterization [Opamp1XH035Characterization]])
+    
+    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
+    (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.pt" 
+                                     f"{nmos-path}/scale.X" 
+                                     f"{nmos-path}/scale.Y")
+          self.pmos (PrimitiveDevice f"{pmos-path}/model.pt" 
+                                     f"{pmos-path}/scale.X" 
+                                     f"{pmos-path}/scale.Y"))
 
-    (setv self.action-space (Box :low (np.float32 (np.concatenate (, (np.repeat gmid-lo 4) 
-                                                                     (np.repeat fug-lo 4)
-                                                                     (np.repeat M-lo 2))))
-                                 :high (np.float32 (np.concatenate (, (np.repeat gmid-hi 4) 
-                                                                      (np.repeat fug-hi 4)
-                                                                      (np.repeat M-hi 2))))
-                                 :dtype np.float32))
+    ;; Specify constants as they are defined in the netlist and by the PDK.
+    (setv self.vs   0.5       ; in V
+          self.cl   5e-12     ; Load Capacitance in F
+          self.rl   100e6     ; Load Resistance in Ω
+          self.i0   3e-6      ; Bias Current in A
+          self.vsup 3.3       ; Supply Voltage in V
+          self.fin  1e3       ; Input Frequency in Hz
+          self.rs   100       ; Sheet Resistance in Ω/□
+          self.cs   0.85e-15) ; Poly Capacitance per μm^2
 
-    (setv self.obs-dim (+ (* (len self.devices) 
-                             (+ (len self.po-params) 
-                                (- (len self.op-params) 1)))
-                          (len self.ac-params))
-          self.observation-spaces (Box :low (np.float32 (np.repeat (- np.inf) self.obs-dim))
-                                       :high (np.float32 (np.repeat np.inf self.obs-dim))
-                                       :dtype np.float32)))
+    ;; Initialize parent Environment.
+    (.__init__ (super MillerAmpXH035Env self) Opamp1XH035Characterization
+                                              sim-path pdk-path ckt-path 
+                                              max-moves target-tolerance
+                                              :close-target close-target)
 
-  (defn render [self &optional [mode "ascii"]]
-    (cond [(= mode "ascii")
-           (print f"
-o-------------o---------------o------------o--------------o----------o
-              |               |            |              |           
-              +-||         ||-+            +-||        ||-+           
-              <-||         ||->            <-||        ||->           
-              +-||----o----||-+            +-||----o---||-+           
-              |       |       |            |       |      |           
-              |       |       |            |       |      |           
-              |       '-------o            o-------'      |           
-              |               |            |              |           
-              |               |            |              |           
-              |               |            |              |           
-              |            ||-+            +-||           |           
-   o          |            ||<-            ->||           |           
-   |          |      o-----||-+            +-||-----o     |           
-   |          |               |            |              o-----o--o  
-   |          |               '-----o------'              |     |     
-   |          |                     |                     |     |     
-   +-||       |                  ||-+                     |     |     
-   ->||       |                  ||<-                     |     |     
-   +-||-------)------------------||-+                     |     |     
-   |          |                     |                     |    ---    
-   |          |                     |                     |    ---    
-   |          o-------.             |                     |     |     
-   |          |       |             |                     |     |     
-   |          |       |             |                     |     |     
-   |          +-||    |             |                  ||-+     |     
-   |          ->||    |             |                  ||<-     |     
-   |          +-||----o-------------)------------------||-+     |     
-   |          |                     |                     |     |     
-   |          |                     |                     |     |     
-   '----------o---------------------o---------------------o-----'     
-                                    |                                 
-                                   ===                                
-                                   GND                                " )]
-          [True (.render (super) mode)]))
+    ;; Generate random target of None was provided.
+    (setv self.same-target  (bool target)
+          self.target       (or target (self.target-specification :noisy False)))
 
-  (defn electric2geometric [self gmid_ncm12 gmid_ndp12 gmid_pcm212 gmid_ncm32  
-                            fug_ncm12  fug_ndp12  fug_pcm212  fug_ncm32
-                            MN MP]
-    (let [char {}
-          V-X 0.2
-          I-B1 (* MN self.I-B0)
-          I-B2 (* 0.5 I-B1 MP)
-          input-pcm212 (pd.DataFrame (np.array [[gmid-pcm212 fug-pcm212 (- self.V-DD self.V-OCM) 0.0]])
-                                     :columns self.params-x)
-          input-ncm32  (pd.DataFrame (np.array [[gmid-ncm32 fug-ncm32 self.V-OCM 0.0]])
-                                     :columns self.params-x)
-          input-ncm12  (pd.DataFrame (np.array [[gmid-ncm12 fug-ncm12 V-X 0.0]])
-                                     :columns self.params-x)]
+    ;; Specify geometric and electric parameters, these have to align with the
+    ;; parameters defined in the netlist.
+    (setv self.geometric-parameters ["Lcm1" "Lcm2" "Lcs" "Ld" "Lres" 
+                                     "Mcm11" "Mcm12" "Mcm13" "Mcm21" "Mcm22" 
+                                     "Mcs" "Md" "Mcap" 
+                                     "Wcm1" "Wcm2" "Wcs" "Wd" "Wres" "Wcap"]
+          self.electric-parameters ["gmid_cm1" "gmid_cm2" "gmid_cs1" "gmid_dp1" 
+                                    "fug_cm1" "fug_cm2" "fug_cs1" "fug_dp1" 
+                                    "res" "cap" "mcm1" "mcm2"])
 
-      (setv (get char "MPCM212")      (.join (self.pmos.predict input-pcm212) input-pcm212)
-            (-> char (get "MPCM212") 
-                     (get "W"))       (/ I-B2 (-> char (get "MPCM212") (get "jd") (. values)) MP)
-            (-> char (get "MPCM212") 
-                     (get "M"))       MP
-            (get char "MPCM211")      (.copy (get char "MPCM212"))
-            (-> char (get "MPCM211") 
-                     (get "M"))       1
-            (get char "MPCM222")      (get char "MPCM212")
-            (get char "MPCM221")      (get char "MPCM211"))
+    ;; The action space consists of 10 parameters ∈ [0;1]. One gm/id and fug for
+    ;; each building block. This is subject to change and will include branch
+    ;; currents / mirror ratios in the future.
+    (setv self.action-space (Box :low -1.0 :high 1.0 
+                                 :shape (, 12) 
+                                 :dtype np.float32)
+          self.action-scale-min (np.array [7.0 7.0 7.0 7.0      ; gm/Id min
+                                           1e6 5e5 1e6 1e6      ; fug min
+                                           1e3 1e-12            ; C and R min
+                                           3.0 10.0])           ; Ratio min
+          self.action-scale-max (np.array [17.0 17.0 17.0 17.0  ; gm/Id max
+                                           1e9  5e8  1e9  1e9   ; fug max
+                                           1e4  10e-12          ; C and R max
+                                           7.0  25.0]))         ; Ratio max
 
-      (setv (get char "MNCM32")       (.join (self.nmos.predict input-ncm32) input-ncm32)
-            (-> char (get "MNCM32") 
-                     (get "W"))       (/ I-B2 (-> char (get "MNCM32") (get "jd") (. values)))
-            (-> char (get "MNCM32") 
-                     (get "M"))       1
-            (get char "MNCM32")       (get char "MNCM32"))
-
-      (setv V-GS (first (-> char (get "MNCM32") (get "Vgs") (. values))))
-      (setv input-ndp12 (pd.DataFrame (np.array [[gmid-ndp12 fug-ndp12 (- self.V-DD V-GS V-X) (- V-X)]])
-                                      :columns self.params-x))
-
-      (setv (get char "MND12")        (.join (self.nmos.predict input-ndp12) input-ndp12)
-            (-> char (get "MND12") 
-                     (get "W"))       (/ (* 0.5 I-B1) (-> char (get "MND12") (get "jd") (. values)))
-            (-> char (get "MND12") 
-                     (get "M"))       1
-            (get char "MND11")        (get char "MND12"))
-
-      (setv (get char "MNCM12")       (.join (self.nmos.predict input-ncm12) input-ncm12)
-            (-> char (get "MNCM12") 
-                     (get "W"))       (/ I-B1 (-> char (get "MNCM12") (get "jd") (. values)) MN)
-            (-> char (get "MNCM12") 
-                     (get "M"))       MN
-            (get char "MNCM11")       (.copy (get char "MNCM12"))
-            (-> char (get "MNCM11") 
-                     (get "M"))       1)
-      char))
-
-  (defn scale-action [self action]
-    (setv (get action (slice 4 8)) (np.power 10 (get action (slice 4 8))))
-    action)
+    ;; The `Box` type observation space consists of perforamnces, the distance
+    ;; to the target, as well as general information about the current
+    ;; operating point.
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
+                                      :shape (, 165)  :dtype np.float32))
+ 
+    ;; Loss function used for reward calculation. Either write your own, or
+    ;; checkout util.Loss for more loss funtions provided with this package. 
+    ;; Mean Absolute Percentage Error (MAPE)
+    (setv self.loss Loss.MAPE))
 
   (defn step [self action]
-    (let [scaled-action (self.scale-action action)
-          sizing (self.electric2geometric #* scaled-action) 
-          sizing-data (pd.concat (.values sizing) :names (.keys sizing))
-          _ (setv sizing-data.index (.keys sizing))
+    """
+    Takes an array of electric parameters for each building block and 
+    converts them to sizing parameters for each parameter specified in the
+    netlist. This is passed to the parent class where the netlist ist modified
+    and then simulated, returning observations, reward, done and info.
 
-          _ (for [device sizing-data.index]
-              (setv (-> self.dc-amplifier (.element device) (. width)) 
-                    (-> sizing-data (. loc) (get device) (. W))
-                    (-> self.dc-amplifier (.element device) (. length)) 
-                    (-> sizing-data (. loc) (get device) (. L))
-                    (-> self.dc-amplifier (.element device) (. multiplier)) 
-                    (-> sizing-data (. loc) (get device) (. M)))
-              (setv (-> self.ac-amplifier (.element device) (. width)) 
-                    (-> sizing-data (. loc) (get device) (. W))
-                    (-> self.ac-amplifier (.element device) (. length)) 
-                    (-> sizing-data (. loc) (get device) (. L))
-                    (-> self.ac-amplifier (.element device) (. multiplier)) 
-                    (-> sizing-data (. loc) (get device) (. M))))
-          _ (setv self.moves (inc self.moves))
-          (, observation 
-             reward ) (self.feedback)
-          done        (self.finished self.moves reward)
-          info        (self.information) ]
-    (, observation reward done info))))
+    TODO: Implement sizing procedure.
+    """
+
+    (let [(, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1
+             fug-cm1  fug-cm2  fug-cs1  fug-dp1 
+             res cap mcm2 mcm3 ) (unscale-value action self.action-scale-min 
+                                                       self.action-scale-max)
+          
+          Wres 2e-6
+          Lres (* (/ res self.rs) Wres)
+
+          Wcap (* (np.sqrt (/ cap self.cs)) 1e-6)
+          Mcap 1
+          Mdp1 2
+          Mcm21 2
+          Mcm22 2
+          Mcm11 1
+          Mcm12 (round mcm2)
+          Mcm13 (round mcm3)
+          Mcs1 Mcm13
+
+          vx 1.25 
+          i1 (* self.i0 (/ Mcm11 Mcm12))
+          i2 (*      i1 (/ Mcm11 Mcm13))
+
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vsup 2) 0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vsup 2) 0.0]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vsup 2) 0.0]])
+          cs1-in (np.array [[gmid-cs1 fug-cs1 (/ self.vsup 2) 0.0]])
+
+          cm1-out (first (self.nmos.predict cm1-in))
+          dp1-out (first (self.nmos.predict dp1-in))
+          cm2-out (first (self.pmos.predict cm2-in))
+          cs1-out (first (self.pmos.predict cs1-in))
+
+          Lcm1 (get cm1-out 1)
+          Ldp1 (get dp1-out 1)
+          Lcm2 (get cm2-out 1)
+          Lcs1 (get cs1-out 1)
+
+          Wcm1 (/ self.i0 (get cm1-out 0))
+          Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
+          Wdp1 (/ (* 0.5 i1) (get dp1-out 0))
+          Wcs1 (/ i2 (get cs1-out 0))
+
+          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  "Ld"    Ldp1 
+                  "Lres"  Lres  "Mcm11" Mcm11 "Mcm12" Mcm12 "Mcm13" Mcm13 
+                  "Mcm21" Mcm21 "Mcm22" Mcm22 "Mcs"   Mcs1  "Md"    Mdp1  
+                  "Mcap"  Mcap  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1 
+                  "Wd"    Wdp1  "Wres"  Wres  "Wcap"  Wcap}]
+
+      (.step (super) sizing)))
+
+  (defn target-specification ^dict [self &optional [noisy True]]
+    """
+    Generate a noisy target specification.
+    """
+    {"a_0"       (+ 100.0      (if noisy (np.random.normal 0 5.0) 0))
+     "ugbw"      (+ 3500000.0  (if noisy (np.random.normal 0 5e6) 0))
+     "pm"        (+ 100.0      (if noisy (np.random.normal 0 3.0) 0))
+     "gm"        (+ -40.0      (if noisy (np.random.normal 0 2.5) 0))
+     "sr_r"      (+ 2500000.0  (if noisy (np.random.normal 0 5e6) 0))
+     "sr_f"      (+ -2500000.0 (if noisy (np.random.normal 0 5e6) 0))
+     "vn_1Hz"    (+ 5e-06      (if noisy (np.random.normal 0 5e-7) 0))
+     "vn_10Hz"   (+ 2e-06      (if noisy (np.random.normal 0 5e-7) 0))
+     "vn_100Hz"  (+ 5e-07      (if noisy (np.random.normal 0 5e-8) 0))
+     "vn_1kHz"   (+ 1.5e-07    (if noisy (np.random.normal 0 5e-8) 0))
+     "vn_10kHz"  (+ 5e-08      (if noisy (np.random.normal 0 5e-9) 0))
+     "vn_100kHz" (+ 2.5e-08    (if noisy (np.random.normal 0 5e-9) 0))
+     "psrr_n"    (+ 120.0      (if noisy (np.random.normal 0 10.0) 0))
+     "psrr_p"    (+ 120.0      (if noisy (np.random.normal 0 10.0) 0))
+     "cmrr"      (+ 110        (if noisy (np.random.normal 0 10.0) 0))
+     "v_il"      (+ 0.5        (if noisy (np.random.normal 0 5e-2) 0))
+     "v_ih"      (+ 3.0        (if noisy (np.random.normal 0 5e-1) 0))
+     "v_ol"      (+ 0.2        (if noisy (np.random.normal 0 5e-2) 0))
+     "v_oh"      (+ 3.0        (if noisy (np.random.normal 0 5e-2) 0))
+     "i_out_min" (+ 0.0        (if noisy (np.random.normal 0 5e-6) 0))
+     "i_out_max" (+ 7e-5       (if noisy (np.random.normal 0 5e-6) 0))
+     "voff_stat" (+ 3e-3       (if noisy (np.random.normal 0 5e-4) 0))
+     "voff_sys"  (+ -3e-5      (if noisy (np.random.normal 0 5e-6) 0))
+     "A"         (+ 5e-9       (if noisy (np.random.normal 0 5e-10) 0))})
+
+  (defn render [self &optional [mode "ascii"]]
+    """
+    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
+    https://github.com/Blokkendoos/AACircuit
+    """
+    (cond [(= mode "ascii")
+           (print f"Not Implemented")]
+          [True (.render (super) mode)])))

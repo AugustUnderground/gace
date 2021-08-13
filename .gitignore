@@ -8,6 +8,7 @@
 *.egg
 *.out
 *.raw
+*.log
 .eggs/
 .Python
 __pycache__/
@@ -28,3 +29,5 @@ gym_ad/*.raw
 models/*
 libs/*
 install.sh
+resources
+mos
