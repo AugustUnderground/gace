@@ -50,8 +50,8 @@
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [nmos-path None]  ^str [pmos-path None] 
-                                 ^str [lib-path None]   ^str [jar-path None]
-                                 ^str [sim-path "/tmp"] ^str [ckt-path None]
+                                 ^str [jar-path None]   ^str [sim-path "/tmp"] 
+                                 ^str [pdk-path None]   ^str [ckt-path None]
                                  ^int [max-moves 200]   ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
                                  ^dict [target None]]
@@ -63,14 +63,14 @@
                   `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
       pmos-path:  Same as 'nmos-path', but for PMOS model.
 
-      lib-path:   Path to XFAB MOS devices for XH035 pdk, something like 
-                  /path/to/pdk/tech/xh035/cadence/vX_X/spectre/vX_X_X/mos
       jar-path:   Path to edlab.eda.characterization jar, something like
                   $HOME/.m2/repository/edlab/eda/characterization/$VERSION/characterization-$VERSION-jar-with-dependencies.jar
                   Has to be 'with-dependencies' otherwise waveforms can't be
                   loaded etc.
       sim-path:   Path to where the simulation results will be stored. Default
                   is /tmp.
+      pdk-path:   Path to PDK
+                  /path/to/pdk/tech/XXX/cadence/vX_X/spectre/vX_X_X/mos
       ckt-path:   Path where the amplifier netlist and testbenches are located.
       
       max-moves:  Maximum amount of steps the agent is allowed to take per
@@ -86,7 +86,7 @@
 
     """
 
-    (if-not (and lib-path jar-path ckt-path)
+    (if-not (and pdk-path jar-path ckt-path)
       (raise (TypeError f"SymAmpXH035Env requires 'lib_path', 'ckt-path' and 'jar-path' kwargs.")))
 
     ;; Launch JVM and import the Corresponding Amplifier Characterization Library
@@ -112,7 +112,7 @@
 
     ;; Initialize parent Environment.
     (.__init__ (super SymAmpXH035Env self) Opamp2XH035Characterization
-                                           lib-path sim-path ckt-path 
+                                           sim-path pdk-path ckt-path 
                                            max-moves target-tolerance
                                            :close-target close-target)
 

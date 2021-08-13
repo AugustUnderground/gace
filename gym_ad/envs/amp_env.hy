@@ -1,3 +1,4 @@
+(import [h5py :as h5])
 (import [torch :as pt])
 (import [numpy :as np])
 (import [pandas :as pd])
@@ -21,15 +22,23 @@
 
   (setv metadata {"render.modes" ["human"]})
 
-  (defn __init__ [self amplifier ^str lib-path ^str sim-path ^str ckt-path 
-                  ^int max-moves &optional ^float [target-tolerance 1e-3]
-                  ^bool [close-target True] ] 
+  (defn __init__ [self amplifier ^str sim-path ^str pdk-path ^str ckt-path 
+                  ^int max-moves 
+       &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
+                 ^bool  [data-log-path ""]] 
     """
     Initialzies the basics required by every amplifier implementing this
     interface.
     """
 
     (.__init__ (super AmplifierEnv self))
+
+    ;; Logging the data means, a dataframe containing the sizing and
+    ;; performance parameters will be written to an HDF5.
+    ;; If no `data-log-path` is provided, the data will be discarded after each
+    ;; episode.
+    (setv self.data-log-path  data-log-path
+          self.data-log       (pd.DataFrame))
 
     ;; Initialize parameters
     (setv self.last-reward    (- np.inf)
@@ -59,8 +68,8 @@
                                      
     ;; The amplifier object `op` communicates through java with spectre and
     ;; returns performances and other simulation / analyses results.
-    (setv self.lib-path lib-path
-          self.sim-path sim-path
+    (setv self.sim-path sim-path
+          self.pdk-path pdk-path
           self.ckt-path ckt-path)
 
     (setv self.op None
@@ -114,12 +123,20 @@
     """
 
     (unless self.op
-      (setv self.op (self.amplifier.build self.sim-path self.lib-path self.ckt-path))
+      (setv self.op (self.amplifier.build self.sim-path 
+                                          self.pdk-path 
+                                          self.ckt-path))
       (.start self.op))
 
-    (setv self.moves 0)
-    (setv self.reset-counter (inc self.reset-counter))
+    ;; Reset the step counter and increase the reset counter.
+    (setv self.moves         (int 0)
+          self.reset-counter (inc self.reset-counter))
 
+    ;; Clear the data log. If self.log-data == True the data will be written to
+    ;; an HDF5 in the `done` function, otherwise it will be discarded.
+    (setv self.data-log (pd.DataFrame))
+
+    ;; Starting parameters are either random or close to a known solution.
     (setv parameters (if self.close-target
                         (self.starting-point :random False :noise True)
                         (self.random-parameters :random True :noise False)))
@@ -127,6 +144,7 @@
     (for [(, param value) (.items parameters)]
       (self.op.set (str param) (np.float64 value)))
 
+    ;; Target can be random or close to a known acheivable.
     (setv self.target (self.target-specification :noisy True))
 
     (.simulate self)
@@ -136,8 +154,8 @@
     """
     Generate a noisy target specification.
     """
-    {"a_0"       (+ 55.0       (if noisy (np.random.normal 0 5.0) 0))
-     "ugbw"      (+ 3500000.0  (if noisy (np.random.normal 0 5e6) 0))
+    {"a_0"       (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
+     "ugbw"      (+ 3000000.0  (if noisy (np.random.normal 0 5e6) 0))
      "pm"        (+ 65.0       (if noisy (np.random.normal 0 3.0) 0))
      "gm"        (+ -30.0      (if noisy (np.random.normal 0 2.5) 0))
      "sr_r"      (+ 4000000.0  (if noisy (np.random.normal 0 5e6) 0))
@@ -180,10 +198,11 @@
   (defn simulate ^dict [self]
     """
     Run a simulation with the current parameters and update the performances.
+
+    TODO: Extract waveforms and add to observation space.
     """
     (.simulate self.op)
     (setv self.performance (map2dict (.getPerformanceValues self.op)))
-          ;self.waveforms   (map2dict (.getWaves self.op)))
     self.performance)
 
   (defn step ^tuple [self ^dict action]
@@ -195,7 +214,9 @@
     (for [(, param value) (.items action)]
       (self.op.set param value))
 
-    (self.simulate)
+    (setv self.data-log (self.data-log.append (self.simulate) 
+                                              :ignore-index True))
+    
     (, (.observation self) (.reward self) (.done self) (.info self)))
  
   (defn observation ^np.array [self]
@@ -244,10 +265,21 @@
     Returns True if the target is met (under consideration of the
     'target-tolerance'), or if moves > max-moves, otherwise False is returned.
     """
-    (or (> self.moves self.max-moves) 
-        (<= (np.abs (- (np.array (.values self.performance))
-                       (np.array (.values self.target)))
-            self.target-tolerance))))
+    (let [perf (np.array (list (map self.performance.get 
+                                    self.performance-parameters)))
+          targ (np.array (list (map self.target.get 
+                                    self.performance-parameters)))
+          loss (loss.MAE perf targ)]
+
+      ;; If a log path is defined, a HDF5 data log is kept with all the sizing
+      ;; parameters and corresponding performances.
+      (when self.data-log-path
+        (with [h5-file (h5.File self.data-log-path "a")]
+          (for [col self.data-log]
+            (setv (get h5-file col) (.to-numpy (get self.data-log col))))))
+
+      (or (> self.moves self.max-moves) 
+          (< loss self.target-tolerance))))
 
   (defn info ^dict [self]
     """
