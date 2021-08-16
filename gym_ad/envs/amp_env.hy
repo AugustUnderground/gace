@@ -234,7 +234,7 @@
           targ      (np.array (list (map targ-dict.get params)) 
                               :dtype np.float32)
           loss      (np.float32 (np.abs (self.loss perf targ))) ]
-      (- (np.log10 loss :where (> 0 loss)))))
+      (float (- (np.log10 loss :where (> 0 loss))))))
  
   (defn done ^bool [self]
     """
