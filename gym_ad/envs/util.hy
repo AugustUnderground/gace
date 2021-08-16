@@ -74,7 +74,8 @@
         MAPE = ( 100 / n ) · ∑  | (A_t - F_t) / A_t |
                            t = 1
       """
-      (.item (* (/ 100 (len A)) (np.sum (np.abs (/ (- A F) A)))))))
+      (.item (* (/ 100 (len A)) 
+                (np.sum (np.abs (np.divide (- A F) A :where (!= A 0))))))))
 
   #@(staticmethod
     (defn SMAPE ^float [^np.array A ^np.array F]
