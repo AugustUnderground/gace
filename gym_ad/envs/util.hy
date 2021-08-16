@@ -11,7 +11,7 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defn map2dict [java-map]
+(defn jmap-to-dict [java-map]
   """
   Convert a java Map to a python dict. 
   **DOESN'T WORK FOR NESTED MAPS!**
@@ -21,7 +21,7 @@
   """
   (dfor k (-> java-map (.keySet) (.toArray))
     [(str k) (if (isinstance (setx w (.get java-map k)) Iterable)
-                 (np.array (list w)) w)]))
+                 (np.array (list w) :dtype np.float32) (np.float32 w))]))
 
 (defn scale-value ^float [^float x ^float x-min ^float x-max
                 &optional ^float [a -1.0] ^float [b 1.0]]
@@ -46,7 +46,7 @@
   """
   (+ x-min (* (/ (- x′ a) (- b a)) (- x-max x-min))))
 
-(defn dec2frac ^tuple [^float ratio]
+(defn dec-to-frac ^tuple [^float ratio]
   """
   Turns a float decimal (rounded to nearest .5) into an integer fraction.
   """
@@ -54,7 +54,7 @@
                  (Decimal it) (Fraction it) 
                  (, it.numerator it.denominator)))
 
-(defn frac2dec ^float [^int num ^int den]
+(defn frac-to-dec ^float [^int num ^int den]
   """
   Turns a fraction into a float ratio.
   """

@@ -153,7 +153,7 @@
       [noise]:    Add noise to found starting point. (default = True)
     Returns:      Starting point sizing.
     """
-    (let [sizing (map2dict (if random (.getRandomValues self.op)
+    (let [sizing (jmap-to-dict (if random (.getRandomValues self.op)
                                       (.getInitValues self.op)))]
       (if noise
         (dfor (, p s) (.items sizing)
@@ -168,7 +168,14 @@
     TODO: Extract waveforms and add to observation space.
     """
     (.simulate self.op)
-    (setv self.performance (map2dict (.getPerformanceValues self.op)))
+
+    (setv self.performance (dfor (, p v) 
+                                 (-> self (. op) 
+                                          (.getPerformanceValues) 
+                                          (jmap-to-dict) 
+                                          (.items))
+                                 [p (if (np.isnan v) 0.0 v)]))
+
     self.performance)
 
   (defn step ^tuple [self ^dict action]
@@ -222,9 +229,12 @@
     (let [perf-dict (or performance self.performance) 
           targ-dict (or target self.target)
           params    (or params self.performance-parameters)
-          perf      (np.array (list (map perf-dict.get params)))
-          targ      (np.array (list (map targ-dict.get params)))]
-      (- (self.loss perf targ))))
+          perf      (np.nan-to-num (np.array (list (map perf-dict.get params)) 
+                                             :dtype np.float32))
+          targ      (np.array (list (map targ-dict.get params)) 
+                              :dtype np.float32)
+          loss      (np.float32 (np.abs (self.loss perf targ))) ]
+      (- (np.log10 loss :where (> 0 loss)))))
  
   (defn done ^bool [self]
     """

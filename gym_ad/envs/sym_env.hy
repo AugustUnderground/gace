@@ -173,8 +173,8 @@
              mcm1 mcm2 ) (unscale-value action self.action-scale-min 
                                                self.action-scale-max)
           
-          (, Mcm11 Mcm12)      (dec2frac mcm1)
-          (, Mcm21 Mcm22)      (dec2frac mcm2)
+          (, Mcm11 Mcm12)      (dec-to-frac mcm1)
+          (, Mcm21 Mcm22)      (dec-to-frac mcm2)
           (, Mcm31 Mcm32 Mdp1) (, 2 2 2)
 
           vx 1.25 
