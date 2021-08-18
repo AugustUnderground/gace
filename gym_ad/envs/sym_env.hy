@@ -49,12 +49,12 @@
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
-  (defn __init__ [self &optional ^str [nmos-path None]  ^str [pmos-path None] 
-                                 ^str [jar-path None]   ^str [sim-path "/tmp"] 
-                                 ^str [pdk-path None]   ^str [ckt-path None]
-                                 ^int [max-moves 200]   ^bool [close-target True]
+  (defn __init__ [self &optional ^str [nmos-path None] ^str [pmos-path None] 
+                                 ^str [jar-path None]  ^str [sim-path "/tmp"] 
+                                 ^str [pdk-path None]  ^str [ckt-path None]
+                                 ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
-                                 ^dict [target None]]
+                                 ^dict [target None] ^str [data-log-path ""]]
     """
     Constructs a Symmetrical Amplifier Environment with XH035 device models and
     the corresponding netlist.
@@ -118,7 +118,8 @@
     (.__init__ (super SymAmpXH035Env self) Opamp2XH035Characterization
                                            sim-path pdk-path ckt-path 
                                            max-moves target-tolerance
-                                           :close-target close-target)
+                                           :close-target close-target
+                                           :data-log-path data-log-path)
 
     ;; Generate random target of None was provided.
     (setv self.same-target  (bool target)

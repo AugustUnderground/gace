@@ -25,7 +25,7 @@
   (defn __init__ [self amplifier ^str sim-path ^str pdk-path ^str ckt-path 
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
-                 ^bool  [data-log-path ""]] 
+                 ^str   [data-log-path ""]] 
     """
     Initialzies the basics required by every amplifier implementing this
     interface.
