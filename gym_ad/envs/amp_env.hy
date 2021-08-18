@@ -250,10 +250,17 @@
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.
       (when self.data-log-path
-        (with [h5-file (h5.File self.data-log-path "a")]
-          (for [col self.data-log]
-            (setv (get h5-file col) (.to-numpy (get self.data-log col))))))
+        (setv cols (lfor c self.data-log.columns
+                         (-> c (.replace ":" "-")
+                               (.replace "." "_"))))
+        (self.data-log.to-hdf self.data-log-path 
+                              :key "data" 
+                              :mode "a" 
+                              :append True 
+                              :data-columns cols))
 
+      ;; 'done' when either maximum number of steps are exceeded, or the
+      ;; overall loss is less than the specified target loss.
       (or (> self.moves self.max-moves) 
           (< loss self.target-tolerance))))
 
