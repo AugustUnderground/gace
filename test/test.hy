@@ -56,7 +56,8 @@
 ;  (pp (get ob 1)))
 
 ;; Vectorize for normalization
-(setv venv (DummyVecEnv [#%(identity env)]))
+;(setv venv (DummyVecEnv [#%(identity env)]))
+(setv venv (DummyVecEnv (list (repeat #%(identity env) 5))))
 (setv nenv (VecNormalize venv :training True
                               :norm-obs True
                               :norm-reward True))
@@ -78,7 +79,6 @@
 ;(with [h5-file (h5.File f"../data/symamp/{ts}.h5" "a")]
 ;  (for [col env.data-log]
 ;    (setv (get h5-file col) (.to-numpy (get env.data-log col)))))
-
 
 (a2c-model.save model-path)
 
