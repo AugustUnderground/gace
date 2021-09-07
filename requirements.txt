@@ -8,4 +8,4 @@ matplotlib
 PySpice
 scikit-optimize
 torch
-jpype
+jpype1
