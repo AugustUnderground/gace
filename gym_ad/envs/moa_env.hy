@@ -29,12 +29,12 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass MillerAmpXH035Env [AmplifierEnv]
+(defclass MillerAmpXH035Env [AmplifierXH035Env]
   """
   Derived amplifier class, implementing the Miller Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
   Observation Space:
-    - See AmplifierEnv
+    - See AmplifierXH035Env
 
   Action Space:
     Continuous Box a: (10,) ∈ [-1.0;1.0]
@@ -219,7 +219,20 @@
                   "Mcap"  Mcap  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1 
                   "Wd"    Wdp1  "Wres"  Wres  "Wcap"  Wcap}]
 
-      (.step (super) sizing)))
+      (.size-step (super) (self.clip-sizing sizing))))
+
+  (defn clip-sizing ^dict [self ^dict sizing]
+    """
+    Clip the chosen values according to PDK Specifiactions.
+    """
+    (dfor (, p v) (.items sizing)
+      [p (cond [(= p "Wcap") (-> v (max 3.5e-6) (min 1e-3))]
+               [(= p "Wres") (max v 0.8e-6)]
+               [(= p "Lres") (max v 0.8e-6)]
+               [(.startswith p "M") (max v 1.0)]
+               [(.startswith p "L") (max v 0.35e-6)]
+               [(.startswith p "W") (-> v (max 0.4e-6) (min 150e-6))]
+               [True v])]))
 
   (defn target-specification ^dict [self &optional [noisy True]]
     """

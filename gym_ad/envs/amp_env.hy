@@ -15,9 +15,10 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defclass AmplifierEnv [gym.Env]
+(defclass AmplifierXH035Env [gym.Env]
   """
-  Abstract parent class for all analog amplifier environments.
+  Abstract parent class for all analog amplifier environments designed with
+  the X-FAB XH035 Technology.
   """
 
   (setv metadata {"render.modes" ["human"]})
@@ -31,7 +32,7 @@
     interface.
     """
 
-    (.__init__ (super AmplifierEnv self))
+    (.__init__ (super AmplifierXH035Env self))
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
@@ -178,18 +179,21 @@
 
     self.performance)
 
-  (defn step ^tuple [self ^dict action]
+  (defn size-step ^tuple [self ^dict action]
     """
     Takes geometric parameters as dictionary and sets them in the netlist.
     This method is supposed to be called from a derived class, after converting
     electric parameters to geometric ones.
+
+    Each circuit has to make sure the geometric parameters are within reason.
+    (see `clip-sizing` mehtods.)
     """
     (for [(, param value) (.items action)]
-      (self.op.set param value))
+        (self.op.set param value))
 
     (setv self.data-log (self.data-log.append (self.simulate) 
                                               :ignore-index True))
-    
+
     (, (.observation self) (.reward self) (.done self) (.info self)))
  
   (defn observation ^np.array [self]

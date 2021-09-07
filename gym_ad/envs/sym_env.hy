@@ -29,12 +29,12 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass SymAmpXH035Env [AmplifierEnv]
+(defclass SymAmpXH035Env [AmplifierXH035Env]
   """
   Derived amplifier class, implementing the Symmetrical Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
   Observation Space:
-    - See AmplifierEnv
+    - See AmplifierXH035Env
 
   Action Space:
     Continuous Box a: (10,) ∈ [1.0;1.0]
@@ -207,8 +207,19 @@
                    "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31
                    "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 
                    "Md"    Mdp1 }]
-      (.step (super) sizing)))
+
+      (.size-step (super) (self.clip-sizing sizing))))
   
+  (defn clip-sizing ^dict [self ^dict sizing]
+    """
+    Clip the chosen values according to PDK Specifiactions.
+    """
+    (dfor (, p v) (.items sizing)
+      [p (cond [(.startswith p "M") (max v 1.0)]
+               [(.startswith p "L") (max v 0.35e-6)]
+               [(.startswith p "W") (-> v (max 0.4e-6) (min 150e-6))]
+               [True v])]))
+
   (defn target-specification ^dict [self &optional [noisy True]]
     """
     Generate a noisy target specification.
