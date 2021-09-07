@@ -23,8 +23,9 @@
 (setv pp         (-> pprint (.PrettyPrinter :indent 2) (. pprint))
       HOME       (os.path.expanduser "~")
       time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
+      model-path f"./models/baselines/a2c-miller-amp-xh035-{time-stamp}.mod"
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-{time-stamp}.mod"
-      model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
+      ;model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
       data-path  f"../data/symamp/xh035.h5")
 
 (setv nmos-path f"../models/xh035-nmos"
@@ -34,7 +35,8 @@
       ckt-path  f"../library/")
 
 ;; Create Environment
-(setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
+;(setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
+(setv env (gym.make "gym_ad:miller-amp-xh035-v0" 
                     :nmos-path      nmos-path
                     :pmos-path      pmos-path
                     :pdk-path       pdk-path
@@ -47,14 +49,17 @@
 (check-env env :warn True)
 
 ;; Test
-;(setv obs (.reset env))
-;(setv act (.sample env.action-space))
-;(setv ob (.step env act))
-;
-;(for [i (range 10)]
-;  (setv act (.sample env.action-space))
-;  (setv ob (.step env act))
-;  (pp (get ob 1)))
+(setv obs (.reset env))
+(setv act (.sample env.action-space))
+(setv ob (.step env act))
+
+(setv iv (-> env.op (.getInitValues) (dict) (.keys) (list)))
+
+(for [i (range 10)]
+  (setv act (.sample env.action-space))
+  (setv act (.sample env.action-space))
+  (setv ob (.step env act))
+  (pp (get ob 1)))
 
 ;; Vectorize for normalization
 ;(setv venv (DummyVecEnv [#%(identity env)]))
