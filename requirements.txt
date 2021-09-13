@@ -5,7 +5,6 @@ stable-baselines3
 numpy
 scipy
 matplotlib
-PySpice
 scikit-optimize
 torch
-jpype1
+aclib
