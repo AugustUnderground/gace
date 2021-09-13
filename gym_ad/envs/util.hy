@@ -11,18 +11,6 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defn jmap-to-dict [java-map]
-  """
-  Convert a java Map to a python dict. 
-  **DOESN'T WORK FOR NESTED MAPS!**
-  Arguments:
-    java-map: java Map
-  Returns:    dict
-  """
-  (dfor k (-> java-map (.keySet) (.toArray))
-    [(str k) (if (isinstance (setx w (.get java-map k)) Iterable)
-                 (np.array (list w) :dtype np.float32) (np.float32 w))]))
-
 (defn scale-value ^float [^float x ^float x-min ^float x-max
                 &optional ^float [a -1.0] ^float [b 1.0]]
   """

@@ -12,12 +12,7 @@
 (import [gym.spaces [Dict Box Discrete Tuple]])
 
 (import [.amp_env [*]])
-(import [.prim_dev [*]])
 (import [.util [*]])
-
-(import jpype)
-(import jpype.imports)
-(import [jpype.types [*]])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -50,7 +45,7 @@
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [nmos-path None] ^str [pmos-path None] 
-                                 ^str [jar-path None]  ^str [sim-path "/tmp"] 
+                                 ^str [sim-path "/tmp"] 
                                  ^str [pdk-path None]  ^str [ckt-path None]
                                  ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
@@ -86,24 +81,9 @@
 
     """
 
-    (if-not (and pdk-path jar-path ckt-path)
-      (raise (TypeError f"SymAmpXH035Env requires 'pdk-path', 'ckt-path' and 'jar-path' kwargs.")))
-
-    ;; Launch JVM and import the Corresponding Amplifier Characterization Library
-    ; f"$HOME/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
-    (unless (.isJVMStarted jpype)
-      (jpype.startJVM :classpath jar-path))
-
-    (import [edlab.eda.characterization [Opamp2XH035Characterization]])
-    
-    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
-    (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.pt" 
-                                     f"{nmos-path}/scale.X" 
-                                     f"{nmos-path}/scale.Y")
-          self.pmos (PrimitiveDevice f"{pmos-path}/model.pt" 
-                                     f"{pmos-path}/scale.X" 
-                                     f"{pmos-path}/scale.Y"))
-
+    (if-not (and pdk-path ckt-path)
+      (raise (TypeError f"SymAmpXH035Env requires 'pdk-path' and 'ckt-path' kwargs.")))
+   
     ;; Specify constants as they are defined in the netlist and by the PDK.
     (setv self.vs   0.5       ; 
           self.cl   5e-12     ; Load Capacitance
@@ -115,8 +95,8 @@
           self.cx   0.85e-15)
 
     ;; Initialize parent Environment.
-    (.__init__ (super SymAmpXH035Env self) Opamp2XH035Characterization
-                                           sim-path pdk-path ckt-path 
+    (.__init__ (super SymAmpXH035Env self) "sym" sim-path pdk-path ckt-path 
+                                           nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target
                                            :data-log-path data-log-path)
