@@ -40,26 +40,25 @@
                     :nmos-path      nmos-path
                     :pmos-path      pmos-path
                     :pdk-path       pdk-path
-                    :jar-path       jar-path
                     :ckt-path       ckt-path
                     ;:data-log-path  data-path
                     :close-target   True))
 
 ;; Check if no Warnings
-(check-env env :warn True)
+;(check-env env :warn True)
 
 ;; Test
-(setv obs (.reset env))
-(setv act (.sample env.action-space))
-(setv ob (.step env act))
-
-(setv iv (-> env.op (.getInitValues) (dict) (.keys) (list)))
-
-(for [i (range 10)]
-  (setv act (.sample env.action-space))
-  (setv act (.sample env.action-space))
-  (setv ob (.step env act))
-  (pp (get ob 1)))
+;(setv obs (.reset env))
+;(setv act (.sample env.action-space))
+;(setv ob (.step env act))
+;
+;(setv iv (-> env.op (.getInitValues) (dict) (.keys) (list)))
+;
+;(for [i (range 10)]
+;  (setv act (.sample env.action-space))
+;  (setv act (.sample env.action-space))
+;  (setv ob (.step env act))
+;  (pp (get ob 1)))
 
 ;; Vectorize for normalization
 ;(setv venv (DummyVecEnv [#%(identity env)]))
@@ -69,9 +68,9 @@
                               :norm-reward True))
 
 ;; Add some Gaussian Noise
-(setv n-actions (get nenv.action-space.shape -1)
-      action-noise (NormalActionNoise :mean (np.zeros n-actions) 
-                                      :sigma (* 0.1 (np.ones n-actions))))
+;(setv n-actions (get nenv.action-space.shape -1)
+;      action-noise (NormalActionNoise :mean (np.zeros n-actions) 
+;                                      :sigma (* 0.1 (np.ones n-actions))))
 
 ;; Model
 ;(setv ppo-model   (PPO  "MlpPolicy" nenv :verbose 1))
