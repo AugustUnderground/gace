@@ -11,6 +11,7 @@ $ pip install . --use-feature=in-tree-build
 ## Requirements
 
 Creating an environment requires NMOS and PMOS models as well as the
+[aclib](https://github.com/augustunderground/aclib) interface for the 
 [analog-circuit-library](https://gitlab-forschung.reutlingen-university.de/schweikm/analog-circuit-library)
 java package.
 
