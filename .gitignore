@@ -31,3 +31,5 @@ libs/*
 install.sh
 resources
 mos
+
+log/*
