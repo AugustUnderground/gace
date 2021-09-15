@@ -68,14 +68,12 @@
       ent-coef 0.01
       max-grad-norm None
       reward-norm False
-      max-batch-size 256
+      max-batch-size 1
       action-scaling True
       bound-method "tanh"
       deterministic-eval False
-      buffer-size 4096
-      max-action (first env.action-space.high)
-      writer (SummaryWriter "log/a2c")
-      logger (ts.utils.TensorboardLogger writer))
+      buffer-size 1
+      max-action (first env.action-space.high))
 
 (setv state-shape env.observation-space.shape
       action-shape env.action-space.shape
@@ -130,31 +128,36 @@
                         :deterministic-eval deterministic-eval))
 
 ;; Replay Buffer
-(setv buffer (VectorReplayBuffer buffer-size (len train-envs)))
-(setv train-collector (Collector policy train-envs buffer :exploration-noise True))
-(setv valid-collector (Collector policy valid-envs))
+(setv buffer (VectorReplayBuffer buffer-size (len train-envs))
+      train-collector (Collector policy train-envs buffer :exploration-noise True)
+      valid-collector (Collector policy valid-envs))
 
 ;; Logging
-;; --
+(setv log-file f"./logs/a2c-{time-stamp}"
+      writer (SummaryWriter "./logs/a2c")
+      logger (ts.utils.TensorboardLogger writer 
+                                         :update-interval 1 
+                                         :train-interval 1))
 
 ;; Save callback
 (defn save-callback [policy]
   (-> policy (.state-dict) (pt.save model-path)))
 
 ;; Training
-(setv num-epochs 100
-      steps-per-epoch 30000
-      steps-per-collect 80
+(setv num-epochs 10
+      steps-per-epoch 3
+      steps-per-collect 8
       repeat-per-collect 1
-      batch-size 666666)
+      batch-size 5)
 
 (setv train-result (onpolicy-trainer policy train-collector valid-collector
                                      num-epochs steps-per-epoch 
                                      repeat-per-collect num-valid batch-size
                                      :step-per-collect steps-per-collect 
                                      :save-fn save-callback 
-                                     ;:logger logger
-                                     :test-in-train False))
+                                     :logger logger
+                                     :test-in-train False
+                                     :verbose True))
 
 ;; Evaluation
 (.eval policy)
