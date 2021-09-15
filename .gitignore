@@ -26,10 +26,11 @@ gym_ad/*$py.class
 gym_ad/*.out
 gym_ad/*.raw
 
-models/*
+models
+logs
+
 libs/*
 install.sh
 resources
 mos
 
-log/*
