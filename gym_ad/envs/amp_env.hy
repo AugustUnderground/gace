@@ -65,12 +65,6 @@
     ;; If `True` the agent will be reset in a location close to the target.
     (setv self.close-target close-target)
                                     
-    ;; The amplifier object `op` communicates through java with spectre and
-    ;; returns performances and other simulation / analyses results.
-    (setv self.sim-path sim-path
-          self.pdk-path pdk-path
-          self.ckt-path ckt-path)
-
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
     (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.pt" 
                                      f"{nmos-path}/scale.X" 
@@ -79,13 +73,15 @@
                                      f"{pmos-path}/scale.X" 
                                      f"{pmos-path}/scale.Y"))
 
-    ;(setv self.op None
-    ;      self.amplifier amplifier)
+    ;; Paths to PDK and JAR
+    (setv self.sim-path sim-path
+          self.pdk-path pdk-path
+          self.ckt-path ckt-path)
 
-    ;; Load simulation environment.
+    ;; The amplifier object `amp` communicates through java with spectre and
+    ;; returns performances and other simulation / analyses results.
     (setv self.amp-id amp-id
-          self.amp None)
-    )
+          self.amp None))
   
   (defn render [self &optional ^str [mode "human"]]
     """
@@ -124,6 +120,14 @@
       (del self.amp)
       (setv self.amp None)))
 
+  (defn seed [self rng-seed]
+    """
+    Sets The RNG Seed for this environment.
+    """
+    (.seed np.random rng-seed)
+    (.manual-seed pt rng-seed)
+    rng-seed)
+
   (defn reset ^np.array [self]
     """
     If not running, this creates a new spectre session. The `moves` counter is
@@ -143,10 +147,7 @@
                             (acl.sym-amp-xh035 self.pdk-path self.ckt-path 
                                                :sim-path self.sim-path)]
                            [True 
-                            (raise (NotImplementedError f"Amplifier with ID {self.amp-id} is not implemented."))]))
-      ;(setv self.op (self.amplifier.build self.sim-path self.pdk-path self.ckt-path))
-      ;(.start self.op)
-    )
+                            (raise (NotImplementedError f"Amplifier with ID {self.amp-id} is not implemented."))])))
 
     ;; Reset the step counter and increase the reset counter.
     (setv self.moves         (int 0)
@@ -163,10 +164,6 @@
     ;; Target can be random or close to a known acheivable.
     (setv self.target (self.target-specification :noisy True))
 
-;    (for [(, param value) (.items parameters)]
-;      (self.op.set (str param) (np.float64 value)))
-
-;    (.simulate self)
     (setv self.performance (acl.evaluate-circuit self.amp parameters))
     (.observation self))
 
@@ -187,31 +184,6 @@
                        (+ s (np.random.normal 0 1e-7)) s)])
           sizing)))
 
-;    (let [sizing (jmap-to-dict (if random (.getRandomValues self.op)
-;                                          (.getInitValues self.op)))]
-;      (if noise
-;        (dfor (, p s) (.items sizing)
-;          [p (if (or (.startswith p "W") (.startswith p "L")) 
-;                 (+ s (np.random.normal 0 1e-7)) s)])
-;        sizing))
-
-;  (defn simulate ^dict [self]
-;    """
-;    Run a simulation with the current parameters and update the performances.
-
-;    TODO: Extract waveforms and add to observation space.
-;    """
-;    (.simulate self.op)
-
-;    (setv self.performance (dfor (, p v) 
-;                                 (-> self (. op) 
-;                                          (.getPerformanceValues) 
-;                                          (jmap-to-dict) 
-;                                          (.items))
-;                                 [p (if (np.isnan v) 0.0 v)]))
-
-;    self.performance)
-
   (defn size-step ^tuple [self ^dict action]
     """
     Takes geometric parameters as dictionary and sets them in the netlist.
@@ -221,8 +193,6 @@
     Each circuit has to make sure the geometric parameters are within reason.
     (see `clip-sizing` mehtods.)
     """
-;   (for [(, param value) (.items action)]
-;     (self.op.set param value))
 
     (setv self.data-log 
           (self.data-log.append (setx self.performance 
