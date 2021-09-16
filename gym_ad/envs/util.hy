@@ -2,6 +2,7 @@
 (import [collections.abc [Iterable]])
 (import [fractions [Fraction]])
 (import [decimal [Decimal]])
+(import [functools [partial]])
 
 (import [numpy :as np])
 
@@ -48,6 +49,43 @@
   """
   (/ num den))
 
+(defn ape [t o] 
+  """
+  Absolute Percentage Error for scalar values.
+  """
+  (* 100 (/ (np.abs (- t o)) 
+            (if (!= t 0) t 1))))
+
+(defn absolute-condition [t c] 
+  """
+  Returns a function for reward calculation based on the given target `t` and a
+  conditional predicate `c`. If the target meets the conditional the reward is
+  calculated as: 
+            - ape(x)
+    r(x) = -e         + 1
+  otherwise it is:
+    r(x) = - ape(x)
+  .
+  """
+  (let [cn (partial (eval c) t)
+      er (partial ape t)]
+    (fn [x] 
+      (if (cn x) 
+         (+ (- (np.exp (- (er x)))) 1) 
+         (- (er x))))))
+
+
+(defn ranged-condition [l u] 
+  """
+  Returns a function for reward calculation based on the given lower `l` and
+  upper `u` bounds. See `absolute-condition` for details.
+  """
+  (let [er (partial ape (np.abs (- l u)))]
+    (fn [x] 
+      (if (and (<= l x) (>= u x)) 
+         (+ (- (np.exp (- (er x)))) 1)
+         (- (er x))))))
+
 (defclass Loss []
   """
   A purely static collection of loss functions. All the functions here can
@@ -83,8 +121,8 @@
       Mean Absolute Error:
 
                ∑ | y - x |
-        MAE = ------------
-                   n
+        MAE = -------------
+                    n
       """
       (.item (/ (np.sum (np.abs (- Y X))) (len X)))))
 
@@ -94,8 +132,8 @@
       Mean Squared Error:
                           2
                ∑ ( y - x )
-        MAE = ------------
-                   n
+        MAE = -------------
+                    n
       """
       (.item (/ (np.sum (np.power (- X Y) 2)) (len X)))))
 
