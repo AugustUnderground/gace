@@ -11,7 +11,7 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete Tuple]])
 
-(import [.amp_env [*]])
+(import [.amp_env [AmplifierXH035Env]])
 (import [.util [*]])
 
 (require [hy.contrib.walk [let]]) 
@@ -204,30 +204,35 @@
     """
     Generate a noisy target specification.
     """
-    {"a_0"       (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
-     "ugbw"      (+ 3000000.0  (if noisy (np.random.normal 0 5e6) 0))
-     "pm"        (+ 65.0       (if noisy (np.random.normal 0 3.0) 0))
-     "gm"        (+ -30.0      (if noisy (np.random.normal 0 2.5) 0))
-     "sr_r"      (+ 4000000.0  (if noisy (np.random.normal 0 5e6) 0))
-     "sr_f"      (+ -4000000.0 (if noisy (np.random.normal 0 5e6) 0))
-     "vn_1Hz"    (+ 5e-06      (if noisy (np.random.normal 0 5e-7) 0))
-     "vn_10Hz"   (+ 2e-06      (if noisy (np.random.normal 0 5e-7) 0))
-     "vn_100Hz"  (+ 5e-07      (if noisy (np.random.normal 0 5e-8) 0))
-     "vn_1kHz"   (+ 1.5e-07    (if noisy (np.random.normal 0 5e-8) 0))
-     "vn_10kHz"  (+ 6e-08      (if noisy (np.random.normal 0 5e-9) 0))
-     "vn_100kHz" (+ 4e-08      (if noisy (np.random.normal 0 5e-9) 0))
-     "psrr_p"    (+ 90.0       (if noisy (np.random.normal 0 5.0) 0))
-     "psrr_n"    (+ 50.0       (if noisy (np.random.normal 0 5.0) 0))
-     "cmrr"      (+ 100        (if noisy (np.random.normal 0 10.0) 0))
-     "v_il"      (+ 0.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "v_ih"      (+ 3.0        (if noisy (np.random.normal 0 5e-1) 0))
-     "v_ol"      (+ 1.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "v_oh"      (+ 1.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "i_out_min" (+ -2.5       (if noisy (np.random.normal 0 5e-2) 0))
-     "i_out_max" (+ 2.5        (if noisy (np.random.normal 0 5e-2) 0))
-     "voff_stat" (+ 3e-3       (if noisy (np.random.normal 0 5e-4) 0))
-     "voff_sys"  (+ -1.5e-3    (if noisy (np.random.normal 0 5e-4) 0))
-     "A"         (+ 5e-10      (if noisy (np.random.normal 0 5e-11) 0))})
+    (let [ts {"a_0"       55.0
+            "ugbw"      (np.array [3500000.0 4000000.0])
+            "pm"        65.0
+            "gm"        -30.0
+            "sr_r"      (np.array [3500000.0 4000000.0])
+            "sr_f"      (np.array [-3500000.0 -4000000.0])
+            "vn_1Hz"    5e-06
+            "vn_10Hz"   2e-06
+            "vn_100Hz"  5e-07
+            "vn_1kHz"   1.5e-07
+            "vn_10kHz"  5e-08
+            "vn_100kHz" 2.5e-08
+            "psrr_n"    80.0
+            "psrr_p"    80.0
+            "cmrr"      80.0
+            "v_il"      0.9
+            "v_ih"      3.2
+            "v_ol"      0.1
+            "v_oh"      3.2
+            "i_out_min" -7e-5
+            "i_out_max" 7e-5
+            "voff_stat" 3e-3
+            "voff_sys"  1.5e-3
+            "A"         5.5e-10
+            #_/ }]
+      (dfor (, p v) (.items ts)
+        [ p 
+          (if noisy
+              (* v (np.random.normal 1 0.01)) v) ])))
 
   (defn render [self &optional [mode "ascii"]]
     """

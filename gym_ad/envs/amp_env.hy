@@ -3,6 +3,7 @@
 (import [numpy :as np])
 (import [pandas :as pd])
 (import [joblib :as jl])
+(import [functools [partial]])
 
 (import gym)
 (import [gym.spaces [Dict Box Discrete Tuple]])
@@ -17,6 +18,7 @@
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
+(import [hy.contrib.pprint [pp pprint]])
 
 (defclass AmplifierXH035Env [gym.Env]
   """
@@ -207,8 +209,8 @@
     the circuit and its performance.
     """
     (let [(, perf targ) (np.array (list (zip #* (lfor pp self.performance-parameters 
-                                                      [(get self.performance pp)
-                                                       (get self.target pp)]))))
+                                                      [(np.mean (get self.performance pp))
+                                                       (np.mean (get self.target pp))]))))
 
           dist (np.abs (- perf targ))
 
@@ -221,8 +223,37 @@
                   (np.float32))]
       (np.where (np.isnan obs) 0 obs)))
 
+  (defn individual-rewards ^dict [self &optional ^dict [spec {}]]
+    """
+    Hand crafted reward functions for each individual performance parameter.
+    """
+    {"a_0"       (absolute-condition (. self.target ["a_0"])               '<=)   ; t dB ≤ x
+     "ugbw"      (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
+     "pm"        (absolute-condition (. self.target ["pm"])                '<=)   ; t dB ≤ x
+     "gm"        (absolute-condition (np.abs (. self.target ["gm"]))       '<=)   ; t ° ≤ |x|
+     "sr_r"      (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
+     "sr_f"      (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
+     "vn_1Hz"    (absolute-condition (. self.target ["vn_1Hz"])            '>=)   ; t V ≥ x
+     "vn_10Hz"   (absolute-condition (. self.target ["vn_10Hz"])           '>=)   ; t V ≥ x
+     "vn_100Hz"  (absolute-condition (. self.target ["vn_100Hz"])          '>=)   ; t V ≥ x
+     "vn_1kHz"   (absolute-condition (. self.target ["vn_1kHz"])           '>=)   ; t V ≥ x
+     "vn_10kHz"  (absolute-condition (. self.target ["vn_10kHz"])          '>=)   ; t V ≥ x
+     "vn_100kHz" (absolute-condition (. self.target ["vn_100kHz"])         '>=)   ; t V ≥ x
+     "psrr_n"    (absolute-condition (. self.target ["psrr_n"])            '<=)   ; t dB ≤ x
+     "psrr_p"    (absolute-condition (. self.target ["psrr_p"])            '<=)   ; t dB ≤ x
+     "cmrr"      (absolute-condition (. self.target ["cmrr"])              '<=)   ; t dB ≤ x
+     "v_il"      (absolute-condition (. self.target ["v_il"])              '>=)   ; t V ≥ x
+     "v_ih"      (absolute-condition (. self.target ["v_ih"])              '<=)   ; t V ≤ x
+     "v_ol"      (absolute-condition (. self.target ["v_ol"])              '>=)   ; t V ≥ x
+     "v_oh"      (absolute-condition (. self.target ["v_oh"])              '<=)   ; t V ≤ x
+     "i_out_min" (absolute-condition (. self.target ["i_out_min"])         '<=)   ; t A ≤ x
+     "i_out_max" (absolute-condition (. self.target ["i_out_max"])         '>=)   ; t A ≥ x
+     "voff_stat" (absolute-condition (. self.target ["voff_stat"])         '>=)   ; t V ≥ x
+     "voff_sys"  (absolute-condition (np.abs (. self.target ["voff_sys"])) '>=)   ; t V ≥ |x|
+     "A"         (absolute-condition (. self.target ["A"])                 '>=)   ; t μm^2 ≥ x
+     #_/ })
+
   (defn reward ^float [self &optional ^dict [performance {}]
-                                      ^dict [target {}]
                                       ^list [params []]]
     """
     Calculates a reward based on the target and the current perforamnces.
@@ -235,27 +266,29 @@
     If no arguments are provided, the current state of the object is used to
     calculate the reward.
     """
-    (let [perf-dict (or performance self.performance) 
-          targ-dict (or target self.target)
-          params    (or params self.performance-parameters)
-          perf      (np.nan-to-num (np.array (list (map perf-dict.get params)) 
-                                             :dtype np.float32))
-          targ      (np.array (list (map targ-dict.get params)) 
-                              :dtype np.float32)
-          loss      (np.float32 (np.abs (self.loss perf targ))) ]
-      (-> loss (np.log10 :where (> 0 loss)) (np.sum) (-) (float))))
+    (let [perf-dict  (or performance self.performance) 
+          params     (or params self.performance-parameters)
+          reward-fns (.individual-rewards self)
+          rewards (lfor p params 
+                     ((. reward-fns [p]) 
+                      (np.nan-to-num (. perf-dict [p])))) ]
+      ;(pprint (dfor p params [p (get perf-dict p)]))
+      ;(pprint (dfor p params [p (get self.target p)]))
+      ;(pprint (dfor p params [p ((. reward-fns [p]) 
+      ;                       (np.nan-to-num (. perf-dict [p])))]))
+      ;(pprint (.format "Reward: {}" (-> rewards (np.array) (np.sum) (np.abs) (np.log10) (-) (float))))
+      (-> rewards (np.array) (np.sum) (np.abs) (np.log10) (-) (float))))
  
   (defn done ^bool [self]
     """
     Returns True if the target is met (under consideration of the
     'target-tolerance'), or if moves > max-moves, otherwise False is returned.
     """
-    (let [perf (np.array (list (map self.performance.get 
+    (let [perf (np.array (list (map #%(->> %1 (get self.performance) (np.nan-to-num) (np.mean))
                                     self.performance-parameters)))
-          targ (np.array (list (map self.target.get 
+          targ (np.array (list (map #%(->> %1 (get self.target) (np.nan-to-num) (np.mean))
                                     self.performance-parameters)))
           loss (Loss.MAE perf targ)]
-
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.
       (when self.data-log-path
