@@ -1,6 +1,6 @@
 (import os)
 (import logging)
-(import pprint)
+(import [functools [partial]])
 (import [datetime [datetime :as dt]])
 (import [icecream [ic]])
 (import [numpy :as np])
@@ -19,9 +19,9 @@
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
+(import [hy.contrib.pprint [pp pprint]])
 
-(setv pp         (-> pprint (.PrettyPrinter :indent 2) (. pprint))
-      HOME       (os.path.expanduser "~")
+(setv HOME       (os.path.expanduser "~")
       time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
       model-path f"./models/baselines/a2c-miller-amp-xh035-{time-stamp}.mod"
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-{time-stamp}.mod"
@@ -35,8 +35,8 @@
       ckt-path  f"../library/")
 
 ;; Create Environment
-;(setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
-(setv env (gym.make "gym_ad:miller-amp-xh035-v0" 
+(setv env (gym.make "gym_ad:sym-amp-xh035-v0" 
+;(setv env (gym.make "gym_ad:miller-amp-xh035-v0" 
                     :nmos-path      nmos-path
                     :pmos-path      pmos-path
                     :pdk-path       pdk-path
@@ -45,12 +45,12 @@
                     :close-target   True))
 
 ;; Check if no Warnings
-;(check-env env :warn True)
+(check-env env :warn True)
 
 ;; Test
-;(setv obs (.reset env))
-;(setv act (.sample env.action-space))
-;(setv ob (.step env act))
+(setv obs (.reset env))
+(setv act (.sample env.action-space))
+(setv ob (.step env act))
 ;
 ;(setv iv (-> env.op (.getInitValues) (dict) (.keys) (list)))
 ;
