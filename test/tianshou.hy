@@ -8,7 +8,7 @@
 (import [torch.distributions [Independent Normal]])
 (import [tianshou :as ts])
 (import [tianshou.env [SubprocVectorEnv DummyVectorEnv]])
-(import [tianshou.policy [A2CPolicy PPOPolicy TD3Policy]])
+(import [tianshou.policy [MultiAgentPolicyManager A2CPolicy PPOPolicy TD3Policy]])
 (import [tianshou.data [Collector ReplayBuffer VectorReplayBuffer]])
 (import [tianshou.trainer [onpolicy-trainer]])
 (import [tianshou.utils.net.common [Net]])
