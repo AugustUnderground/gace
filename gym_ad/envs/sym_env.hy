@@ -49,7 +49,7 @@
                                  ^str [pdk-path None]  ^str [ckt-path None]
                                  ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
-                                 ^dict [target None] ^str [data-log-path ""]]
+                                 ^dict [target None] ^str [data-log-prefix ""]]
     """
     Constructs a Symmetrical Amplifier Environment with XH035 device models and
     the corresponding netlist.
@@ -99,7 +99,7 @@
                                            nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target
-                                           :data-log-path data-log-path)
+                                           :data-log-prefix data-log-prefix)
 
     ;; Generate random target of None was provided.
     (setv self.same-target  (bool target)

@@ -4,6 +4,7 @@
 (import [pandas :as pd])
 (import [joblib :as jl])
 (import [functools [partial]])
+(import [datetime [datetime :as dt]])
 
 (import gym)
 (import [gym.spaces [Dict Box Discrete Tuple]])
@@ -32,7 +33,7 @@
                   ^str nmos-path ^str pmos-path
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
-                 ^str   [data-log-path ""]] 
+                 ^str   [data-log-prefix ""]] 
     """
     Initialzies the basics required by every amplifier implementing this
     interface.
@@ -42,9 +43,9 @@
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
-    ;; If no `data-log-path` is provided, the data will be discarded after each
+    ;; If no `data-log-prefix` is provided, the data will be discarded after each
     ;; episode.
-    (setv self.data-log-path  data-log-path
+    (setv self.data-log-prefix  data-log-prefix
           self.data-log       (pd.DataFrame))
 
     ;; Initialize parameters
@@ -223,7 +224,7 @@
                   (np.float32))]
       (np.where (np.isnan obs) 0 obs)))
 
-  (defn individual-rewards ^dict [self &optional ^dict [spec {}]]
+  (defn individual-rewards ^dict [self]
     """
     Hand crafted reward functions for each individual performance parameter.
     """
@@ -272,11 +273,6 @@
           rewards (lfor p params 
                      ((. reward-fns [p]) 
                       (np.nan-to-num (. perf-dict [p])))) ]
-      ;(pprint (dfor p params [p (get perf-dict p)]))
-      ;(pprint (dfor p params [p (get self.target p)]))
-      ;(pprint (dfor p params [p ((. reward-fns [p]) 
-      ;                       (np.nan-to-num (. perf-dict [p])))]))
-      ;(pprint (.format "Reward: {}" (-> rewards (np.array) (np.sum) (np.abs) (np.log10) (-) (float))))
       (-> rewards (np.array) (np.sum) (np.abs) (np.log10) (-) (float))))
  
   (defn done ^bool [self]
@@ -288,18 +284,16 @@
                                     self.performance-parameters)))
           targ (np.array (list (map #%(->> %1 (get self.target) (np.nan-to-num) (np.mean))
                                     self.performance-parameters)))
-          loss (Loss.MAE perf targ)]
+          loss (Loss.MAE perf targ)
+          time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))]
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.
-      (when self.data-log-path
-        (setv cols (lfor c self.data-log.columns
-                         (-> c (.replace ":" "-")
-                               (.replace "." "_"))))
-        (self.data-log.to-hdf self.data-log-path 
-                              :key "data" 
-                              :mode "a" 
-                              :append True 
-                              :data-columns cols))
+      (when self.data-log-prefix
+        (setv log-file (.format "{}-{}.h5" self.data-log-prefix time-stamp))
+        (with [h5-file (h5.File log-file "w")]
+         (for [col self.data-log.columns]
+           (setv (get h5-file (-> col (.replace ":" "-") (.replace "." "_"))) 
+              (.to-numpy (get self.data-log col))))))
 
       ;; 'done' when either maximum number of steps are exceeded, or the
       ;; overall loss is less than the specified target loss.
