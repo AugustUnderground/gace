@@ -1,3 +1,5 @@
+(import [requests :as req])
+(import [enum [Enum]])
 (import [itertools [product]])
 (import [collections.abc [Iterable]])
 (import [fractions [Fraction]])
@@ -11,6 +13,84 @@
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
+
+(defclass AmplifierID [Enum] 
+  """
+  Supported / Available Operational Amplifieres
+  """
+  (setv MILLER 1
+        SYMMETRICAL 2))
+
+(defclass ACL []
+  """
+  REST API Interface to analog circuit library.
+  """
+  (defn __init__ [self &optional ^str [hostname "localhost"]
+                                 ^int [port 8888]]
+    """
+    Analog Circuit Library Interface face.
+    Arguments:
+      hostname    default 'localhost'
+      port        default '8888'
+    Make sure server is actually running.
+    """
+    (setv self.base-url f"http://{hostname}:{port}"))
+
+  (defn evaluate-circuit ^dict [self ^AmplifierID amp &optional ^dict [sizing {}]]
+    """
+    Run simulation and return results.
+    Arguments:
+      amp     The amplifier (AmplifierID) to simulate.
+      sizing  Device sizes for the given circuit.
+    Returns:
+      Circuit Performance.
+    """
+    (let [url (.format "{}/sim/op{}" self.base-url amp.value)
+        params (dfor (, k v) (.items sizing)
+                  [k (if (isinstance v list) v [v])])]
+      (-> req (.post url :json sizing) (.json))))
+
+  (defn _sizing ^dict [self ^AmplifierID amp ^str sizing]
+    """
+    Meta function for getting sizing parameters for a given AmplifierID, where
+    sizing = 'rng' | 'init'
+    """
+    (let [url (.format "{}/{}/op{}" self.base-url sizing amp.value)]
+      (-> req (.get url) (.json))))
+
+  (defn random-sizing ^dict [self ^AmplifierID amp]
+    """
+    Get random sizing for given AmplifierID.
+    """
+    (self._sizing "rng" amp))
+
+  (defn initial-sizing ^dict [self ^AmplifierID amp]
+    """
+    Get curated / good sizing for given AmplifierID.
+    """
+    (self._sizing "init" amp))
+
+  (defn _params ^list [self ^AmplifierID amp ^str p]
+    """
+    Meta function for getting available keys for a given AmplifierID, where
+      keys = 'params' | 'perfs'
+    """
+    (let [p-route (cond [(= p "parameters") "params"]
+                   [(= p "perforamnces") "perfs"])
+        url (.format "{}/{}/op{}" self.base-url p-route amp.value)]
+      (-> req (.get url) (.json) (get p))))
+
+  (defn parameters ^list [self ^AmplifierID amp]
+    """
+    Get available sizing parameters for given AmplifierID.
+    """
+    (self._params amp "parameters"))
+
+  (defn performances ^list [self ^AmplifierID amp]
+    """
+    Get available perforamnce parameters for given AmplifierID.
+    """
+    (self._params amp "perforamnces")))
 
 (defn scale-value ^float [^float x ^float x-min ^float x-max
                 &optional ^float [a -1.0] ^float [b 1.0]]
