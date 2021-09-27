@@ -11,6 +11,9 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete Tuple]])
 
+(import [pettingzoo [AECEnv ParallelEnv]])
+(import [pettingzoo.utils [agent-selector wrappers from-parallel]])
+
 (import [.amp_env [AmplifierXH035Env]])
 (import [.util [*]])
 
@@ -264,3 +267,76 @@ o-------------o---------------o------------o--------------o----------o VDD
                                    ===                                
                                    VSS                                " )]
           [True (.render (super) mode)])))
+
+(defn sym-env [&kwargs kwargs]
+  (-> (sym-raw #** kwargs)
+      (wrappers.CaptureStdoutWrapper)
+      ;(wrappers.AssertOutOfBoundsWrapper)
+      (wrappers.OrderEnforcingWrapper)))
+
+(defn sym-raw [&kwargs kwargs]
+  (-> (SymAmpXH035MA #** kwargs)
+      (from-parallel)))
+
+(defclass SymAmpXH035MA [ParallelEnv SymAmpXH035Env]
+  (setv metadata {"render.modes" ["human"] "name" "sym-amp-xh035-v1"})
+
+  (defn __init__ [self &kwargs kwargs]
+    (SymAmpXH035Env.__init__ self #** kwargs)
+
+    (setv self.possible-agents ["pcm_2" "ndp_1" "ncm_1" "ncm_3"]
+          self.agent-name-mapping (dict (zip self.possible-agents
+                                             (-> self.possible-agents 
+                                                 (len) (range) (list)))))
+    
+    (setv self.action-spaces 
+            { "pcm_2" (Box :low -1.0 :high 1.0 :shape (, 3)  ; PMOS Current mirror
+                          :dtype np.float32)
+              "ndp_1" (Box :low -1.0 :high 1.0 :shape (, 2)  ; NMOS Differential Pair
+                          :dtype np.float32)
+              "ncm_1" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Current Mirror
+                          :dtype np.float32)
+              "ncm_3" (Box :low -1.0 :high 1.0 :shape (, 2)  ; NMOS Current Mirror
+                          :dtype np.float32) })
+
+    (setv self.observation-spaces 
+            (dfor agent self.possible-agents
+              [agent (Box :low (np.nan-to-num (- np.inf)) 
+                          :high (np.nan-to-num np.inf)
+                          :shape (, 202) :dtype np.float32)])))
+
+  (defn observe [self agent]
+    (get self.observations agent))
+
+  (defn reset [self]
+    ;; Reset Agent cycle
+    (setv self.agents (get self.possible-agents (slice None None)))
+
+    ;; Get observation from parent class
+    (setv obs (SymAmpXH035Env.reset self))
+    (dfor agent self.agents [agent obs]))
+
+  (defn observation-space [self agent]
+    (get self.observation-spaces agent))
+  
+  (defn action-space [self agent]
+    (get self.action-spaces agent))
+
+  (defn _forall-agents [self same-value]
+    (dfor agent self.agents
+          [agent same-value]))
+
+  (defn step [self actions]
+    (let [(, gmid-cm1 fug-cm1 mcm1) (get actions "ncm_1")
+          (, gmid-cm2 fug-cm2 mcm2) (get actions "pcm_2")
+          (, gmid-dp1 fug-dp1)      (get actions "ndp_1")
+          (, gmid-cm3 fug-cm3)      (get actions "ncm_3")
+          action (np.array [gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
+                            fug-cm1  fug-cm2  fug-cm3  fug-dp1 
+                            mcm1 mcm2])
+          (, o r d i) (SymAmpXH035Env.step self action) 
+          observations (self._forall-agents o)
+          rewards (self._forall-agents r)
+          dones (self._forall-agents d)
+          infos (self._forall-agents i) ]
+      (, observations rewards dones infos))))
