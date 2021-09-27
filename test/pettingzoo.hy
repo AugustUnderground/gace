@@ -10,7 +10,9 @@
 (import [operator [itemgetter]])
 (import [stable-baselines3.common.env-checker [check-env]])
 (import [gym-ad.envs [SymAmpXH035MA sym-env sym-raw]])
-(import [pettingzoo.test [api-test]])
+(import [pettingzoo.test [api-test max-cycles-test seed-test 
+                          render-test performance-benchmark
+                          test-save-obs]])
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
@@ -29,4 +31,9 @@
                    :data-log-prefix data-path
                    :close-target    True))
 
+;; API Test:
+;     Warnings about (-∞; ∞) observation space
 (api-test env :num-cycles 10 :verbose-progress True)
+
+;; Perforamnce Benchmark
+(performance-benchmark env)

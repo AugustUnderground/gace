@@ -292,11 +292,11 @@ o-------------o---------------o------------o--------------o----------o VDD
     (setv self.action-spaces 
             { "pcm_2" (Box :low -1.0 :high 1.0 :shape (, 3)  ; PMOS Current mirror
                           :dtype np.float32)
-              "ndp_1" (Box :low -1.0 :high 1.0 :shape (, 2)  ; NMOS Differential Pair
+              "ndp_1" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Differential Pair
                           :dtype np.float32)
               "ncm_1" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Current Mirror
                           :dtype np.float32)
-              "ncm_3" (Box :low -1.0 :high 1.0 :shape (, 2)  ; NMOS Current Mirror
+              "ncm_3" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Current Mirror
                           :dtype np.float32) })
 
     (setv self.observation-spaces 
@@ -329,8 +329,8 @@ o-------------o---------------o------------o--------------o----------o VDD
   (defn step [self actions]
     (let [(, gmid-cm1 fug-cm1 mcm1) (get actions "ncm_1")
           (, gmid-cm2 fug-cm2 mcm2) (get actions "pcm_2")
-          (, gmid-dp1 fug-dp1)      (get actions "ndp_1")
-          (, gmid-cm3 fug-cm3)      (get actions "ncm_3")
+          (, gmid-dp1 fug-dp1 _)    (get actions "ndp_1")
+          (, gmid-cm3 fug-cm3 _)    (get actions "ncm_3")
           action (np.array [gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
                             fug-cm1  fug-cm2  fug-cm3  fug-dp1 
                             mcm1 mcm2])
