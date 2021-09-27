@@ -33,8 +33,6 @@
 (setv env (gym.make env1-name
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
-                    :pdk-path        pdk-path
-                    :ckt-path        ckt-path
                     :data-log-prefix data-path
                     :close-target    True))
 
