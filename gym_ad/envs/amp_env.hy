@@ -9,8 +9,6 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete Tuple]])
 
-(import [aclib :as acl])
-
 (import [.prim_dev [*]])
 (import [.util [*]])
 
@@ -29,11 +27,13 @@
 
   (setv metadata {"render.modes" ["human"]})
 
-  (defn __init__ [self ^str amp-id ^str sim-path ^str pdk-path ^str ckt-path 
+  (defn __init__ [self ^AmplifierID amp-id ^str sim-path ^str pdk-path ^str ckt-path 
                   ^str nmos-path ^str pmos-path
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
-                 ^str   [data-log-prefix ""]] 
+                 ^str   [data-log-prefix ""]
+                 ^str [acl-host "localhost"]
+                 ^int [acl-port 8888]] 
     """
     Initialzies the basics required by every amplifier implementing this
     interface.
@@ -84,7 +84,9 @@
     ;; The amplifier object `amp` communicates through java with spectre and
     ;; returns performances and other simulation / analyses results.
     (setv self.amp-id amp-id
-          self.amp None))
+          self.acl-host acl-host
+          self.acl-port acl-port
+          self.acl (ACL acl-host acl-port)))
   
   (defn render [self &optional ^str [mode "human"]]
     """
@@ -142,15 +144,8 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
-    (unless self.amp
-      (setv self.amp (cond [(= self.amp-id "moa")
-                            (acl.miller-amp-xh035 self.pdk-path self.ckt-path 
-                                               :sim-path self.sim-path)]
-                           [(= self.amp-id "sym")
-                            (acl.sym-amp-xh035 self.pdk-path self.ckt-path 
-                                               :sim-path self.sim-path)]
-                           [True 
-                            (raise (NotImplementedError f"Amplifier with ID {self.amp-id} is not implemented."))])))
+    (unless self.acl
+      (setv self.acl (ACL self.acl-host self.acl-port)))
 
     ;; Reset the step counter and increase the reset counter.
     (setv self.moves         (int 0)
@@ -167,7 +162,7 @@
     ;; Target can be random or close to a known acheivable.
     (setv self.target (self.target-specification :noisy True))
 
-    (setv self.performance (acl.evaluate-circuit self.amp parameters))
+    (setv self.performance (self.acl.evaluate-circuit self.amp-id parameters))
     (.observation self))
 
   (defn starting-point ^dict [self &optional ^bool [random False] 
@@ -179,8 +174,8 @@
       [noise]:    Add noise to found starting point. (default = True)
     Returns:      Starting point sizing.
     """
-    (let [sizing (if random (acl.random-sizing self.amp) 
-                            (acl.initial-sizing self.amp))]
+    (let [sizing (if random (self.acl.random-sizing self.amp-id) 
+                            (self.acl.initial-sizing self.amp-id))]
       (if noise
           (dfor (, p s) (.items sizing) 
                 [p (if (or (.startswith p "W") (.startswith p "L")) 
@@ -199,7 +194,7 @@
 
     (setv self.data-log 
           (self.data-log.append (setx self.performance 
-                                      (acl.evaluate-circuit self.amp action))
+                                      (self.acl.evaluate-circuit self.amp-id action))
                                 :ignore-index True))
 
     (, (.observation self) (.reward self) (.done self) (.info self)))

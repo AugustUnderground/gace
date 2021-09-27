@@ -95,7 +95,8 @@
           self.cx   0.85e-15)
 
     ;; Initialize parent Environment.
-    (.__init__ (super SymAmpXH035Env self) "sym" sim-path pdk-path ckt-path 
+    (.__init__ (super SymAmpXH035Env self) AmplifierID.SYMMETRICAL 
+                                           sim-path pdk-path ckt-path 
                                            nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target

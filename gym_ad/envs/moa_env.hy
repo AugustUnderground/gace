@@ -96,7 +96,8 @@
           self.cs   0.85e-15) ; Poly Capacitance per μm^2
 
     ;; Initialize parent Environment.
-    (.__init__ (super MillerAmpXH035Env self) "moa" sim-path pdk-path ckt-path 
+    (.__init__ (super MillerAmpXH035Env self) AmplifierID.MILLER
+                                              sim-path pdk-path ckt-path 
                                               nmos-path pmos-path
                                               max-moves target-tolerance
                                               :close-target close-target
