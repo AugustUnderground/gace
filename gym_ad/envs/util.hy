@@ -18,7 +18,7 @@
   """
   Supported / Available Operational Amplifieres
   """
-  (setv MILLER 1
+  (setv MILLER      1
         SYMMETRICAL 2))
 
 (defclass ACL []

@@ -12,6 +12,8 @@
 (import [.prim_dev [*]])
 (import [.util [*]])
 
+(import [operator [itemgetter]])
+
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
@@ -192,9 +194,10 @@
     (see `clip-sizing` mehtods.)
     """
 
-    (setv self.data-log 
-          (self.data-log.append (setx self.performance 
-                                      (self.acl.evaluate-circuit self.amp-id action))
+    (setv self.performance (self.acl.evaluate-circuit self.amp-id action)
+          self.data-log 
+          (self.data-log.append (dfor (, k v) (.items self.performance) 
+                                      [k (first v)])
                                 :ignore-index True))
 
     (, (.observation self) (.reward self) (.done self) (.info self)))
@@ -204,20 +207,24 @@
     Returns a 'observation-space' conform dictionary with the current state of
     the circuit and its performance.
     """
-    (let [(, perf targ) (np.array (list (zip #* (lfor pp self.performance-parameters 
-                                                      [(np.mean (get self.performance pp))
-                                                       (np.mean (get self.target pp))]))))
+    (let [p-getter (itemgetter #* self.performance-parameters)
+        s-getter (itemgetter #* (-> self.performance (.keys) (set) 
+                                    (.difference self.performance-parameters) 
+                                    (list)))
+          perf (->> self.performance (p-getter) (flatten) (np.array))
+          targ (->> self.target (p-getter) (map np.mean) (list) (np.array))
 
-          dist (np.abs (- perf targ))
+          dist (np.array (list (map (fn [f p] (f (np.nan-to-num p)))
+                                    (p-getter (self.individual-rewards)) perf)))
 
-          stat (np.array (lfor sp (.keys self.performance) 
-                                  :if (not-in sp self.performance-parameters) 
-                               (get self.performance sp)))
+          stat (-> self.performance (s-getter) (flatten) (np.array))
+
           obs (-> (, perf targ dist stat) 
                   (np.hstack) 
                   (np.squeeze) 
                   (np.float32))]
-      (np.where (np.isnan obs) 0 obs)))
+
+      (np.nan-to-num obs)))
 
   (defn individual-rewards ^dict [self]
     """
@@ -281,6 +288,7 @@
                                     self.performance-parameters)))
           loss (Loss.MAE perf targ)
           time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))]
+
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.
       (when self.data-log-prefix
