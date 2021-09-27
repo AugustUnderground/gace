@@ -10,6 +10,7 @@
 (import [operator [itemgetter]])
 (import [stable-baselines3.common.env-checker [check-env]])
 (import [gym-ad.envs [SymAmpXH035MA]])
+(import [pettingzoo.test [api-test]])
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
