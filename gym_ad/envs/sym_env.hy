@@ -45,8 +45,7 @@
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [nmos-path None] ^str [pmos-path None] 
-                                 ^str [sim-path "/tmp"] 
-                                 ^str [pdk-path None]  ^str [ckt-path None]
+                                 ^str [acl-host "localhost"] ^int [acl-port 8888]
                                  ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
                                  ^dict [target None] ^str [data-log-prefix ""]]
@@ -58,16 +57,6 @@
                   `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
       pmos-path:  Same as 'nmos-path', but for PMOS model.
 
-      jar-path:   Path to edlab.eda.characterization jar, something like
-                  $HOME/.m2/repository/edlab/eda/characterization/$VERSION/characterization-$VERSION-jar-with-dependencies.jar
-                  Has to be 'with-dependencies' otherwise waveforms can't be
-                  loaded etc.
-      sim-path:   Path to where the simulation results will be stored. Default
-                  is /tmp.
-      pdk-path:   Path to PDK
-                  /path/to/pdk/tech/XXX/cadence/vX_X/spectre/vX_X_X/mos
-      ckt-path:   Path where the amplifier netlist and testbenches are located.
-      
       max-moves:  Maximum amount of steps the agent is allowed to take per
                   episode, before it counts as failed. Default = 200.
       
@@ -81,9 +70,6 @@
 
     """
 
-    (if-not (and pdk-path ckt-path)
-      (raise (TypeError f"SymAmpXH035Env requires 'pdk-path' and 'ckt-path' kwargs.")))
-   
     ;; Specify constants as they are defined in the netlist and by the PDK.
     (setv self.vs   0.5       ; 
           self.cl   5e-12     ; Load Capacitance
@@ -96,11 +82,12 @@
 
     ;; Initialize parent Environment.
     (.__init__ (super SymAmpXH035Env self) AmplifierID.SYMMETRICAL 
-                                           sim-path pdk-path ckt-path 
                                            nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target
-                                           :data-log-prefix data-log-prefix)
+                                           :data-log-prefix data-log-prefix
+                                           :acl-host acl-host
+                                           :acl-port acl-port)
 
     ;; Generate random target of None was provided.
     (setv self.same-target  (bool target)

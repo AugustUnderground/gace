@@ -11,7 +11,8 @@ $ pip install . --use-feature=in-tree-build
 ## Requirements
 
 Creating an environment requires NMOS and PMOS models as well as the
-[aclib](https://github.com/augustunderground/aclib) interface for the 
+[analog-circuit-server](https://github.com/augustunderground/analog-circuit-server)
+REST API for the 
 [analog-circuit-library](https://gitlab-forschung.reutlingen-university.de/schweikm/analog-circuit-library)
 java package.
 
@@ -25,16 +26,15 @@ import gym
 env = gym.make( 'gym_ad:sym-amp-xh035-v0'
               , nmos_path = '/path/to/models/nmos'
               , pmos_path = '/path/to/models/pmos'
-              , pdk_path  = '/path/to/pdk/technology/.../cadence/.../mos'
-              , ckt_path  = '/path/to/testbenches'
-              , jar_path  = '/path/to/edlab/eda/characterization-with-dependencies.jar'
+              , acl-host  = 'localhost'
+              , acl-port  = 8888
               , )
 ```
 
-Where `<nmos|pmos>_path` is the location of the corresponding `model.pt` and
-input and output scalers `scale.<X|Y>`. The `pdk_path` should point to where
-spectre can find the models referenced in the netlists, which in turn are given
-by the lcoation pointed to by `ckt_path`.
+Where `<nmos|pmos>_path` is the location of the corresponding `model.pt`. The
+`acl-*` parameters should point to a running
+[analog-circuit-server](https://github.com/augustunderground/analog-circuit-server)
+instance.
 
 ## Environments
 

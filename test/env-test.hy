@@ -1,3 +1,4 @@
+(import requests)
 (import os)
 (import logging)
 (import [functools [partial]])
@@ -6,6 +7,7 @@
 (import [numpy :as np])
 (import [h5py :as h5])
 (import gym)
+(import [operator [itemgetter]])
 (import [stable-baselines3.common.env-checker [check-env]])
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -50,3 +52,8 @@
   (setv act (.sample env.action-space))
   (setv ob (.step env act))
   (pp (get ob 1)))
+
+(setv res1 (requests.get "http://localhost:8888/rng/op1"))
+(setv res2 (requests.get "http://localhost:8888/params/op2"))
+(setv res3 (requests.post "http://localhost:8888/sim/op1" :json {"Wd" [2e-6 4e-6 6e-6] "Ld" [1e-6 2e-6 3e-6]}))
+(setv res4 (requests.post "http://localhost:8888/sim/op1" :json {}))

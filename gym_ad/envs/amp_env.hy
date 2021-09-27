@@ -29,8 +29,7 @@
 
   (setv metadata {"render.modes" ["human"]})
 
-  (defn __init__ [self ^AmplifierID amp-id ^str sim-path ^str pdk-path ^str ckt-path 
-                  ^str nmos-path ^str pmos-path
+  (defn __init__ [self ^AmplifierID amp-id ^str nmos-path ^str pmos-path
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
                  ^str   [data-log-prefix ""]
@@ -77,11 +76,6 @@
           self.pmos (PrimitiveDevice f"{pmos-path}/model.pt" 
                                      f"{pmos-path}/scale.X" 
                                      f"{pmos-path}/scale.Y"))
-
-    ;; Paths to PDK and JAR
-    (setv self.sim-path sim-path
-          self.pdk-path pdk-path
-          self.ckt-path ckt-path)
 
     ;; The amplifier object `amp` communicates through java with spectre and
     ;; returns performances and other simulation / analyses results.
