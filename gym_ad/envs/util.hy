@@ -48,7 +48,7 @@
     (let [url (.format "{}/sim/op{}" self.base-url amp.value)
         params (dfor (, k v) (.items sizing)
                   [k (if (isinstance v list) v [v])])]
-      (-> req (.post url :json sizing) (.json))))
+      (-> req (.post url :json params) (.json))))
 
   (defn _sizing ^dict [self ^AmplifierID amp ^str sizing]
     """
