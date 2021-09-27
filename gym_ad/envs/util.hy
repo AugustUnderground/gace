@@ -62,13 +62,13 @@
     """
     Get random sizing for given AmplifierID.
     """
-    (self._sizing "rng" amp))
+    (self._sizing amp "rng"))
 
   (defn initial-sizing ^dict [self ^AmplifierID amp]
     """
     Get curated / good sizing for given AmplifierID.
     """
-    (self._sizing "init" amp))
+    (self._sizing amp "init"))
 
   (defn _params ^list [self ^AmplifierID amp ^str p]
     """
