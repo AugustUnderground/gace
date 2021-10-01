@@ -44,8 +44,9 @@
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
-  (defn __init__ [self &optional ^str [nmos-path None] ^str [pmos-path None] 
-                                 ^str [acl-host "localhost"] ^int [acl-port 8888]
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^str [tech-cfg None]
+                                 ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
                                  ^dict [target None] ^str [data-log-prefix ""]]
@@ -80,14 +81,28 @@
           self.rs   100       ; Sheet Resistance in Ω/□
           self.cs   0.85e-15) ; Poly Capacitance per μm^2
 
+    ;; Check given paths
+    (unless (or pdk-path (not (os.path.exists pdk-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                pdk-path)))
+    (unless (or ckt-path (not (os.path.exists ckt-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                ckt-path)))
+    (unless (or tech-cfg (not (os.path.exists tech-cfg)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                tech-cfg)))
+
     ;; Initialize parent Environment.
     (.__init__ (super MillerAmpXH035Env self) AmplifierID.MILLER
+                                              pdk-path ckt-path tech-cfg 
                                               nmos-path pmos-path
                                               max-moves target-tolerance
                                               :close-target close-target
                                               :data-log-prefix data-log-prefix
-                                              :acl-host acl-host
-                                              :acl-port acl-port)
+                                              #_/ )
 
     ;; Generate random target of None was provided.
     (setv self.same-target  (bool target)
@@ -122,7 +137,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 165)  :dtype np.float32))
+                                      :shape (, 178)  :dtype np.float32))
  
     ;; Loss function used for reward calculation. Either write your own, or
     ;; checkout util.Loss for more loss funtions provided with this package. 
@@ -206,29 +221,29 @@
     """
     Generate a noisy target specification.
     """
-    (let [ts {"a_0"       100.0
+    (let [ts {"A0dB"      100.0
               "ugbw"      (np.array [2500000.0 3000000.0])
-              "pm"        80.0
-              "gm"        40.0
-              "sr_r"      (np.array [2500000.0 3000000.0])
-              "sr_f"      (np.array [-2500000.0 -3000000.0])
-              "vn_1Hz"    5e-06
-              "vn_10Hz"   2e-06
-              "vn_100Hz"  5e-07
-              "vn_1kHz"   1.5e-07
-              "vn_10kHz"  5e-08
-              "vn_100kHz" 2.5e-08
-              "psrr_n"    80.0
-              "psrr_p"    80.0
+              "PM"        80.0
+              "GM"        40.0
+              "SR-r"      (np.array [2500000.0 3000000.0])
+              "SR-f"      (np.array [-2500000.0 -3000000.0])
+              "vn-1Hz"    5e-06
+              "vn-10Hz"   2e-06
+              "vn-100Hz"  5e-07
+              "vn-1kHz"   1.5e-07
+              "vn-10kHz"  5e-08
+              "vn-100kHz" 2.5e-08
+              "psrr-n"    80.0
+              "psrr-p"    80.0
               "cmrr"      80.0
-              "v_il"      0.9
-              "v_ih"      2.7
-              "v_ol"      0.1
-              "v_oh"      2.7
-              "i_out_min" 0.0
-              "i_out_max" 7e-5
-              "voff_stat" 3e-3
-              "voff_sys"  3e-5
+              "vi-lo"     0.9
+              "vi-hi"     2.7
+              "vo-lo"     0.1
+              "vo-hi"     2.7
+              "i-out-min" 0.0
+              "i-out-max" 7e-5
+              "voff-stat" 3e-3
+              "voff-syst" 3e-5
               "A"         5.5e-9
               #_/ }]
       (dfor (, p v) (.items ts)

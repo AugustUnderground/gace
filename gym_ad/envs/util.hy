@@ -163,7 +163,7 @@
                   Wres Lres Mcap Wcap) 
                     ((itemgetter "Mcm11" "Mcm12" "Mcm13" "Wcm1" "Lcm1" "Md" "Wd" 
                                  "Ld" "Mcm21" "Mcm22" "Wcm2" "Lcm2" "Mcs" "Wcs"
-                                 "Lcs" "Wrest" "Lres" "Mcap" "Wcap")
+                                 "Lcs" "Wres" "Lres" "Mcap" "Wcap")
                                sizing)]
           (+ (* 1.0 (+ Mcm11 Mcm12 Mcm13) Wcm1 Lcm1)
              (* 2.0 Mdp1 Wdp1 Ldp1)

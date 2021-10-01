@@ -31,9 +31,9 @@
       moa-env-name "gym_ad:miller-amp-xh035-v0")
 
 ;; Create Environment
-(setv env (gym.make sym-env-name
+(setv env (gym.make moa-env-name
                     :pdk-path        pdk-path
-                    :ckt-path        sym-path
+                    :ckt-path        moa-path
                     :tech-cfg        tech-cfg
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
