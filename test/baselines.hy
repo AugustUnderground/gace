@@ -31,7 +31,9 @@
       pmos-path f"../models/xh035-pmos"
       pdk-path  f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       jar-path  f"{HOME}/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
-      ckt-path  f"../library/"
+      moa-path  f"../library/moa"
+      sym-path  f"../library/sym"
+      tech-cfg  f"../library/techdef/xh035.yaml"
       env1-name "gym_ad:miller-amp-xh035-v0"
       env2-name "gym_ad:sym-amp-xh035-v0")
 
@@ -40,7 +42,8 @@
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :pdk-path        pdk-path
-                    :ckt-path        ckt-path
+                    :ckt-path        sym-path
+                    :tech-cfg        tech-cfg
                     :data-log-prefix data-path
                     :close-target    True))
 
