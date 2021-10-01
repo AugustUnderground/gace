@@ -37,8 +37,6 @@
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
                  ^str   [data-log-prefix ""]
-                 ;^str [acl-host "localhost"]
-                 ;^int [acl-port 8888]
                  #_/ ] 
     """
     Initialzies the basics required by every amplifier implementing this
@@ -66,7 +64,8 @@
                                     "psrr-n" "psrr-p" "cmrr" 
                                     "vo-lo" "vo-hi" "vi-lo" "vi-hi"
                                     "voff-stat" "voff-syst" 
-                                    "i-out-max" "i-out-min" 
+                                    "i-out-max" 
+                                    ;"i-out-min" 
                                     "A"])
     
     ;; This parameters specifies at which point the specification is considered
@@ -152,9 +151,6 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
-    ;(unless self.acl
-    ;  (setv self.acl (ACL self.acl-host self.acl-port)))
-
     (unless self.analyzer
       (setv self.analyzer (OpAnalyzer self.ckt-path self.pdk-path)))
 
@@ -173,7 +169,6 @@
     ;; Target can be random or close to a known acheivable.
     (setv self.target (self.target-specification :noisy True))
 
-    ;(setv self.performance (self.acl.evaluate-circuit self.amp-id parameters))
     (setv self.performance (| (self.analyzer.simulate parameters)
                               {"A" (calculate-area self.amp-id parameters)}))
 
@@ -264,7 +259,7 @@
      "vi-hi"     (absolute-condition (. self.target ["vi-hi"])              '<=)  ; t V ≤ x
      "vo-lo"     (absolute-condition (. self.target ["vo-lo"])              '>=)  ; t V ≥ x
      "vo-hi"     (absolute-condition (. self.target ["vo-hi"])              '<=)  ; t V ≤ x
-     "i-out-min" (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
+     ;"i-out-min" (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
      "i-out-max" (absolute-condition (. self.target ["i-out-max"])          '>=)  ; t A ≥ x
      "voff-stat" (absolute-condition (. self.target ["voff-stat"])          '>=)  ; t V ≥ x
      "voff-syst" (absolute-condition (np.abs (. self.target ["voff-syst"])) '>=)  ; t V ≥ |x|
@@ -285,6 +280,7 @@
     calculate the reward.
     """
     (let [perf-dict  (or performance self.performance) 
+          p-getter (itemgetter #* self.performance-parameters)
           params     (or params self.performance-parameters)
           reward-fns (.individual-rewards self)
           rewards (lfor p params 

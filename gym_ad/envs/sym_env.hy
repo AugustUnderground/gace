@@ -146,7 +146,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 203)  :dtype np.float32))
+                                      :shape (, 201)  :dtype np.float32))
  
     ;; Loss function used for reward calculation. Either write your own, or
     ;; checkout util.Loss for more loss funtions provided with this package. 
@@ -237,7 +237,7 @@
               "vi-hi"      3.2
               "vo-lo"      0.1
               "vo-hi"      3.2
-              "i-out-min" -7e-5
+              ;"i-out-min" -7e-5
               "i-out-max" 7e-5
               "voff-stat" 3e-3
               "voff-syst" 1.5e-3
@@ -330,7 +330,7 @@ o-------------o---------------o------------o--------------o----------o VDD
             (dfor agent self.possible-agents
               [agent (Box :low (np.nan-to-num (- np.inf)) 
                           :high (np.nan-to-num np.inf)
-                          :shape (, 202) :dtype np.float32)])))
+                          :shape (, 201) :dtype np.float32)])))
 
   (defn observe [self agent]
     (get self.observations agent))

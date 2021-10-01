@@ -137,7 +137,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 178)  :dtype np.float32))
+                                      :shape (, 176)  :dtype np.float32))
  
     ;; Loss function used for reward calculation. Either write your own, or
     ;; checkout util.Loss for more loss funtions provided with this package. 
@@ -240,7 +240,7 @@
               "vi-hi"     2.7
               "vo-lo"     0.1
               "vo-hi"     2.7
-              "i-out-min" 0.0
+              ;"i-out-min" 0.0
               "i-out-max" 7e-5
               "voff-stat" 3e-3
               "voff-syst" 3e-5

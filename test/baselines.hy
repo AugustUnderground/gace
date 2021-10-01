@@ -60,7 +60,7 @@
 
 ;; Model
 ;(setv model (PPO "MlpPolicy" nenv :verbose 1))
-(setv model (A2C "MlpPolicy" nenv :verbose 1))
+(setv model (A2C "MlpPolicy" nenv :verbose 1 :tensorboard-log "../logs/baselines3"))
 ;(setv model (TQC "MlpPolicy" nenv :verbose 1))
 ;(setv model (SAC "MlpPolicy" dnenv
 ;              :verbose 1

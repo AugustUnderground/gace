@@ -31,9 +31,9 @@
       moa-env-name "gym_ad:miller-amp-xh035-v0")
 
 ;; Create Environment
-(setv env (gym.make moa-env-name
+(setv env (gym.make sym-env-name
                     :pdk-path        pdk-path
-                    :ckt-path        moa-path
+                    :ckt-path        sym-path
                     :tech-cfg        tech-cfg
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
@@ -50,7 +50,6 @@
 
 ;; Ten step test
 (for [i (range 10)]
-  (setv act (.sample env.action-space))
   (setv act (.sample env.action-space))
   (setv ob (.step env act))
   (pp (get ob 1)))
