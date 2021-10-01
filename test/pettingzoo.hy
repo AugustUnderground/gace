@@ -9,7 +9,7 @@
 (import gym)
 (import [operator [itemgetter]])
 (import [stable-baselines3.common.env-checker [check-env]])
-(import [gym-ad.envs [SymAmpXH035MA sym-env sym-raw]])
+(import [gym-ad.envs [SymAmpXH035ZooMA sym-env sym-raw]])
 (import [pettingzoo.test [api-test max-cycles-test seed-test 
                           render-test performance-benchmark
                           test-save-obs]])

@@ -1,10 +1,10 @@
-(import [requests :as req])
 (import [enum [Enum]])
 (import [itertools [product]])
 (import [collections.abc [Iterable]])
 (import [fractions [Fraction]])
 (import [decimal [Decimal]])
 (import [functools [partial]])
+(import [operator [itemgetter]])
 
 (import [numpy :as np])
 
@@ -21,76 +21,173 @@
   (setv MILLER      1
         SYMMETRICAL 2))
 
-(defclass ACL []
+(defclass TechID [Enum] 
   """
-  REST API Interface to analog circuit library.
+  Supported / Available Technologies
   """
-  (defn __init__ [self &optional ^str [hostname "localhost"]
-                                 ^int [port 8888]]
-    """
-    Analog Circuit Library Interface face.
-    Arguments:
-      hostname    default 'localhost'
-      port        default '8888'
-    Make sure server is actually running.
-    """
-    (setv self.base-url f"http://{hostname}:{port}"))
+  (setv XH035    1
+        SKYWATER 2
+        PTM      3))
 
-  (defn evaluate-circuit ^dict [self ^AmplifierID amp &optional ^dict [sizing {}]]
-    """
-    Run simulation and return results.
-    Arguments:
-      amp     The amplifier (AmplifierID) to simulate.
-      sizing  Device sizes for the given circuit.
-    Returns:
-      Circuit Performance.
-    """
-    (let [url (.format "{}/sim/op{}" self.base-url amp.value)
-        params (dfor (, k v) (.items sizing)
-                  [k (if (isinstance v list) v [v])])]
-      (-> req (.post url :json params) (.json))))
+(defn initial-sizing ^dict [^AmplifierID amp ^TechID pdk]
+  """
+  For a given Operational Amplifier and Technology, return an initial sizing.
+  """
+  (cond [(and (= amp AmplifierID.SYMMETRICAL) (= pdk TechID.XH035))
+         {"Wcm1"  2.55e-6
+          "Wcm2"  10.65e-6
+          "Wcm3"  6.5e-6
+          "Wd"    3e-6
+          "Lcm1"  1.95e-6
+          "Lcm2"  3.35e-6
+          "Lcm3"  2.6e-6
+          "Ld"    5.15e-6
+          "Mcm11" 1.0
+          "Mcm12" 2.0
+          "Mcm21" 1.0
+          "Mcm22" 4.0
+          "Mcm31" 2.0
+          "Mcm32" 2.0
+          "Md"    2.0
+          #_/     }]
+        [(and (= amp AmplifierID.MILLER) (= pdk TechID.XH035))
+         {"Wcm1"  2.6e-6
+          "Wcm2"  6.9e-6
+          "Wcs"   3.35e-6
+          "Wd"    4e-6
+          "Lcm1"  2e-6
+          "Lcm2"  1.7e-6
+          "Lcs"   1e-6
+          "Ld"    2.5e-6
+          "Lres"  131e-6
+          "Wres"  2e-6
+          "Wcap"  69e-6
+          "Mcm11" 1.0
+          "Mcm12" 5.0
+          "Mcm13" 22.0
+          "Mcs"   22.0
+          "Md"    2.0
+          "Mcm21" 2.0
+          "Mcm22" 2.0
+          "Mcap"  1.0
+          #_/     }]
+        [True
+         (raise (NotImplementedError 
+                 f"Given {amp.name} or {pdk.name} are not implemented"))]))
 
-  (defn _sizing ^dict [self ^AmplifierID amp ^str sizing]
-    """
-    Meta function for getting sizing parameters for a given AmplifierID, where
-    sizing = 'rng' | 'init'
-    """
-    (let [url (.format "{}/{}/op{}" self.base-url sizing amp.value)]
-      (-> req (.get url) (.json))))
+(defn random-sizing [^AmplifierID amp ^dict tech-cfg]
+  (cond [(= amp AmplifierID.MILLER) 
+         {"Wcm1" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                              (get tech-cfg "mos" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Wcm2" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                              (get tech-cfg "mos" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Wcs" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                             (get tech-cfg "mos" "W" "max")
+                                             (get tech-cfg "grid")))
+          "Wd" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                            (get tech-cfg "mos" "W" "max")
+                                            (get tech-cfg "grid")))
+          "Lcm1" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                              (get tech-cfg "mos" "L" "max")
+                                              (get tech-cfg "grid")))
+          "Lcm2" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                              (get tech-cfg "mos" "L" "max")
+                                              (get tech-cfg "grid")))
+          "Lcs" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                             (get tech-cfg "mos" "L" "max")
+                                             (get tech-cfg "grid")))
+          "Ld" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                            (get tech-cfg "mos" "L" "max")
+                                            (get tech-cfg "grid")))
+          "Wres" (np.random.choice (np.arange (get tech-cfg "res" "W" "min")
+                                              (get tech-cfg "res" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Lres" (np.random.choice (np.arange (get tech-cfg "res" "L" "min")
+                                              (get tech-cfg "res" "L" "max")
+                                              (get tech-cfg "grid")))
+          "Wcap" (np.random.choice (np.arange (get tech-cfg "cap" "W" "min")
+                                              (get tech-cfg "cap" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Mcm11" (np.random.randint 1 3)
+          "Mcm12" (np.random.randint 1 16)
+          "Mcm13" (np.random.randint 1 51)
+          "Mcs" (np.random.randint 1 51)
+          "Md" 2.0
+          "Mcm21" 2.0
+          "Mcm22" 2.0
+          "Mcap" 1.0 }]
+        [(= amp AmplifierID.SYMMETRICAL)
+         {"Wcm1" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                              (get tech-cfg "mos" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Wcm2" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                              (get tech-cfg "mos" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Wcm3" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                              (get tech-cfg "mos" "W" "max")
+                                              (get tech-cfg "grid")))
+          "Wd" (np.random.choice (np.arange (get tech-cfg "mos" "W" "min")
+                                            (get tech-cfg "mos" "W" "max")
+                                            (get tech-cfg "grid")))
+          "Lcm1" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                              (get tech-cfg "mos" "L" "max")
+                                              (get tech-cfg "grid")))
+          "Lcm2" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                              (get tech-cfg "mos" "L" "max")
+                                              (get tech-cfg "grid")))
+          "Lcm3" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                              (get tech-cfg "mos" "L" "max")
+                                              (get tech-cfg "grid")))
+          "Ld" (np.random.choice (np.arange (get tech-cfg "mos" "L" "min")
+                                            (get tech-cfg "mos" "L" "max")
+                                            (get tech-cfg "grid")))
+          "Mcm11" (np.random.randint 1 2)
+          "Mcm12" (np.random.randint 1 15)
+          "Mcm21" (np.random.randint 1 50)
+          "Mcm22" (np.random.randint 1 50)
+          "Mcm31" (np.random.randint 1 50)
+          "Mcm32" (np.random.randint 1 50)
+          "Md" 2.0}]
+        [True
+         (raise (NotImplementedError 
+                 f"Given {amp.name} is not implemented"))]))
 
-  (defn random-sizing ^dict [self ^AmplifierID amp]
-    """
-    Get random sizing for given AmplifierID.
-    """
-    (self._sizing amp "rng"))
-
-  (defn initial-sizing ^dict [self ^AmplifierID amp]
-    """
-    Get curated / good sizing for given AmplifierID.
-    """
-    (self._sizing amp "init"))
-
-  (defn _params ^list [self ^AmplifierID amp ^str p]
-    """
-    Meta function for getting available keys for a given AmplifierID, where
-      keys = 'params' | 'perfs'
-    """
-    (let [p-route (cond [(= p "parameters") "params"]
-                   [(= p "perforamnces") "perfs"])
-        url (.format "{}/{}/op{}" self.base-url p-route amp.value)]
-      (-> req (.get url) (.json) (get p))))
-
-  (defn parameters ^list [self ^AmplifierID amp]
-    """
-    Get available sizing parameters for given AmplifierID.
-    """
-    (self._params amp "parameters"))
-
-  (defn performances ^list [self ^AmplifierID amp]
-    """
-    Get available perforamnce parameters for given AmplifierID.
-    """
-    (self._params amp "perforamnces")))
+(defn calculate-area [^AmplifierID amp ^dict sizing]
+  (cond [(= amp AmplifierID.MILLER)
+         (let [(, Mcm11 Mcm12 Mcm13 Wcm1 Lcm1 
+                  Mdp1 Wdp1 Ldp1
+                  Mcm21 Mcm22 Wcm2 Lcm2 
+                  Mcs1 Wcs1 Lcs1
+                  Wres Lres Mcap Wcap) 
+                    ((itemgetter "Mcm11" "Mcm12" "Mcm13" "Wcm1" "Lcm1" "Md" "Wd" 
+                                 "Ld" "Mcm21" "Mcm22" "Wcm2" "Lcm2" "Mcs" "Wcs"
+                                 "Lcs" "Wrest" "Lres" "Mcap" "Wcap")
+                               sizing)]
+          (+ (* 1.0 (+ Mcm11 Mcm12 Mcm13) Wcm1 Lcm1)
+             (* 2.0 Mdp1 Wdp1 Ldp1)
+             (* 2.0 (+ Mcm21 Mcm22) Wcm2 Lcm2)
+             (* 1.0 Mcs1 Wcs1 Lcs1)
+             (* 1.0 Wres Lres)
+             (* 1.0 Mcap Wcap Wcap)))]
+        [(= amp AmplifierID.SYMMETRICAL)
+         (let [(, Mcm11 Mcm12 Wcm1 Lcm1 
+                  Mdp1 Wdp1 Ldp1
+                  Mcm21 Mcm22 Wcm2 Lcm2 
+                  Mcm31 Mcm32 Wcm3 Lcm3) 
+                    ((itemgetter "Mcm11" "Mcm12" "Wcm1" "Lcm1" 
+                                 "Md" "Wd" "Ld" 
+                                 "Mcm21" "Mcm22" "Wcm2" "Lcm2" 
+                                 "Mcm31" "Mcm32" "Wcm3" "Lcm3")
+                               sizing)]
+          (+ (* 1.0 (+ Mcm11 Mcm12) Wcm1 Lcm1)
+             (* 2.0 Mdp1 Wdp1 Ldp1)
+             (* 2.0 (+ Mcm21 Mcm22) Wcm2 Lcm2)
+             (* 1.0 (+ Mcm31 Mcm32) Wcm3 Lcm3)))]
+        [True
+         (raise (NotImplementedError 
+                 f"Given {amp.name} is not implemented"))]))
 
 (defn scale-value ^float [^float x ^float x-min ^float x-max
                 &optional ^float [a -1.0] ^float [b 1.0]]
@@ -225,3 +322,81 @@
         RMSE = √( MSE(x, y) )
       """
       (.item (np.sqrt (Loss.MSE X Y))))))
+
+
+
+
+
+
+
+
+;(defclass ACL []
+;  """
+;  REST API Interface to analog circuit library.
+;  """
+;  (defn __init__ [self &optional ^str [hostname "localhost"]
+;                                 ^int [port 8888]]
+;    """
+;    Analog Circuit Library Interface face.
+;    Arguments:
+;      hostname    default 'localhost'
+;      port        default '8888'
+;    Make sure server is actually running.
+;    """
+;    (setv self.base-url f"http://{hostname}:{port}"))
+;
+;  (defn evaluate-circuit ^dict [self ^AmplifierID amp &optional ^dict [sizing {}]]
+;    """
+;    Run simulation and return results.
+;    Arguments:
+;      amp     The amplifier (AmplifierID) to simulate.
+;      sizing  Device sizes for the given circuit.
+;    Returns:
+;      Circuit Performance.
+;    """
+;    (let [url (.format "{}/sim/op{}" self.base-url amp.value)
+;        params (dfor (, k v) (.items sizing)
+;                  [k (if (isinstance v list) v [v])])]
+;      (-> req (.post url :json params) (.json))))
+;
+;  (defn _sizing ^dict [self ^AmplifierID amp ^str sizing]
+;    """
+;    Meta function for getting sizing parameters for a given AmplifierID, where
+;    sizing = 'rng' | 'init'
+;    """
+;    (let [url (.format "{}/{}/op{}" self.base-url sizing amp.value)]
+;      (-> req (.get url) (.json))))
+;
+;  (defn random-sizing ^dict [self ^AmplifierID amp]
+;    """
+;    Get random sizing for given AmplifierID.
+;    """
+;    (self._sizing amp "rng"))
+;
+;  (defn initial-sizing ^dict [self ^AmplifierID amp]
+;    """
+;    Get curated / good sizing for given AmplifierID.
+;    """
+;    (self._sizing amp "init"))
+;
+;  (defn _params ^list [self ^AmplifierID amp ^str p]
+;    """
+;    Meta function for getting available keys for a given AmplifierID, where
+;      keys = 'params' | 'perfs'
+;    """
+;    (let [p-route (cond [(= p "parameters") "params"]
+;                   [(= p "perforamnces") "perfs"])
+;        url (.format "{}/{}/op{}" self.base-url p-route amp.value)]
+;      (-> req (.get url) (.json) (get p))))
+;
+;  (defn parameters ^list [self ^AmplifierID amp]
+;    """
+;    Get available sizing parameters for given AmplifierID.
+;    """
+;    (self._params amp "parameters"))
+;
+;  (defn performances ^list [self ^AmplifierID amp]
+;    """
+;    Get available perforamnce parameters for given AmplifierID.
+;    """
+;    (self._params amp "perforamnces")))

@@ -1,5 +1,6 @@
 (import os)
 (import sys)
+(import errno)
 (import [functools [partial]])
 
 (import [torch :as pt])
@@ -9,10 +10,13 @@
 (import [skopt [gp-minimize]])
 
 (import gym)
-(import [gym.spaces [Dict Box Discrete Tuple]])
+(import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
 (import [pettingzoo [AECEnv ParallelEnv]])
 (import [pettingzoo.utils [agent-selector wrappers from-parallel]])
+
+(import ray)
+(import [ray.rllib.env.multi-agent-env [MultiAgentEnv]])
 
 (import [.amp_env [AmplifierXH035Env]])
 (import [.util [*]])
@@ -26,6 +30,10 @@
 ;; THIS WILL BE FIXED IN HY 1.0!
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Single Agent
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass SymAmpXH035Env [AmplifierXH035Env]
   """
@@ -47,8 +55,9 @@
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
-  (defn __init__ [self &optional ^str [nmos-path None] ^str [pmos-path None] 
-                                 ^str [acl-host "localhost"] ^int [acl-port 8888]
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^str [tech-cfg None]
+                                 ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
                                  ^dict [target None] ^str [data-log-prefix ""]]
@@ -83,14 +92,28 @@
           self.rs   100       ; Sheet Resistance
           self.cx   0.85e-15)
 
+    ;; Check given paths
+    (unless (or pdk-path (not (os.path.exists pdk-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                pdk-path)))
+    (unless (or ckt-path (not (os.path.exists ckt-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                ckt-path)))
+    (unless (or tech-cfg (not (os.path.exists tech-cfg)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                tech-cfg)))
+
     ;; Initialize parent Environment.
     (.__init__ (super SymAmpXH035Env self) AmplifierID.SYMMETRICAL 
+                                           pdk-path ckt-path tech-cfg 
                                            nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target
                                            :data-log-prefix data-log-prefix
-                                           :acl-host acl-host
-                                           :acl-port acl-port)
+                                           #_/ )
 
     ;; Generate random target of None was provided.
     (setv self.same-target  (bool target)
@@ -123,7 +146,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 202)  :dtype np.float32))
+                                      :shape (, 203)  :dtype np.float32))
  
     ;; Loss function used for reward calculation. Either write your own, or
     ;; checkout util.Loss for more loss funtions provided with this package. 
@@ -195,31 +218,31 @@
     """
     Generate a noisy target specification.
     """
-    (let [ts {"a_0"       55.0
-            "ugbw"      (np.array [3500000.0 4000000.0])
-            "pm"        65.0
-            "gm"        -30.0
-            "sr_r"      (np.array [3500000.0 4000000.0])
-            "sr_f"      (np.array [-3500000.0 -4000000.0])
-            "vn_1Hz"    5e-06
-            "vn_10Hz"   2e-06
-            "vn_100Hz"  5e-07
-            "vn_1kHz"   1.5e-07
-            "vn_10kHz"  5e-08
-            "vn_100kHz" 2.5e-08
-            "psrr_n"    80.0
-            "psrr_p"    80.0
-            "cmrr"      80.0
-            "v_il"      0.9
-            "v_ih"      3.2
-            "v_ol"      0.1
-            "v_oh"      3.2
-            "i_out_min" -7e-5
-            "i_out_max" 7e-5
-            "voff_stat" 3e-3
-            "voff_sys"  1.5e-3
-            "A"         5.5e-10
-            #_/ }]
+    (let [ts {"A0dB"       55.0                                      
+              "ugbw"      (np.array [3500000.0 4000000.0])
+              "PM"        65.0
+              "GM"        -30.0
+              "SR-r"      (np.array [3500000.0 4000000.0])
+              "SR-f"      (np.array [-3500000.0 -4000000.0])
+              "vn-1Hz"    5e-06
+              "vn-10Hz"   2e-06
+              "vn-100Hz"  5e-07
+              "vn-1kHz"   1.5e-07
+              "vn-10kHz"  5e-08
+              "vn-100kHz" 2.5e-08
+              "psrr-n"    80.0
+              "psrr-p"    80.0
+              "cmrr"      80.0
+              "vi-lo"      0.9
+              "vi-hi"      3.2
+              "vo-lo"      0.1
+              "vo-hi"      3.2
+              "i-out-min" -7e-5
+              "i-out-max" 7e-5
+              "voff-stat" 3e-3
+              "voff-syst" 1.5e-3
+              "A"         5.5e-10
+              #_/ }]
       (dfor (, p v) (.items ts)
         [ p 
           (if noisy
@@ -268,6 +291,10 @@ o-------------o---------------o------------o--------------o----------o VDD
                                    VSS                                " )]
           [True (.render (super) mode)])))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Multi Agent
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn sym-env [&kwargs kwargs]
   (-> (sym-raw #** kwargs)
       (wrappers.CaptureStdoutWrapper)
@@ -275,10 +302,10 @@ o-------------o---------------o------------o--------------o----------o VDD
       (wrappers.OrderEnforcingWrapper)))
 
 (defn sym-raw [&kwargs kwargs]
-  (-> (SymAmpXH035MA #** kwargs)
+  (-> (SymAmpXH035ZooMA #** kwargs)
       (from-parallel)))
 
-(defclass SymAmpXH035MA [ParallelEnv SymAmpXH035Env]
+(defclass SymAmpXH035ZooMA [ParallelEnv SymAmpXH035Env]
   (setv metadata {"render.modes" ["human"] "name" "sym-amp-xh035-v1"})
 
   (defn __init__ [self &kwargs kwargs]
@@ -290,14 +317,14 @@ o-------------o---------------o------------o--------------o----------o VDD
                                                  (len) (range) (list)))))
     
     (setv self.action-spaces 
-            { "pcm_2" (Box :low -1.0 :high 1.0 :shape (, 3)  ; PMOS Current mirror
-                          :dtype np.float32)
-              "ndp_1" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Differential Pair
-                          :dtype np.float32)
-              "ncm_1" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Current Mirror
-                          :dtype np.float32)
-              "ncm_3" (Box :low -1.0 :high 1.0 :shape (, 3)  ; NMOS Current Mirror
-                          :dtype np.float32) })
+            { "pcm_2" (Box :low -1.0 :high 1.0 :shape (, 3)
+                           :dtype np.float32)
+              "ndp_1" (Box :low -1.0 :high 1.0 :shape (, 3)
+                           :dtype np.float32)
+              "ncm_1" (Box :low -1.0 :high 1.0 :shape (, 3)
+                           :dtype np.float32)
+              "ncm_3" (Box :low -1.0 :high 1.0 :shape (, 3)
+                           :dtype np.float32) })
 
     (setv self.observation-spaces 
             (dfor agent self.possible-agents
@@ -339,4 +366,49 @@ o-------------o---------------o------------o--------------o----------o VDD
           rewards (self._forall-agents r)
           dones (self._forall-agents d)
           infos (self._forall-agents i) ]
+      (, observations rewards dones infos))))
+
+(defclass SymAmpXH035RayMA [MultiAgentEnv SymAmpXH035Env]
+  (defn __init__ [self config]
+    (SymAmpXH035Env.__init__ self #** config)
+    (setv self.building-blocks ["pcm_2" "ndp_1" "ncm_1" "ncm_3"]))
+
+  (defn _forall-bb [self same-value]
+    (dfor bb self.building-blocks
+          [bb same-value]))
+
+  #@(staticmethod
+  (defn policy-config ^tuple []
+    (let [obs-space (Box :low (np.nan-to-num (- np.inf)) 
+                         :high (np.nan-to-num np.inf)
+                         :shape (, 203) :dtype np.float32)
+        act-space-dp (Box :low -1.0 :high 1.0 :shape (, 2) :dtype np.float32)
+        act-space-cm (Box :low -1.0 :high 1.0 :shape (, 3) :dtype np.float32)
+
+        policies { "ncm" (, None obs-space act-space-cm {})
+                   "pcm" (, None obs-space act-space-cm {})
+                   "ndp" (, None obs-space act-space-cm {})
+                   "pdp" (, None obs-space act-space-cm {}) }
+        policy-mapping (fn [a e w &kwargs kw] (get a (slice 0 3))) ]
+      (, policies policy-mapping))))
+
+  (defn reset [self]
+    (let [obs (SymAmpXH035Env.reset self)]
+      (self._forall-bb obs)))
+
+  (defn step ^dict [self ^dict actions]
+    (let [(, gmid-cm1 fug-cm1 mcm1) (get actions "ncm_1")
+          (, gmid-cm2 fug-cm2 mcm2) (get actions "pcm_2")
+          (, gmid-dp1 fug-dp1)      (get actions "ndp_1")
+          (, gmid-cm3 fug-cm3 _)    (get actions "ncm_3")
+          action                    (np.array [gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
+                                               fug-cm1  fug-cm2  fug-cm3  fug-dp1 
+                                               mcm1 mcm2])
+          (, o r d i)               (SymAmpXH035Env.step self action) 
+          observations              (self._forall-bb o)
+          rewards                   (self._forall-bb r)
+          dones                     (self._forall-bb d)
+          _                         (setv (get dones "__all__") 
+                                          (-> dones (.values) (all)))
+          infos                     (self._forall-bb i)]
       (, observations rewards dones infos))))

@@ -1,5 +1,5 @@
-(import requests)
 (import os)
+(import yaml)
 (import logging)
 (import [functools [partial]])
 (import [datetime [datetime :as dt]])
@@ -24,13 +24,17 @@
 (setv nmos-path f"../models/xh035-nmos"
       pmos-path f"../models/xh035-pmos"
       pdk-path  f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
-      jar-path  f"{HOME}/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
-      ckt-path  f"../library/"
-      env2-name "gym_ad:sym-amp-xh035-v0"
-      env1-name "gym_ad:miller-amp-xh035-v0")
+      moa-path  f"../library/moa"
+      sym-path  f"../library/sym"
+      tech-cfg  f"../library/techdef/xh035.yaml"
+      sym-env-name "gym_ad:sym-amp-xh035-v0"
+      moa-env-name "gym_ad:miller-amp-xh035-v0")
 
 ;; Create Environment
-(setv env (gym.make env1-name
+(setv env (gym.make sym-env-name
+                    :pdk-path        pdk-path
+                    :ckt-path        sym-path
+                    :tech-cfg        tech-cfg
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :data-log-prefix data-path
@@ -40,9 +44,9 @@
 (check-env env :warn True)
 
 ;; One step test
-(setv obs (.reset env))
-(setv act (.sample env.action-space))
-(setv ob (.step env act))
+(setx obs (.reset env))
+(setx act (.sample env.action-space))
+(setx ob (.step env act))
 
 ;; Ten step test
 (for [i (range 10)]
@@ -51,7 +55,3 @@
   (setv ob (.step env act))
   (pp (get ob 1)))
 
-(setv res1 (requests.get "http://localhost:8888/rng/op1"))
-(setv res2 (requests.get "http://localhost:8888/params/op2"))
-(setv res3 (requests.post "http://localhost:8888/sim/op1" :json {"Wd" [2e-6 4e-6 6e-6] "Ld" [1e-6 2e-6 3e-6]}))
-(setv res4 (requests.post "http://localhost:8888/sim/op1" :json {}))
