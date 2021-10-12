@@ -14,7 +14,7 @@
 (import [.prim_dev [*]])
 (import [.util [*]])
 
-(import [sphyctre [OpAnalyzer]])
+(import [hace :as ac])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -58,15 +58,15 @@
           self.reset-counter  0)
 
     ;; Define list of universal performances for all Amplifiers
-    (setv self.performance-parameters ["A0dB" "ugbw" "PM" "GM" "SR-r" "SR-f" 
-                                    "vn-1Hz" "vn-10Hz" "vn-100Hz" "vn-1kHz" 
-                                    "vn-10kHz" "vn-100kHz" 
-                                    "psrr-n" "psrr-p" "cmrr" 
-                                    "vo-lo" "vo-hi" "vi-lo" "vi-hi"
-                                    "voff-stat" "voff-syst" 
-                                    "i-out-max" 
-                                    ;"i-out-min" 
-                                    "A"])
+    (setv self.performance-parameters ["a_0" "ugbw" "pm" "gm" "sr_r" "sr_f" 
+                                    "vn_1Hz" "vn_10Hz" "vn_100Hz" "vn_1kHz" 
+                                    "vn_10kHz" "vn_100kHz" 
+                                    "psrr_n" "psrr_p" "cmrr" 
+                                    "v_ol" "v_oh" "v_il" "v_ih"
+                                    "voff_stat" "voff_sys" 
+                                    "i_out_max" 
+                                    ;"i_out_min" "A"
+                                    ])
     
     ;; This parameters specifies at which point the specification is considered
     ;; 'met' and the agent recieves its award.
@@ -86,16 +86,24 @@
     ;; Amplifier ID:
     ;;  1 - Miller Operational Amplifier
     ;;  2 - Symmetrical Amplifier
-    (setv self.amp-id amp-id)
+    (setv self.amp-id amp-id
+          self.amp-maker (cond [(= amp-id AmplifierID.SYMMETRICAL)
+                                ac.single-ended-opamp]
+                               [(= amp-id AmplifierID.MILLER)
+                                ;ac.single-ended-opamp
+                                (raise (NotImplementedError 
+                                        f"Miller OP Not yet implemented."))]
+                               [True (raise (NotImplementedError 
+                                        f"Miller OP Not yet implemented."))]))
 
     ;; Technology definitions such as min/max W/L, grid, etc.
     (setv self.tech-cfg (with [y (open tech-cfg)] (yaml.safe-load y)))
 
-    ;; The `analyzer` communicates with the spectre simulator and returns the 
+    ;; The `amplifier` communicates with the spectre simulator and returns the 
     ;; circuit performance.
     (setv self.ckt-path ckt-path
           self.pdk-path pdk-path
-          self.analyzer (OpAnalyzer self.ckt-path self.pdk-path)))
+          self.amplifier (self.amp-maker self.ckt-path :pdk-path self.pdk-path)))
   
   (defn render [self &optional ^str [mode "human"]]
     """
@@ -129,8 +137,9 @@
     """
     Closes the spectre session.
     """
-    (del self.analyzer)
-    (setv self.analyzer None))
+    (.stop self.amplifier)
+    (del self.amplifier)
+    (setv self.amplifier None))
 
   (defn seed [self rng-seed]
     """
@@ -151,8 +160,8 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
-    (unless self.analyzer
-      (setv self.analyzer (OpAnalyzer self.ckt-path self.pdk-path)))
+    (unless self.amplifier
+      (setv self.amplifier (self.amp-maker self.ckt-path :pdk-path self.pdk-path)))
 
     ;; Reset the step counter and increase the reset counter.
     (setv self.moves         (int 0)
@@ -169,8 +178,7 @@
     ;; Target can be random or close to a known acheivable.
     (setv self.target (self.target-specification :noisy True))
 
-    (setv self.performance (| (self.analyzer.simulate parameters)
-                              {"A" (calculate-area self.amp-id parameters)}))
+    (setv self.performance (ac.evaluate-circuit self.amplifier parameters))
 
     (.observation self))
 
@@ -183,8 +191,8 @@
       [noise]:    Add noise to found starting point. (default = True)
     Returns:      Starting point sizing.
     """
-    (let [sizing (if random (random-sizing self.amp-id self.tech-cfg) 
-                            (initial-sizing self.amp-id TechID.XH035))]
+    (let [sizing (if random (ac.random-sizing self.amplifier) 
+                            (ac.initial-sizing self.amplifier))]
       (if noise
           (dfor (, p s) (.items sizing) 
                 [p (if (or (.startswith p "W") (.startswith p "L")) 
@@ -201,10 +209,7 @@
     (see `clip-sizing` mehtods.)
     """
 
-    ;(setv self.performance (self.analyzer.evaluate-circuit action)
-
-    (setv self.performance (| (self.analyzer.simulate action)
-                              {"A" (calculate-area self.amp-id action)})
+    (setv self.performance (ac.evaluate-circuit self.amplifier action)
           self.data-log 
           (self.data-log.append (dfor (, k v) (.items self.performance) [k v])
                                       ;[k (first v)])
@@ -240,29 +245,29 @@
     """
     Hand crafted reward functions for each individual performance parameter.
     """
-    {"A0dB"      (absolute-condition (. self.target ["A0dB"])               '<=)  ; t dB ≤ x
+    {"a_0"       (absolute-condition (. self.target ["a_0"])                '<=)  ; t dB ≤ x
      "ugbw"      (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
-     "PM"        (absolute-condition (. self.target ["PM"])                 '<=)  ; t dB ≤ x
-     "GM"        (absolute-condition (np.abs (. self.target ["GM"]))        '<=)  ; t ° ≤ |x|
-     "SR-r"      (ranged-condition #* (. self.target ["SR-r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
-     "SR-f"      (ranged-condition #* (np.abs (. self.target ["SR-f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
-     "vn-1Hz"    (absolute-condition (. self.target ["vn-1Hz"])             '>=)  ; t V ≥ x
-     "vn-10Hz"   (absolute-condition (. self.target ["vn-10Hz"])            '>=)  ; t V ≥ x
-     "vn-100Hz"  (absolute-condition (. self.target ["vn-100Hz"])           '>=)  ; t V ≥ x
-     "vn-1kHz"   (absolute-condition (. self.target ["vn-1kHz"])            '>=)  ; t V ≥ x
-     "vn-10kHz"  (absolute-condition (. self.target ["vn-10kHz"])           '>=)  ; t V ≥ x
-     "vn-100kHz" (absolute-condition (. self.target ["vn-100kHz"])          '>=)  ; t V ≥ x
-     "psrr-n"    (absolute-condition (. self.target ["psrr-n"])             '<=)  ; t dB ≤ x
-     "psrr-p"    (absolute-condition (. self.target ["psrr-p"])             '<=)  ; t dB ≤ x
+     "pm"        (absolute-condition (. self.target ["pm"])                 '<=)  ; t dB ≤ x
+     "gm"        (absolute-condition (np.abs (. self.target ["gm"]))        '<=)  ; t ° ≤ |x|
+     "sr_r"      (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
+     "sr_f"      (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
+     "vn_1Hz"    (absolute-condition (. self.target ["vn_1Hz"])             '>=)  ; t V ≥ x
+     "vn_10Hz"   (absolute-condition (. self.target ["vn_10Hz"])            '>=)  ; t V ≥ x
+     "vn_100Hz"  (absolute-condition (. self.target ["vn_100Hz"])           '>=)  ; t V ≥ x
+     "vn_1kHz"   (absolute-condition (. self.target ["vn_1kHz"])            '>=)  ; t V ≥ x
+     "vn_10kHz"  (absolute-condition (. self.target ["vn_10kHz"])           '>=)  ; t V ≥ x
+     "vn_100kHz" (absolute-condition (. self.target ["vn_100kHz"])          '>=)  ; t V ≥ x
+     "psrr_n"    (absolute-condition (. self.target ["psrr_n"])             '<=)  ; t dB ≤ x
+     "psrr_p"    (absolute-condition (. self.target ["psrr_p"])             '<=)  ; t dB ≤ x
      "cmrr"      (absolute-condition (. self.target ["cmrr"])               '<=)  ; t dB ≤ x
-     "vi-lo"     (absolute-condition (. self.target ["vi-lo"])              '>=)  ; t V ≥ x
-     "vi-hi"     (absolute-condition (. self.target ["vi-hi"])              '<=)  ; t V ≤ x
-     "vo-lo"     (absolute-condition (. self.target ["vo-lo"])              '>=)  ; t V ≥ x
-     "vo-hi"     (absolute-condition (. self.target ["vo-hi"])              '<=)  ; t V ≤ x
-     ;"i-out-min" (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
-     "i-out-max" (absolute-condition (. self.target ["i-out-max"])          '>=)  ; t A ≥ x
-     "voff-stat" (absolute-condition (. self.target ["voff-stat"])          '>=)  ; t V ≥ x
-     "voff-syst" (absolute-condition (np.abs (. self.target ["voff-syst"])) '>=)  ; t V ≥ |x|
+     "v_il"      (absolute-condition (. self.target ["v_il"])               '>=)  ; t V ≥ x
+     "v_ih"      (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
+     "v_ol"      (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
+     "v_oh"      (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
+     ;"i_out_min" (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
+     "i_out_max" (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
+     "voff_stat" (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
+     "voff_sys"  (absolute-condition (np.abs (. self.target ["voff_sys"])) '>=)  ; t V ≥ |x|
      "A"         (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
      #_/ })
 

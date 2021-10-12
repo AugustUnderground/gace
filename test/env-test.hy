@@ -23,9 +23,9 @@
 
 (setv nmos-path f"../models/xh035-nmos"
       pmos-path f"../models/xh035-pmos"
-      pdk-path  f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
+      pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       moa-path  f"../library/moa"
-      sym-path  f"../library/sym"
+      sym-path  f"../library/testbenches/op2"
       tech-cfg  f"../library/techdef/xh035.yaml"
       sym-env-name "gym_ad:sym-amp-xh035-v0"
       moa-env-name "gym_ad:miller-amp-xh035-v0")

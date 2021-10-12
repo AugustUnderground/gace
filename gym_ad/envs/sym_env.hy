@@ -108,7 +108,7 @@
 
     ;; Initialize parent Environment.
     (.__init__ (super SymAmpXH035Env self) AmplifierID.SYMMETRICAL 
-                                           pdk-path ckt-path tech-cfg 
+                                           [pdk-path] ckt-path tech-cfg 
                                            nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target
@@ -146,7 +146,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 201)  :dtype np.float32))
+                                      :shape (, 236)  :dtype np.float32))
  
     ;; Loss function used for reward calculation. Either write your own, or
     ;; checkout util.Loss for more loss funtions provided with this package. 
@@ -218,29 +218,29 @@
     """
     Generate a noisy target specification.
     """
-    (let [ts {"A0dB"       55.0                                      
+    (let [ts {"a_0"       55.0                                      
               "ugbw"      (np.array [3500000.0 4000000.0])
-              "PM"        65.0
-              "GM"        -30.0
-              "SR-r"      (np.array [3500000.0 4000000.0])
-              "SR-f"      (np.array [-3500000.0 -4000000.0])
-              "vn-1Hz"    5e-06
-              "vn-10Hz"   2e-06
-              "vn-100Hz"  5e-07
-              "vn-1kHz"   1.5e-07
-              "vn-10kHz"  5e-08
-              "vn-100kHz" 2.5e-08
-              "psrr-n"    80.0
-              "psrr-p"    80.0
+              "pm"        65.0
+              "gm"        -30.0
+              "sr_r"      (np.array [3500000.0 4000000.0])
+              "sr_f"      (np.array [-3500000.0 -4000000.0])
+              "vn_1Hz"    5e-06
+              "vn_10Hz"   2e-06
+              "vn_100Hz"  5e-07
+              "vn_1kHz"   1.5e-07
+              "vn_10kHz"  5e-08
+              "vn_100kHz" 2.5e-08
+              "psrr_n"    80.0
+              "psrr_p"    80.0
               "cmrr"      80.0
-              "vi-lo"      0.9
-              "vi-hi"      3.2
-              "vo-lo"      0.1
-              "vo-hi"      3.2
-              ;"i-out-min" -7e-5
-              "i-out-max" 7e-5
-              "voff-stat" 3e-3
-              "voff-syst" 1.5e-3
+              "v_il"      0.9
+              "v_ih"      3.2
+              "v_ol"      0.1
+              "v_oh"      3.2
+              ;"i_out_min" -7e-5
+              "i_out_max" 7e-5
+              "voff_stat" 3e-3
+              "voff_sys"  1.5e-3
               "A"         5.5e-10
               #_/ }]
       (dfor (, p v) (.items ts)

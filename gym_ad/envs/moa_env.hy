@@ -221,29 +221,29 @@
     """
     Generate a noisy target specification.
     """
-    (let [ts {"A0dB"      100.0
+    (let [ts {"a_0"      100.0
               "ugbw"      (np.array [2500000.0 3000000.0])
-              "PM"        80.0
-              "GM"        40.0
-              "SR-r"      (np.array [2500000.0 3000000.0])
-              "SR-f"      (np.array [-2500000.0 -3000000.0])
-              "vn-1Hz"    5e-06
-              "vn-10Hz"   2e-06
-              "vn-100Hz"  5e-07
-              "vn-1kHz"   1.5e-07
-              "vn-10kHz"  5e-08
-              "vn-100kHz" 2.5e-08
-              "psrr-n"    80.0
-              "psrr-p"    80.0
+              "pm"        80.0
+              "gm"        40.0
+              "sr_r"      (np.array [2500000.0 3000000.0])
+              "sr_f"      (np.array [-2500000.0 -3000000.0])
+              "vn_1Hz"    5e-06
+              "vn_10Hz"   2e-06
+              "vn_100Hz"  5e-07
+              "vn_1kHz"   1.5e-07
+              "vn_10kHz"  5e-08
+              "vn_100kHz" 2.5e-08
+              "psrr_n"    80.0
+              "psrr_p"    80.0
               "cmrr"      80.0
-              "vi-lo"     0.9
-              "vi-hi"     2.7
-              "vo-lo"     0.1
-              "vo-hi"     2.7
-              ;"i-out-min" 0.0
-              "i-out-max" 7e-5
-              "voff-stat" 3e-3
-              "voff-syst" 3e-5
+              "v_il"     0.9
+              "v_ih"     2.7
+              "v_ol"     0.1
+              "v_oh"     2.7
+              ;"i_out_min" 0.0
+              "i_out_max" 7e-5
+              "voff_stat" 3e-3
+              "voff_sys" 3e-5
               "A"         5.5e-9
               #_/ }]
       (dfor (, p v) (.items ts)

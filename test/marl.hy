@@ -4,21 +4,68 @@
 (import [operator [itemgetter]])
 (import [datetime [datetime :as dt]])
 (import [numpy :as np])
-(import [gym-ad.envs [SymAmpXH035ZooMA SymAmpXH035RayMA]])
-(import [supersuit :as ss])
+(import [gym-ad.envs [SymAmpXH035Env]])
+(import gym)
+;(import [supersuit :as ss])
 (import [stable-baselines3 [A2C PPO]])
 (import [stable-baselines3.common.vec-env [DummyVecEnv VecNormalize SubprocVecEnv]])
 (import ray)
-(import [ray.tune [register-env]])
+(import [ray [tune]])
 (import [ray.rllib.env.policy-server-input [PolicyServerInput]])
 (import [ray.rllib.env.policy-client [PolicyClient]])
-(import [ray.rllib.examples.env.random-env [RandomMultiAgentEnv]])
+;(import [ray.rllib.examples.env.random-env [RandomMultiAgentEnv]])
 (import [ray.rllib.agents.a3c :as a3c])
 (import [ray.rllib.agents.ppo :as ppo])
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
+
+(setv HOME       (os.path.expanduser "~")
+      time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
+      model-path f"./models/baselines/a2c-miller-amp-xh035-{time-stamp}.mod"
+      ;model-path f"./models/baselines/a2c-sym-amp-xh035-{time-stamp}.mod"
+      ;model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
+      data-path  f"../data/symamp/xh035")
+
+(setv nmos-path f"../models/xh035-nmos"
+      pmos-path f"../models/xh035-pmos"
+      pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
+      moa-path  f"../library/moa"
+      sym-path  f"../library/sym"
+      tech-cfg  f"../library/techdef/xh035.yaml"
+      sym-env-name "gym_ad:sym-amp-xh035-v0"
+      moa-env-name "gym_ad:miller-amp-xh035-v0")
+
+(setv cfg {"gamma" 0.9
+           "lr" 1e-2
+           "num_workers" 13
+           ;"sgd_minibatch_size" 13
+           ;"train_batch_size" 13
+           ;"model" {"fcnet_hiddens" [256 512 256 128 32 16]}
+           ;"framework" "torch"
+           "env_config" {"pdk_path" pdk-path
+                         "ckt_path" sym-path
+                         "tech_cfg" tech-cfg
+                         "nmos_path" nmos-path
+                         "pmos_path" pmos-path
+                         "data_log_prefix" data-path
+                         "close_target" True }})
+
+(tune.register-env "symAmpEnv" (fn [cfg] (gym.make sym-env-name #** cfg)))
+
+(setv trainer (ppo.PPOTrainer :env "symAmpEnv" :config cfg))
+
+(setv max-iters 10000)
+
+(loop [[itr 0]]
+  (print f"{itr :04}. Iteration")
+  (.train trainer)
+  (with [f (open model-path "w")]
+    (f.write (.save trainer)))
+  (when (<= itr max-iters)
+    (recur (inc itr))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; RAY

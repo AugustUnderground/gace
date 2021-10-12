@@ -48,9 +48,9 @@
                     :close-target    True))
 
 ;; Vectorize for normalization
-(setv denv (DummyVecEnv [#%(identity env)]))       ; just 1 env
+;(setv denv (DummyVecEnv [#%(identity env)]))       ; just 1 env
+;(setv dnenv (VecNormalize denv :training True :norm-obs True :norm-reward True))
 (setv venv (DummyVecEnv (list (repeat #%(identity env) 64))))  ; n envs
-(setv dnenv (VecNormalize denv :training True :norm-obs True :norm-reward True))
 (setv nenv (VecNormalize venv :training True :norm-obs True :norm-reward True))
 
 ;; Add some Gaussian Noise
