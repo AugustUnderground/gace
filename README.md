@@ -1,20 +1,19 @@
 # Analog Design Gym
 
-[gym](https://gym.openai.com/) environments for analog integrated circuit design.
+[gym](https://gym.openai.com/) environments for analog integrated circuit
+design, based on [AC²E](https://github.com/mattschw/ace) /
+[HAC²E](https://github.com/AugustUnderground/hace).
 
 ## Installation
 
 ```bash
-$ pip install . --use-feature=in-tree-build
+$ pip install git+https://github.com/augustunderground/gym-analog-design.git
 ```
 
 ## Requirements
 
-Creating an environment requires NMOS and PMOS models as well as the
-[analog-circuit-server](https://github.com/augustunderground/analog-circuit-server)
-REST API for the 
-[analog-circuit-library](https://gitlab-forschung.reutlingen-university.de/schweikm/analog-circuit-library)
-java package.
+Creating an environment requires trained NMOS and PMOS models and HAC²E
+including all dependencies.
 
 ## Getting Started
 
@@ -23,18 +22,15 @@ After installing:
 ```python
 import gym
 
-env = gym.make( 'gym_ad:sym-amp-xh035-v0'
-              , nmos_path = '/path/to/models/nmos'
-              , pmos_path = '/path/to/models/pmos'
-              , acl-host  = 'localhost'
-              , acl-port  = 8888
-              , )
+env = gym.make( 'gym_ad:sym-amp-xh035-v0'           # Only working env right now
+              , pdk-path  = '/path/to/tech'         # path to xfab pdk
+              , ckt-path  = '/path/to/op2'          # path to testbench
+              , nmos-path = '/path/to/models/nmos'  # path to nmos model
+              , pmos-path = '/path/to/models/pmos'  # paht to pmos model
+              , close-target    True))              # start close to target
 ```
 
-Where `<nmos|pmos>_path` is the location of the corresponding `model.pt`. The
-`acl-*` parameters should point to a running
-[analog-circuit-server](https://github.com/augustunderground/analog-circuit-server)
-instance.
+Where `<nmos|pmos>_path` is the location of the corresponding `model.pt`.
 
 ## Environments
 
