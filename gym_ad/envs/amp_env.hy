@@ -172,8 +172,9 @@
                                           :noise (not self.random-target)))
     
     ;; Target can be random or close to a known acheivable.
-    (setv self.target (self.target-specification :random self.random-target 
-                                                 :noisy True))
+    (setv self.target (if self.random-target
+      (self.target-specification :random self.random-target :noisy False)
+      (dfor (, p v) (.items self.target) [p (* v (np.random.normal 1.0 0.01))])))
 
     ;; Get the current performance for the initial parameters
     (setv self.performance (ac.evaluate-circuit self.amplifier :params parameters))
