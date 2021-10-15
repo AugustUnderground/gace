@@ -25,8 +25,7 @@
       pmos-path f"../models/xh035-pmos"
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       moa-path  f"../library/moa"
-      sym-path  f"../library/testbenches/op2"
-      tech-cfg  f"../library/techdef/xh035.yaml"
+      sym-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
       sym-env-name "gym_ad:sym-amp-xh035-v0"
       moa-env-name "gym_ad:miller-amp-xh035-v0")
 
@@ -34,7 +33,6 @@
 (setv env (gym.make sym-env-name
                     :pdk-path        pdk-path
                     :ckt-path        sym-path
-                    :tech-cfg        tech-cfg
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :data-log-prefix data-path
