@@ -58,32 +58,29 @@
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None] 
-                                 ^int [max-moves 200]  ^bool [close-target True]
-                                 ^float [target-tolerance 1e-3] 
+                                 ^int [max-moves 200] ^float [target-tolerance 1e-3] 
+                                 ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
     """
     Constructs a Symmetrical Amplifier Environment with XH035 device models and
     the corresponding netlist.
     Arguments:
+      pdk-path:   This will be passed to the ACE backend.
+      ckt-path:   This will be passed to the ACE backend.
       nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
                   `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
       pmos-path:  Same as 'nmos-path', but for PMOS model.
-
       max-moves:  Maximum amount of steps the agent is allowed to take per
                   episode, before it counts as failed. Default = 200.
-      
-      close-target: If True (default), on each reset, a random target will be
-                    chosen and by bayesian optimization, a location close to it
-                    will be found for the starting point of the agent. This
-                    increases the reset time significantly.
       target-tolerance: (| target - performance | <= tolerance) ? Success.
+      random-target: Generate new random target for each episode.
       target: Specific target, if given, no random targets will be generated,
               and the agent tries to find the same one over and over again.
 
     """
 
     ;; Specify constants as they are defined in the netlist and by the PDK.
-    (setv self.vs   0.5       ; 
+    (setv self.vs   0.5       ; Some voltage 
           self.cl   5e-12     ; Load Capacitance
           self.rl   100e6     ; Load Resistance
           self.i0   3e-6      ; Bias Current
@@ -107,13 +104,14 @@
                                            [pdk-path] ckt-path
                                            nmos-path pmos-path
                                            max-moves target-tolerance
-                                           :close-target close-target
                                            :data-log-prefix data-log-prefix
                                            #_/ )
 
     ;; Generate random target of None was provided.
-    (setv self.same-target  (bool target)
-          self.target       (or target (self.target-specification :noisy False)))
+    (setv self.random-target random-target
+          self.target        (or target 
+                                 (self.target-specification :random random-target
+                                                            :noisy True)))
 
     ;; Specify geometric and electric parameters, these have to align with the
     ;; parameters defined in the netlist.
@@ -205,7 +203,8 @@
                [(.startswith p "W") (-> v (max 0.4e-6) (min 150e-6))]
                [True v])]))
 
-  (defn target-specification ^dict [self &optional [noisy True]]
+  (defn target-specification ^dict [self &optional ^bool [random False] 
+                                                   ^bool [noisy True]]
     """
     Generate a noisy target specification.
     """
@@ -235,11 +234,12 @@
               "voff_stat"   3e-3
               "voff_sys"    1.5e-3
               "A"           5.5e-10
-              #_/ }]
+              #_/ }
+          factor (cond [random-target (np.abs (np.random.normal 1 0.5))]
+                       [noisy (np.random.normal 1 0.01)]
+                       [True 1.0])]
       (dfor (, p v) (.items ts)
-        [ p 
-          (if noisy
-              (* v (np.random.normal 1 0.01)) v) ])))
+        [ p (if noisy (* v factor) v) ])))
 
   (defn render [self &optional [mode "ascii"]]
     """
