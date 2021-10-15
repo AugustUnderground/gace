@@ -27,7 +27,7 @@ env = gym.make( 'gym_ad:sym-amp-xh035-v0'           # Only working env right now
               , ckt-path  = '/path/to/op2'          # path to testbench
               , nmos-path = '/path/to/models/nmos'  # path to nmos model
               , pmos-path = '/path/to/models/pmos'  # paht to pmos model
-              , close-target    True))              # start close to target
+              , random-target = False )             # start close to target
 ```
 
 Where `<nmos|pmos>_path` is the location of the corresponding `model.pt`.
@@ -63,14 +63,14 @@ devices.
                  , "v_oh":       "Output High"
                  , "i_out_min":  "Minimum output current"
                  , "i_out_max":  "Maximum output current"
+                 , "overshoot_r" "Slew rate overswing rising"
+                 , "overshoot_f" "Slew rate overswing falling"
                  , "voff_stat":  "Statistical Offset"
                  , "voff_sys":   "Systematic Offset"
-                 , "A"           "Area"
-                 , }
+                 , "A"           "Area" }
 , "target": "Same values as 'performance'"
 , "distance": "Same values as 'performance'"
-, "state": "electrical characteristics"
-, }
+, "state": "electrical characteristics" }
 ```
 
 Where the `performance` are the simulation / analyses results and `distance` is
