@@ -32,7 +32,7 @@
   (setv metadata {"render.modes" ["human"]})
 
   (defn __init__ [self ^AmplifierID amp-id
-                  ^str pdk-path ^str ckt-path ^str tech-cfg 
+                  ^str pdk-path ^str ckt-path
                   ^str nmos-path ^str pmos-path
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
@@ -64,8 +64,9 @@
                                     "psrr_n" "psrr_p" "cmrr" 
                                     "v_ol" "v_oh" "v_il" "v_ih"
                                     "voff_stat" "voff_sys" 
+                                    "overshoot_r" "overshoot_f"
                                     "i_out_max" 
-                                    ;"i_out_min" "A"
+                                    "i_out_min" "A"
                                     ])
     
     ;; This parameters specifies at which point the specification is considered
@@ -95,9 +96,6 @@
                                         f"Miller OP Not yet implemented."))]
                                [True (raise (NotImplementedError 
                                         f"Miller OP Not yet implemented."))]))
-
-    ;; Technology definitions such as min/max W/L, grid, etc.
-    (setv self.tech-cfg (with [y (open tech-cfg)] (yaml.safe-load y)))
 
     ;; The `amplifier` communicates with the spectre simulator and returns the 
     ;; circuit performance.
@@ -178,7 +176,7 @@
     ;; Target can be random or close to a known acheivable.
     (setv self.target (self.target-specification :noisy True))
 
-    (setv self.performance (ac.evaluate-circuit self.amplifier parameters))
+    (setv self.performance (ac.evaluate-circuit self.amplifier :params parameters))
 
     (.observation self))
 
@@ -209,10 +207,9 @@
     (see `clip-sizing` mehtods.)
     """
 
-    (setv self.performance (ac.evaluate-circuit self.amplifier action)
+    (setv self.performance (ac.evaluate-circuit self.amplifier :params action)
           self.data-log 
           (self.data-log.append (dfor (, k v) (.items self.performance) [k v])
-                                      ;[k (first v)])
                                 :ignore-index True))
 
     (, (.observation self) (.reward self) (.done self) (.info self)))
@@ -245,30 +242,32 @@
     """
     Hand crafted reward functions for each individual performance parameter.
     """
-    {"a_0"       (absolute-condition (. self.target ["a_0"])                '<=)  ; t dB ≤ x
-     "ugbw"      (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
-     "pm"        (absolute-condition (. self.target ["pm"])                 '<=)  ; t dB ≤ x
-     "gm"        (absolute-condition (np.abs (. self.target ["gm"]))        '<=)  ; t ° ≤ |x|
-     "sr_r"      (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
-     "sr_f"      (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
-     "vn_1Hz"    (absolute-condition (. self.target ["vn_1Hz"])             '>=)  ; t V ≥ x
-     "vn_10Hz"   (absolute-condition (. self.target ["vn_10Hz"])            '>=)  ; t V ≥ x
-     "vn_100Hz"  (absolute-condition (. self.target ["vn_100Hz"])           '>=)  ; t V ≥ x
-     "vn_1kHz"   (absolute-condition (. self.target ["vn_1kHz"])            '>=)  ; t V ≥ x
-     "vn_10kHz"  (absolute-condition (. self.target ["vn_10kHz"])           '>=)  ; t V ≥ x
-     "vn_100kHz" (absolute-condition (. self.target ["vn_100kHz"])          '>=)  ; t V ≥ x
-     "psrr_n"    (absolute-condition (. self.target ["psrr_n"])             '<=)  ; t dB ≤ x
-     "psrr_p"    (absolute-condition (. self.target ["psrr_p"])             '<=)  ; t dB ≤ x
-     "cmrr"      (absolute-condition (. self.target ["cmrr"])               '<=)  ; t dB ≤ x
-     "v_il"      (absolute-condition (. self.target ["v_il"])               '>=)  ; t V ≥ x
-     "v_ih"      (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
-     "v_ol"      (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
-     "v_oh"      (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
-     ;"i_out_min" (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
-     "i_out_max" (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
-     "voff_stat" (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
-     "voff_sys"  (absolute-condition (np.abs (. self.target ["voff_sys"])) '>=)  ; t V ≥ |x|
-     "A"         (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
+    {"a_0"         (absolute-condition (. self.target ["a_0"])                '<=)  ; t dB ≤ x
+     "ugbw"        (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
+     "pm"          (absolute-condition (. self.target ["pm"])                 '<=)  ; t dB ≤ x
+     "gm"          (absolute-condition (np.abs (. self.target ["gm"]))        '<=)  ; t ° ≤ |x|
+     "sr_r"        (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
+     "sr_f"        (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
+     "vn_1Hz"      (absolute-condition (. self.target ["vn_1Hz"])             '>=)  ; t V ≥ x
+     "vn_10Hz"     (absolute-condition (. self.target ["vn_10Hz"])            '>=)  ; t V ≥ x
+     "vn_100Hz"    (absolute-condition (. self.target ["vn_100Hz"])           '>=)  ; t V ≥ x
+     "vn_1kHz"     (absolute-condition (. self.target ["vn_1kHz"])            '>=)  ; t V ≥ x
+     "vn_10kHz"    (absolute-condition (. self.target ["vn_10kHz"])           '>=)  ; t V ≥ x
+     "vn_100kHz"   (absolute-condition (. self.target ["vn_100kHz"])          '>=)  ; t V ≥ x
+     "psrr_n"      (absolute-condition (. self.target ["psrr_n"])             '<=)  ; t dB ≤ x
+     "psrr_p"      (absolute-condition (. self.target ["psrr_p"])             '<=)  ; t dB ≤ x
+     "cmrr"        (absolute-condition (. self.target ["cmrr"])               '<=)  ; t dB ≤ x
+     "v_il"        (absolute-condition (. self.target ["v_il"])               '>=)  ; t V ≥ x
+     "v_ih"        (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
+     "v_ol"        (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
+     "v_oh"        (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
+     "i_out_min"   (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
+     "i_out_max"   (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
+     "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t A ≥ x
+     "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t A ≥ x
+     "voff_stat"   (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
+     "voff_sys"    (absolute-condition (np.abs (. self.target ["voff_sys"]))  '>=)  ; t V ≥ |x|
+     "A"           (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
      #_/ })
 
   (defn reward ^float [self &optional ^dict [performance {}]
@@ -285,12 +284,16 @@
     calculate the reward.
     """
     (let [perf-dict  (or performance self.performance) 
-          p-getter (itemgetter #* self.performance-parameters)
+          p-getter   (itemgetter #* self.performance-parameters)
           params     (or params self.performance-parameters)
           reward-fns (.individual-rewards self)
-          rewards (lfor p params 
-                     ((. reward-fns [p]) 
-                      (np.nan-to-num (. perf-dict [p])))) ]
+                      ;((. reward-fns [p]) (np.nan-to-num (. perf-dict [p])))
+          rewards    (lfor p params 
+                      (let [pp (. perf-dict [p])
+                          rr (. reward-fns [p])]
+                        (if (or (np.isnan pp) (np.isinf pp))
+                          (-> -Inf (np.nan-to-num) (float))
+                          (rr pp))))]
       (-> rewards (np.array) (np.sum) (np.abs) (np.log10) (-) (float))))
  
   (defn done ^bool [self]
