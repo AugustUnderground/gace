@@ -36,7 +36,7 @@
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :data-log-prefix data-path
-                    :close-target    True))
+                    :random-target   False))
 
 ;; Check if no Warnings
 (check-env env :warn True)
