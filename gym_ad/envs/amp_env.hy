@@ -264,8 +264,8 @@
      "v_oh"        (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
      "i_out_min"   (absolute-condition (. self.target ["i_out_min"])          '<=)  ; t A ≤ x
      "i_out_max"   (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
-     "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t A ≥ x
-     "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t A ≥ x
+     "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t % ≥ x
+     "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t % ≥ x
      "voff_stat"   (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
      "voff_sys"    (absolute-condition (np.abs (. self.target ["voff_sys"]))  '>=)  ; t V ≥ |x|
      "A"           (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
