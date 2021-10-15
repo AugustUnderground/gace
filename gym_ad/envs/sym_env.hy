@@ -26,6 +26,7 @@
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
+(import [hy.contrib.pprint [pp pprint]])
 
 ;; THIS WILL BE FIXED IN HY 1.0!
 ;(import multiprocess)
@@ -56,7 +57,6 @@
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [tech-cfg None]
                                  ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]  ^bool [close-target True]
                                  ^float [target-tolerance 1e-3] 
@@ -101,14 +101,10 @@
       (raise (FileNotFoundError errno.ENOENT 
                                 (os.strerror errno.ENOENT) 
                                 ckt-path)))
-    (unless (or tech-cfg (not (os.path.exists tech-cfg)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                tech-cfg)))
 
     ;; Initialize parent Environment.
     (.__init__ (super SymAmpXH035Env self) AmplifierID.SYMMETRICAL 
-                                           [pdk-path] ckt-path tech-cfg 
+                                           [pdk-path] ckt-path
                                            nmos-path pmos-path
                                            max-moves target-tolerance
                                            :close-target close-target
@@ -146,12 +142,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 236)  :dtype np.float32))
- 
-    ;; Loss function used for reward calculation. Either write your own, or
-    ;; checkout util.Loss for more loss funtions provided with this package. 
-    ;; Mean Absolute Percentage Error (MAPE)
-    (setv self.loss Loss.MAPE))
+                                      :shape (, 237)  :dtype np.float32)))
 
   (defn step [self action]
     """
@@ -218,30 +209,32 @@
     """
     Generate a noisy target specification.
     """
-    (let [ts {"a_0"       55.0                                      
-              "ugbw"      (np.array [3500000.0 4000000.0])
-              "pm"        65.0
-              "gm"        -30.0
-              "sr_r"      (np.array [3500000.0 4000000.0])
-              "sr_f"      (np.array [-3500000.0 -4000000.0])
-              "vn_1Hz"    5e-06
-              "vn_10Hz"   2e-06
-              "vn_100Hz"  5e-07
-              "vn_1kHz"   1.5e-07
-              "vn_10kHz"  5e-08
-              "vn_100kHz" 2.5e-08
-              "psrr_n"    80.0
-              "psrr_p"    80.0
-              "cmrr"      80.0
-              "v_il"      0.9
-              "v_ih"      3.2
-              "v_ol"      0.1
-              "v_oh"      3.2
-              ;"i_out_min" -7e-5
-              "i_out_max" 7e-5
-              "voff_stat" 3e-3
-              "voff_sys"  1.5e-3
-              "A"         5.5e-10
+    (let [ts {"a_0"         55.0                                      
+              "ugbw"        (np.array [3500000.0 4000000.0])
+              "pm"          65.0
+              "gm"          -30.0
+              "sr_r"        (np.array [3500000.0 4000000.0])
+              "sr_f"        (np.array [-3500000.0 -4000000.0])
+              "vn_1Hz"      5e-06
+              "vn_10Hz"     2e-06
+              "vn_100Hz"    5e-07
+              "vn_1kHz"     1.5e-07
+              "vn_10kHz"    5e-08
+              "vn_100kHz"   2.5e-08
+              "psrr_n"      80.0
+              "psrr_p"      80.0
+              "cmrr"        80.0
+              "v_il"        0.9
+              "v_ih"        3.2
+              "v_ol"        0.1
+              "v_oh"        3.2
+              "i_out_min"   -7e-5
+              "i_out_max"   7e-5
+              "overshoot_r" 2.0
+              "overshoot_f" 2.0
+              "voff_stat"   3e-3
+              "voff_sys"    1.5e-3
+              "A"           5.5e-10
               #_/ }]
       (dfor (, p v) (.items ts)
         [ p 
