@@ -140,7 +140,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 237)  :dtype np.float32)))
+                                      :shape (, 245)  :dtype np.float32)))
 
   (defn step [self action]
     """
@@ -235,9 +235,9 @@
               "voff_sys"    1.5e-3
               "A"           5.5e-10
               #_/ }
-          factor (cond [random-target (np.abs (np.random.normal 1 0.5))]
-                       [noisy (np.random.normal 1 0.01)]
-                       [True 1.0])]
+          factor (cond [random (np.abs (np.random.normal 1 0.5))]
+                       [noisy  (np.random.normal 1 0.01)]
+                       [True   1.0])]
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ])))
 

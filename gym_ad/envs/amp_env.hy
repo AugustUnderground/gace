@@ -261,7 +261,7 @@
      "v_ih"        (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
      "v_ol"        (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
      "v_oh"        (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
-     "i_out_min"   (absolute-condition (. self.target ["i-out-min"])          '<=)  ; t A ≤ x
+     "i_out_min"   (absolute-condition (. self.target ["i_out_min"])          '<=)  ; t A ≤ x
      "i_out_max"   (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
      "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t A ≥ x
      "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t A ≥ x
