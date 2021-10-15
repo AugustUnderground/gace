@@ -32,7 +32,7 @@
   (setv metadata {"render.modes" ["human"]})
 
   (defn __init__ [self ^AmplifierID amp-id
-                  ^str pdk-path ^str ckt-path
+                  ^str pdk-path  ^str ckt-path
                   ^str nmos-path ^str pmos-path
                   ^int max-moves 
        &optional ^float [target-tolerance 1e-3]
@@ -59,15 +59,15 @@
 
     ;; Define list of universal performances for all Amplifiers
     (setv self.performance-parameters ["a_0" "ugbw" "pm" "gm" "sr_r" "sr_f" 
-                                    "vn_1Hz" "vn_10Hz" "vn_100Hz" "vn_1kHz" 
-                                    "vn_10kHz" "vn_100kHz" 
-                                    "psrr_n" "psrr_p" "cmrr" 
-                                    "v_ol" "v_oh" "v_il" "v_ih"
-                                    "voff_stat" "voff_sys" 
-                                    "overshoot_r" "overshoot_f"
-                                    "i_out_max" 
-                                    "i_out_min" "A"
-                                    ])
+                                       "vn_1Hz" "vn_10Hz" "vn_100Hz" "vn_1kHz" 
+                                       "vn_10kHz" "vn_100kHz" 
+                                       "psrr_n" "psrr_p" "cmrr" 
+                                       "v_ol" "v_oh" "v_il" "v_ih"
+                                       "voff_stat" "voff_sys" 
+                                       "overshoot_r" "overshoot_f"
+                                       "i_out_max" 
+                                       "i_out_min" "A"
+                                       #_/ ])
     
     ;; This parameters specifies at which point the specification is considered
     ;; 'met' and the agent recieves its award.
