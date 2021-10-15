@@ -35,7 +35,7 @@
                   ^str pdk-path ^str ckt-path
                   ^str nmos-path ^str pmos-path
                   ^int max-moves 
-       &optional ^float [target-tolerance 1e-3] ^bool [close-target True] 
+       &optional ^float [target-tolerance 1e-3]
                  ^str   [data-log-prefix ""]
                  #_/ ] 
     """
@@ -74,7 +74,7 @@
     (setv self.target-tolerance target-tolerance)
     
     ;; If `True` the agent will be reset in a location close to the target.
-    (setv self.close-target close-target)
+    ;(setv self.close-target close-target)
                                     
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
     (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.pt" 
@@ -152,8 +152,6 @@
     If not running, this creates a new spectre session. The `moves` counter is
     reset, while the reset counter is increased. If `same-target` is false, a
     random target will be generated otherwise, the given one will be used.
-    If `close-target` is true, an initial sizing will be found via bayesian
-    optimization, placing the agent fairly close to the target.
 
     Finally, a simulation is run and the observed perforamnce returned.
     """
@@ -170,12 +168,14 @@
     (setv self.data-log (pd.DataFrame))
 
     ;; Starting parameters are either random or close to a known solution.
-    (setv parameters (self.starting-point :random (not self.close-target) 
-                                          :noise True))
+    (setv parameters (self.starting-point :random self.random-target
+                                          :noise (not self.random-target)))
     
     ;; Target can be random or close to a known acheivable.
-    (setv self.target (self.target-specification :noisy True))
+    (setv self.target (self.target-specification :random self.random-target 
+                                                 :noisy True))
 
+    ;; Get the current performance for the initial parameters
     (setv self.performance (ac.evaluate-circuit self.amplifier :params parameters))
 
     (.observation self))
