@@ -43,9 +43,8 @@
                     :pmos-path       pmos-path
                     :pdk-path        pdk-path
                     :ckt-path        sym-path
-                    :tech-cfg        tech-cfg
                     :data-log-prefix data-path
-                    :close-target    True))
+                    :random-target    False))
 
 ;; Vectorize for normalization
 ;(setv denv (DummyVecEnv [#%(identity env)]))       ; just 1 env
