@@ -100,3 +100,11 @@ Registered as `gym_ad:miller-amp-xh035-v0`.
 4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance
 and the mirror ratios `MNCM12` and `MNCM13` in reference to `MNCM11`. 
 `(, 12) ∈ [-1.0; 1.0]` in total.
+
+## TODO
+
+- [ ] Fix reward function
+- [X] remove target tolerance 
+- [ ] adjust info key for observations
+- [ ] set done when met mask true for all
+- [ ] new env with sim mask as action
