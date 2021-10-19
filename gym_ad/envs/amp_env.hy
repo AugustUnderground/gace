@@ -35,8 +35,7 @@
                   ^str pdk-path  ^str ckt-path
                   ^str nmos-path ^str pmos-path
                   ^int max-moves 
-       &optional ^float [target-tolerance 1e-3]
-                 ^str   [data-log-prefix ""]
+       &optional ^str   [data-log-prefix ""]
                  #_/ ] 
     """
     Initialzies the basics required by every amplifier implementing this
@@ -65,17 +64,10 @@
                                        "v_ol" "v_oh" "v_il" "v_ih"
                                        "voff_stat" "voff_sys" 
                                        "overshoot_r" "overshoot_f"
-                                       "i_out_max" 
-                                       "i_out_min" "A"
+                                       "i_out_max" "i_out_min" 
+                                       "A"
                                        #_/ ])
     
-    ;; This parameters specifies at which point the specification is considered
-    ;; 'met' and the agent recieves its award.
-    (setv self.target-tolerance target-tolerance)
-    
-    ;; If `True` the agent will be reset in a location close to the target.
-    ;(setv self.close-target close-target)
-                                    
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
     (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.pt" 
                                      f"{nmos-path}/scale.X" 
@@ -96,6 +88,39 @@
                                         f"Miller OP Not yet implemented."))]
                                [True (raise (NotImplementedError 
                                         f"Miller OP Not yet implemented."))]))
+
+    ;; Predicate for meetin the specification
+    (setv self.reward-condition 
+            {"a_0"         '<=
+             "ugbw"        '<=
+             "pm"          '<=
+             "gm"          '<=
+             "sr_r"        '<=
+             "sr_f"        '<=
+             "vn_1Hz"      '>=
+             "vn_10Hz"     '>=
+             "vn_100Hz"    '>=
+             "vn_1kHz"     '>=
+             "vn_10kHz"    '>=
+             "vn_100kHz"   '>=
+             "psrr_n"      '<=
+             "psrr_p"      '<=
+             "cmrr"        '<=
+             "v_il"        '>=
+             "v_ih"        '<=
+             "v_ol"        '>=
+             "v_oh"        '<=
+             "i_out_min"   '<=
+             "i_out_max"   '>=
+             "overshoot_r" '>=
+             "overshoot_f" '>=
+             "voff_stat"   '>=
+             "voff_sys"    '>=
+             "A"           '>=
+             #_/ })
+
+    ;; Loss function: | performance - target | / target
+    (setv self.loss (fn [x y] (/ (np.abs (- x y)) y)))
 
     ;; The `amplifier` communicates with the spectre simulator and returns the 
     ;; circuit performance.
@@ -225,10 +250,9 @@
                                     (.difference self.performance-parameters) 
                                     (list)))
           perf (->> self.performance (p-getter) (flatten) (np.array))
-          targ (->> self.target (p-getter) (map np.mean) (list) (np.array))
+          targ (->> self.target (p-getter) (flatten) (np.array))
 
-          dist (np.array (list (map (fn [f p] (f (np.nan-to-num p)))
-                                    (p-getter (self.individual-rewards)) perf)))
+          dist (self.loss perf targ)
 
           stat (-> self.performance (s-getter) (flatten) (np.array))
 
@@ -239,37 +263,37 @@
 
       (np.nan-to-num obs)))
 
-  (defn individual-rewards ^dict [self]
-    """
-    Hand crafted reward functions for each individual performance parameter.
-    """
-    {"a_0"         (absolute-condition (. self.target ["a_0"])                '<=)  ; t dB ≤ x
-     "ugbw"        (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
-     "pm"          (absolute-condition (. self.target ["pm"])                 '<=)  ; t dB ≤ x
-     "gm"          (absolute-condition (np.abs (. self.target ["gm"]))        '<=)  ; t ° ≤ |x|
-     "sr_r"        (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
-     "sr_f"        (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
-     "vn_1Hz"      (absolute-condition (. self.target ["vn_1Hz"])             '>=)  ; t V ≥ x
-     "vn_10Hz"     (absolute-condition (. self.target ["vn_10Hz"])            '>=)  ; t V ≥ x
-     "vn_100Hz"    (absolute-condition (. self.target ["vn_100Hz"])           '>=)  ; t V ≥ x
-     "vn_1kHz"     (absolute-condition (. self.target ["vn_1kHz"])            '>=)  ; t V ≥ x
-     "vn_10kHz"    (absolute-condition (. self.target ["vn_10kHz"])           '>=)  ; t V ≥ x
-     "vn_100kHz"   (absolute-condition (. self.target ["vn_100kHz"])          '>=)  ; t V ≥ x
-     "psrr_n"      (absolute-condition (. self.target ["psrr_n"])             '<=)  ; t dB ≤ x
-     "psrr_p"      (absolute-condition (. self.target ["psrr_p"])             '<=)  ; t dB ≤ x
-     "cmrr"        (absolute-condition (. self.target ["cmrr"])               '<=)  ; t dB ≤ x
-     "v_il"        (absolute-condition (. self.target ["v_il"])               '>=)  ; t V ≥ x
-     "v_ih"        (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
-     "v_ol"        (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
-     "v_oh"        (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
-     "i_out_min"   (absolute-condition (. self.target ["i_out_min"])          '<=)  ; t A ≤ x
-     "i_out_max"   (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
-     "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t % ≥ x
-     "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t % ≥ x
-     "voff_stat"   (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
-     "voff_sys"    (absolute-condition (np.abs (. self.target ["voff_sys"]))  '>=)  ; t V ≥ |x|
-     "A"           (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
-     #_/ })
+  ;(defn individual-rewards ^dict [self]
+  ;  """
+  ;  Hand crafted reward functions for each individual performance parameter.
+  ;  """
+  ;  {"a_0"         (absolute-condition (. self.target ["a_0"])                '<=)  ; t dB ≤ x
+  ;   "ugbw"        (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
+  ;   "pm"          (absolute-condition (. self.target ["pm"])                 '<=)  ; t dB ≤ x
+  ;   "gm"          (absolute-condition (np.abs (. self.target ["gm"]))        '<=)  ; t ° ≤ |x|
+  ;   "sr_r"        (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
+  ;   "sr_f"        (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
+  ;   "vn_1Hz"      (absolute-condition (. self.target ["vn_1Hz"])             '>=)  ; t V ≥ x
+  ;   "vn_10Hz"     (absolute-condition (. self.target ["vn_10Hz"])            '>=)  ; t V ≥ x
+  ;   "vn_100Hz"    (absolute-condition (. self.target ["vn_100Hz"])           '>=)  ; t V ≥ x
+  ;   "vn_1kHz"     (absolute-condition (. self.target ["vn_1kHz"])            '>=)  ; t V ≥ x
+  ;   "vn_10kHz"    (absolute-condition (. self.target ["vn_10kHz"])           '>=)  ; t V ≥ x
+  ;   "vn_100kHz"   (absolute-condition (. self.target ["vn_100kHz"])          '>=)  ; t V ≥ x
+  ;   "psrr_n"      (absolute-condition (. self.target ["psrr_n"])             '<=)  ; t dB ≤ x
+  ;   "psrr_p"      (absolute-condition (. self.target ["psrr_p"])             '<=)  ; t dB ≤ x
+  ;   "cmrr"        (absolute-condition (. self.target ["cmrr"])               '<=)  ; t dB ≤ x
+  ;   "v_il"        (absolute-condition (. self.target ["v_il"])               '>=)  ; t V ≥ x
+  ;   "v_ih"        (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
+  ;   "v_ol"        (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
+  ;   "v_oh"        (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
+  ;   "i_out_min"   (absolute-condition (. self.target ["i_out_min"])          '<=)  ; t A ≤ x
+  ;   "i_out_max"   (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
+  ;   "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t % ≥ x
+  ;   "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t % ≥ x
+  ;   "voff_stat"   (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
+  ;   "voff_sys"    (absolute-condition (np.abs (. self.target ["voff_sys"]))  '>=)  ; t V ≥ |x|
+  ;   "A"           (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
+  ;   #_/ })
 
   (defn reward ^float [self &optional ^dict [performance {}]
                                       ^list [params []]]
@@ -284,29 +308,41 @@
     If no arguments are provided, the current state of the object is used to
     calculate the reward.
     """
-    (let [perf-dict  (or performance self.performance) 
-          p-getter   (itemgetter #* self.performance-parameters)
-          params     (or params self.performance-parameters)
-          reward-fns (.individual-rewards self)
-                      ;((. reward-fns [p]) (np.nan-to-num (. perf-dict [p])))
-          rewards    (lfor p params 
-                      (let [pp (. perf-dict [p])
-                          rr (. reward-fns [p])]
-                        (if (or (np.isnan pp) (np.isinf pp))
-                          (-> -Inf (np.nan-to-num) (float))
-                          (rr pp))))]
-      (-> rewards (np.array) (np.sum) (np.abs) (np.log10) (-) (float))))
+    (let [perf-dict    (or performance self.performance) 
+          p-getter     (itemgetter #* self.performance-parameters)
+          params       (or params self.performance-parameters)
+
+          performances (-> perf-dict (p-getter) (np.array))
+          targets      (-> self.target (p-getter) (np.array))
+          loss         (/ (np.abs (- performances targets)) targets)
+
+          mask         (lfor (, c p t) 
+                             (zip (-> self.reward-condition 
+                                      (p-getter) (list)) 
+                                  performances targets)
+                             ((eval c) t p))
+
+          cost         (+ (* (np.tanh (np.abs loss)) mask) 
+                          (* (- (** loss 2.0)) (np.invert mask)))
+         ]
+      (-> cost (np.sum))))
  
   (defn done ^bool [self]
     """
-    Returns True if the target is met (under consideration of the
-    'target-tolerance'), or if moves > max-moves, otherwise False is returned.
+    Returns True if the target is met (all predicatets given in 
     """
-    (let [perf (np.array (list (map #%(->> %1 (get self.performance) (np.nan-to-num) (np.mean))
-                                    self.performance-parameters)))
-          targ (np.array (list (map #%(->> %1 (get self.target) (np.nan-to-num) (np.mean))
-                                    self.performance-parameters)))
-          loss (Loss.MAE perf targ)
+    (let [p-getter (itemgetter #* self.performance-parameters)
+          perf (list (map #%(->> %1 (get self.performance) (np.nan-to-num) (np.mean))
+                                    self.performance-parameters))
+          targ (list (map #%(->> %1 (get self.target) (np.nan-to-num) (np.mean))
+                                    self.performance-parameters))
+
+          mask (lfor (, c p t) 
+                     (zip (-> self.reward-condition 
+                              (p-getter) (list)) 
+                          perf targ)
+                     ((eval c) t p))
+
           time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))]
 
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
@@ -320,8 +356,7 @@
 
       ;; 'done' when either maximum number of steps are exceeded, or the
       ;; overall loss is less than the specified target loss.
-      (or (> self.moves self.max-moves) 
-          (< loss self.target-tolerance))))
+      (or (> self.moves self.max-moves) (all mask))))
 
   (defn info ^dict [self]
     """
