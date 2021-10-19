@@ -4,11 +4,7 @@
 (import [operator [itemgetter]])
 (import [datetime [datetime :as dt]])
 (import [numpy :as np])
-(import [gym-ad.envs [SymAmpXH035Env]])
 (import gym)
-;(import [supersuit :as ss])
-(import [stable-baselines3 [A2C PPO]])
-(import [stable-baselines3.common.vec-env [DummyVecEnv VecNormalize SubprocVecEnv]])
 (import ray)
 (import [ray [tune]])
 (import [ray.rllib.env.policy-server-input [PolicyServerInput]])
@@ -39,19 +35,19 @@
 (setv cfg {"gamma" 0.9
            "lr" 1e-2
            "num_workers" 42
-           ;"num_gpus" 2
-           "rollout_fragment_length" 25
+           "num_gpus" 1
+           "rollout_fragment_length" 160
            ;"sgd_minibatch_size" 13
            ;"train_batch_size" 13
            ; "simple_optimizer" True
            "model" {"fcnet_hiddens" [256 512 256 128 32 16]}
            "framework" "torch"
+           "log_level" "DEBUG"
            "env_config" {"pdk_path" pdk-path
                          "ckt_path" sym-path
                          "nmos_path" nmos-path
                          "pmos_path" pmos-path
-                         "data_log_prefix" data-path
-                         "close_target" True }})
+                         "random_target" False }})
 
 (.init ray)
 (tune.register-env "symAmpEnv" #%(gym.make sym-env-name #** %1))
