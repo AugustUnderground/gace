@@ -27,12 +27,12 @@
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
       data-path  f"../data/symamp/xh035")
 
-(setv nmos-path f"../models/xh035-nmos"
-      pmos-path f"../models/xh035-pmos"
+(setv nmos-path f"../../models/xh035-nmos"
+      pmos-path f"../../models/xh035-pmos"
       pdk-path  f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       jar-path  f"{HOME}/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
       moa-path  f"../library/moa"
-      sym-path  f"../library/sym"
+      sym-path  f"../../ACE/ace/resource/xh035-3V3/op2"
       tech-cfg  f"../library/techdef/xh035.yaml"
       env1-name "gym_ad:miller-amp-xh035-v0"
       env2-name "gym_ad:sym-amp-xh035-v0")
