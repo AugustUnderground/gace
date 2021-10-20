@@ -42,35 +42,35 @@ performance as well as the current sizing and characteristics of individual
 devices.
 
 ```json
-{ "performance": { "a_0":        "DC Gain"
-                 , "ugbw":       "Unity Gain Bandwidth"
-                 , "pm":         "Phase Margin"
-                 , "gm":         "Gain Margin"
-                 , "sr_r":       "Slew Rate rising"
-                 , "sr_f":       "Slew Rate falling"
-                 , "vn_1Hz":     "Output-referred noise density @ 1Hz"
-                 , "vn_10Hz":    "Output-referred noise density @ 10Hz"
-                 , "vn_100Hz":   "Output-referred noise density @ 100Hz"
-                 , "vn_1kHz":    "Output-referred noise density @ 1kHz"
-                 , "vn_10kHz":   "Output-referred noise density @ 10kHz"
-                 , "vn_100kHz":  "Output-referred noise density @ 100kHz"
-                 , "psrr_p":     "Power Supply Rejection Ratio"
-                 , "psrr_n":     "Power Supply Rejection Ratio"
-                 , "cmrr":       "Common Mode Rejection Ratio"
-                 , "v_il":       "Input Low"
-                 , "v_ih":       "Input High"
-                 , "v_ol":       "Output Low"
-                 , "v_oh":       "Output High"
-                 , "i_out_min":  "Minimum output current"
-                 , "i_out_max":  "Maximum output current"
-                 , "overshoot_r" "Slew rate overswing rising"
-                 , "overshoot_f" "Slew rate overswing falling"
-                 , "voff_stat":  "Statistical Offset"
-                 , "voff_sys":   "Systematic Offset"
-                 , "A"           "Area" }
-, "target": "Same values as 'performance'"
-, "distance": "Same values as 'performance'"
-, "state": "electrical characteristics" }
+{ "performance": { "a_0":         "DC Gain"
+                 , "ugbw":        "Unity Gain Bandwidth"
+                 , "pm":          "Phase Margin"
+                 , "gm":          "Gain Margin"
+                 , "sr_r":        "Slew Rate rising"
+                 , "sr_f":        "Slew Rate falling"
+                 , "vn_1Hz":      "Output-referred noise density @ 1Hz"
+                 , "vn_10Hz":     "Output-referred noise density @ 10Hz"
+                 , "vn_100Hz":    "Output-referred noise density @ 100Hz"
+                 , "vn_1kHz":     "Output-referred noise density @ 1kHz"
+                 , "vn_10kHz":    "Output-referred noise density @ 10kHz"
+                 , "vn_100kHz":   "Output-referred noise density @ 100kHz"
+                 , "psrr_p":      "Power Supply Rejection Ratio"
+                 , "psrr_n":      "Power Supply Rejection Ratio"
+                 , "cmrr":        "Common Mode Rejection Ratio"
+                 , "v_il":        "Input Low"
+                 , "v_ih":        "Input High"
+                 , "v_ol":        "Output Low"
+                 , "v_oh":        "Output High"
+                 , "i_out_min":   "Minimum output current"
+                 , "i_out_max":   "Maximum output current"
+                 , "overshoot_r": "Slew rate overswing rising"
+                 , "overshoot_f": "Slew rate overswing falling"
+                 , "voff_stat":   "Statistical Offset"
+                 , "voff_sys":    "Systematic Offset"
+                 , "A"            "Area" }
+, "target":      {"Same keys as 'performance'": ... }
+, "distance":    {"Same keys as 'performance'": ...}
+, "state":       {"electrical characteristics": ...} }
 ```
 
 Where the `performance` are the simulation / analyses results and `distance` is
