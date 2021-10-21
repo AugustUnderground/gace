@@ -111,7 +111,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 148)  :dtype np.float32)))
+                                      :shape (, 150)  :dtype np.float32)))
 
   (defn step [self action]
     """
@@ -265,6 +265,7 @@
               "overshoot_f"  0.0005
               "voff_stat"    0.003
               "voff_sys"     -2.5e-05
+              "A"            5.0e-09
               #_/ }
               factor (cond [random (np.abs (np.random.normal 1 0.5))]
                            [noisy  (np.random.normal 1 0.01)]
@@ -357,7 +358,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 148)  :dtype np.float32)))
+                                      :shape (, 150)  :dtype np.float32)))
 
   (defn step [self action]
     """
@@ -519,6 +520,7 @@
               "overshoot_f"  0.0005
               "voff_stat"    0.003
               "voff_sys"     -2.5e-05
+              "A"            5.0e-09
               #_/ }
               factor (cond [random (np.abs (np.random.normal 1 0.5))]
                            [noisy  (np.random.normal 1 0.01)]
