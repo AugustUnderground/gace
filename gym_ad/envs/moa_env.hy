@@ -344,7 +344,7 @@
     ;; each building block. This is subject to change and will include branch
     ;; currents / mirror ratios in the future.
     (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 16) 
+                                 :shape (, 14) 
                                  :dtype np.float32)
           self.action-scale-min (np.array [7.0 7.0 7.0 7.0 7.0 7.0       ; gm/Id min
                                            1e6 5e5 1e6 1e6 1e6 1e6       ; fug min
@@ -408,7 +408,7 @@
 
           Wcm1 (/ self.i0 (get cm1-out 0))
           Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
-          Wcs1 (/ i2 (get cm3-out 0))
+          Wcs1 (/ i2 (get cs1-out 0))
           Wdp1 (/ (* 0.5 i1) (get dp1-out 0)) 
           Wcap (/ i2 (get cap-out 0)) 
           Wres (/ i2 (get res-out 0)) 
@@ -421,9 +421,9 @@
                   "Ld"    Ldp1  "Lr1"   Lres  "Lc1"  Lcap
                   "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"  Wcs1  
                   "Wd"    Wdp1  "Wr1"   Wres  "Wc1"  Wcap
-                  "Mcm11" Mcm11 "Mcm2"  Mcm2  "Mcs"  Mcs1  
+                  "Mcm11" Mcm11 "Mcm21" Mcm2  "Mcs"  Mcs1  
                   "Md"    Mdp1  "Mr1"   Mres  "Mc1"  Mcap
-                  "Mcm12" Mcm12 "Mcm13" Mcm13
+                  "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
                   #_/ }]
 
       (.size-step (super) sizing)))
