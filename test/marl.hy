@@ -36,7 +36,7 @@
            "lr" 1e-2
            "num_workers" 42
            "num_gpus" 1
-           "rollout_fragment_length" 160
+           "rollout_fragment_length" 95
            ;"sgd_minibatch_size" 13
            ;"train_batch_size" 13
            ; "simple_optimizer" True
@@ -63,7 +63,6 @@
     (f.write (.save trainer)))
   (when (<= itr max-iters)
     (recur (inc itr))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; RAY

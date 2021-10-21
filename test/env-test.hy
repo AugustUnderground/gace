@@ -6,6 +6,7 @@
 (import [icecream [ic]])
 (import [numpy :as np])
 (import [h5py :as h5])
+(import [hace :as ac])
 (import gym)
 (import [operator [itemgetter]])
 (import [stable-baselines3.common.env-checker [check-env]])
@@ -40,6 +41,20 @@
 
 ;; Check if no Warnings
 (check-env env :warn True)
+
+(setv foo [-1.0 -0.36093295 1.0 0.43878222 0.00887966 0.98940694
+           -0.6869546 -1.0 -0.02716774 -0.43879426])
+
+(setv bar [-0.08755815 0.69160175 0.3732996 1.0 -0.166852 
+           0.8064401 0.13569689 -1.0 -1.0 0.8056166])
+
+(env.reset)
+
+(list (map #%(unscale-value #* %1) (zip foo env.action-scale-min env.action-scale-max)))
+
+(setv (, o r d i) (env.step (np.array bar)))
+
+
 
 ;; One step test
 (setx obs (.reset env))
