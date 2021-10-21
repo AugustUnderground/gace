@@ -34,4 +34,5 @@ install.sh
 resources
 mos
 
+*.json
 *.ahdlSimDB
