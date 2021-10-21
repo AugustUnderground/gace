@@ -24,10 +24,9 @@
 (import [hy.contrib.sequences [Sequence end-sequence]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(defclass AmplifierXH035Env [gym.Env]
+(defclass SingleEndedOpAmpEnv [gym.Env]
   """
-  Abstract parent class for all analog amplifier environments designed with
-  the X-FAB XH035 Technology.
+  Abstract parent class for all single ended amplifier environments.
   """
 
   (setv metadata {"render.modes" ["human"]})
@@ -43,7 +42,7 @@
     interface.
     """
 
-    (.__init__ (super AmplifierXH035Env self))
+    (.__init__ (super SingleEndedOpAmpEnv self))
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
@@ -66,7 +65,7 @@
                                        "voff_stat" "voff_sys" 
                                        "overshoot_r" "overshoot_f"
                                        "i_out_max" "i_out_min" 
-                                       "A"
+                                       ;"A"
                                        #_/ ])
     
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
@@ -240,7 +239,6 @@
     electric parameters to geometric ones.
 
     Each circuit has to make sure the geometric parameters are within reason.
-    (see `clip-sizing` mehtods.)
     """
 
     (setv self.performance (ac.evaluate-circuit self.amplifier :params action)
@@ -354,4 +352,4 @@
                           (lfor sp (.keys self.performance) 
                                    :if (not-in sp self.performance-parameters) 
                                sp))
-     #_ /}))
+     #_/ }))

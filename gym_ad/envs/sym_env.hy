@@ -2,6 +2,7 @@
 (import sys)
 (import errno)
 (import [functools [partial]])
+(import [fractions [Fraction]])
 
 (import [torch :as pt])
 (import [numpy :as np])
@@ -10,7 +11,7 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
-(import [.amp_env [AmplifierXH035Env]])
+(import [.amp_env [SingleEndedOpAmpEnv]])
 (import [.util [*]])
 
 (require [hy.contrib.walk [let]]) 
@@ -24,11 +25,7 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Single Agent
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defclass SymAmpXH035Env [AmplifierXH035Env]
+(defclass SymmetricalAmplifierEnv [SingleEndedOpAmpEnv]
   """
   Derived amplifier class, implementing the Symmetrical Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
@@ -81,28 +78,19 @@
                                 ckt-path)))
 
     ;; Initialize parent Environment.
-    (.__init__ (super SymAmpXH035Env self) AmplifierID.SYMMETRICAL 
-                                           [pdk-path] ckt-path
-                                           nmos-path pmos-path
-                                           max-moves
-                                           :data-log-prefix data-log-prefix
-                                           #_/ )
+    (.__init__ (super SymmetricalAmplifierEnv self) 
+               AmplifierID.SYMMETRICAL 
+               [pdk-path] ckt-path
+               nmos-path pmos-path
+               max-moves
+               :data-log-prefix data-log-prefix
+               #_/ )
 
     ;; Generate random target of None was provided.
     (setv self.random-target random-target
           self.target        (or target 
                                  (self.target-specification :random random-target
                                                             :noisy True)))
-
-    ;; Specify geometric and electric parameters, these have to align with the
-    ;; parameters defined in the netlist.
-    (setv self.geometric-parameters [ "Lcm1" "Lcm2" "Lcm3" "Ld" 
-                                      "Mcm11" "Mcm12" "Mcm21" "Mcm22" 
-                                      "Mcm31" "Mcm32" "Md"
-                                      "Wcm1" "Wcm2" "Wcm3" "Wd" ]
-          self.electric-parameters [ "gmid_cm1" "gmid_cm2" "gmid_cm3" "gmid_dp1" 
-                                     "fug_cm1" "fug_cm2" "fug_cm3" "fug_dp1" 
-                                     "mcm1" "rmc2" ])
 
     ;; The action space consists of 10 parameters ∈ [0;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
@@ -146,7 +134,7 @@
           (, Mcm11 Mcm12) (, M1.numerator M1.denominator)
           (, Mcm21 Mcm22) (, M2.numerator M2.denominator)
 
-          vx 1.25 
+          ;vx (/ self.vsup 2.7)
 
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vsup 2) 0.0]])
           cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vsup 2) 0.0]])
@@ -170,22 +158,72 @@
 
           sizing { "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  "Ld" Ldp1
                    "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1
-                   "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31
-                   "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 
-                   "Md"    Mdp1 }]
+                   "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 "Md" Mdp1 
+                   "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }]
 
       (.size-step (super) sizing)))
-  
-  ;(defn clip-sizing ^dict [self ^dict sizing]
-  ;  """
-  ;  Clip the chosen values according to PDK Specifiactions.
-  ;  """
-  ;  (dfor (, p v) (.items sizing)
-  ;    [p (cond [(.startswith p "M") (max v 1.0)]
-  ;             [(.startswith p "L") (max v 0.35e-6)]
-  ;             [(.startswith p "W") (-> v (max 0.4e-6) (min 150e-6))]
-  ;             [True v])]))
 
+  (defn render [self &optional [mode "ascii"]]
+    """
+    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
+    https://github.com/Blokkendoos/AACircuit
+    """
+    (cond [(= mode "ascii")
+           (print f"
+o-------------o---------------o------------o--------------o----------o VDD
+              |               |            |              |           
+      MPCM222 +-||         ||-+ MPCM221    +-||        ||-+ MPCM212
+              <-||         ||->            <-||        ||->           
+              +-||----o----||-+    MPCM211 +-||----o---||-+           
+              |       |       |            |       |      |           
+              |       |       |            |       |      |           
+              |       '-------o            o-------'      |           
+              |               |            |              |           
+              |               |            |              |           
+              |               |            |              |           
+ Iref         |            ||-+ MND11      +-||           |           o          |            ||<-            ->||           |           
+   |          |  VI+ o-----||-+      MND12 +-||-----o VI- |           
+   |          |               |     X      |              o-----o--o VO
+   |          |               '-----o------'              |     |     
+   |          |                     |                     |     |     
+   +-|| MNCM11|           MNCM12 ||-+                     |     |     
+   ->||       |                  ||<-                     |     |     
+   +-||-------)------------------||-+                     |     |     
+   |          |                     |                     |    --- CL
+   |          |                     |                     |    ---    
+   |          o-------.             |                     |     |     
+   |          |       |             |                     |     |     
+   |          |       |             |                     |     |     
+   |   MNCM31 +-||    |             |           MNCM32 ||-+     |     
+   |          ->||    |             |                  ||<-     |     
+   |          +-||----o-------------)------------------||-+     |     
+   |          |                     |                     |     |     
+   |          |                     |                     |     |     
+   '----------o---------------------o---------------------o-----'     
+                                    |                                 
+                                   ===                                
+                                   VSS                                " )]
+          [True (.render (super) mode)])))
+
+(defclass SymAmpXH035Env [SymmetricalAmplifierEnv]
+  """
+  Symmetrical Amplifier in XH035 Technology.
+  """
+
+  (setv metadata {"render.modes" ["human" "ascii"]})
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^str [nmos-path None] ^str [pmos-path None] 
+                                 ^int [max-moves 200]
+                                 ^bool [random-target False]
+                                 ^dict [target None] ^str [data-log-prefix ""]]
+
+    (.__init__ (super SymAmpXH035Env self) :pdk-path pdk-path :ckt-path ckt-path
+                                           :nmos-path nmos-path :pmos-path pmos-path
+                                           :max-moves max-moves :random-target random-target
+                                           :target target :data-log-prefix data-log-prefix
+                                           #_/ ))
+ 
   (defn target-specification ^dict [self &optional ^bool [random False] 
                                                    ^bool [noisy True]]
     """
@@ -218,51 +256,8 @@
               "voff_sys"    1.5e-3
               "A"           5.5e-10
               #_/ }
-          factor (cond [random (np.abs (np.random.normal 1 0.5))]
-                       [noisy  (np.random.normal 1 0.01)]
-                       [True   1.0])]
+              factor (cond [random (np.abs (np.random.normal 1 0.5))]
+                           [noisy  (np.random.normal 1 0.01)]
+                           [True   1.0])]
       (dfor (, p v) (.items ts)
-        [ p (if noisy (* v factor) v) ])))
-
-  (defn render [self &optional [mode "ascii"]]
-    """
-    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
-    https://github.com/Blokkendoos/AACircuit
-    """
-    (cond [(= mode "ascii")
-           (print f"
-o-------------o---------------o------------o--------------o----------o VDD
-              |               |            |              |           
-      MPCM222 +-||         ||-+ MPCM221    +-||        ||-+ MPCM212
-              <-||         ||->            <-||        ||->           
-              +-||----o----||-+    MPCM211 +-||----o---||-+           
-              |       |       |            |       |      |           
-              |       |       |            |       |      |           
-              |       '-------o            o-------'      |           
-              |               |            |              |           
-              |               |            |              |           
-              |               |            |              |           
- Iref         |            ||-+ MND11      +-||           |           
-   o          |            ||<-            ->||           |           
-   |          |  VI+ o-----||-+      MND12 +-||-----o VI- |           
-   |          |               |     X      |              o-----o--o VO
-   |          |               '-----o------'              |     |     
-   |          |                     |                     |     |     
-   +-|| MNCM11|           MNCM12 ||-+                     |     |     
-   ->||       |                  ||<-                     |     |     
-   +-||-------)------------------||-+                     |     |     
-   |          |                     |                     |    --- CL
-   |          |                     |                     |    ---    
-   |          o-------.             |                     |     |     
-   |          |       |             |                     |     |     
-   |          |       |             |                     |     |     
-   |   MNCM31 +-||    |             |           MNCM32 ||-+     |     
-   |          ->||    |             |                  ||<-     |     
-   |          +-||----o-------------)------------------||-+     |     
-   |          |                     |                     |     |     
-   |          |                     |                     |     |     
-   '----------o---------------------o---------------------o-----'     
-                                    |                                 
-                                   ===                                
-                                   VSS                                " )]
-          [True (.render (super) mode)])))
+        [ p (if noisy (* v factor) v) ]))))
