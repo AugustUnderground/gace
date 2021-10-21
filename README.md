@@ -122,7 +122,10 @@ Registered as `gym_ad:sym-amp-xh035-v2`.
 
 #### Action Space
 
-**UNDER CONSTRUCTION**
+6 `gmoverid`s and `fug`s for each building block and branch current `i1`, `i2`
+and `i3`. `(, 15) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
+handled in the environment. For a new technology, a new class should be
+derived.
 
 ### ... (OP5)
 
