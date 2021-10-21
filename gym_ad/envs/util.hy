@@ -37,7 +37,6 @@
   """
   Scales a value x′∈ [a;b] back to its original, where a = -1.0 and b = 1.0 by
   default.
-
                 (x′- a)
     x = x_min + ------- · (x_max - x_min)
                 (b - a)

@@ -70,16 +70,6 @@
 
     """
 
-    ;; Specify constants as they are defined in the netlist and by the PDK.
-    (setv self.vs   0.5       ; Some voltage 
-          self.cl   5e-12     ; Load Capacitance
-          self.rl   100e6     ; Load Resistance
-          self.i0   3e-6      ; Bias Current
-          self.vsup 3.3       ; Supply Voltage
-          self.fin  1e3       ; Input Frequency
-          self.rs   100       ; Sheet Resistance
-          self.cx   0.85e-15)
-
     ;; Check given paths
     (unless (or pdk-path (not (os.path.exists pdk-path)))
       (raise (FileNotFoundError errno.ENOENT 
@@ -122,10 +112,10 @@
                                  :dtype np.float32)
           self.action-scale-min (np.array [7.0 7.0 7.0 7.0      ; gm/Id min
                                            1e6 5e5 1e6 1e6      ; fug min
-                                           1.5 0.5])            ; Ratio min
+                                           3e-6 1.5e-6])        ; branch currents
           self.action-scale-max (np.array [17.0 17.0 17.0 17.0  ; gm/Id max
                                            1e9 5e8 1e9 1e9      ; fug max
-                                           10.0 5.0]))          ; Ratio max
+                                           48e-6 480e-6]))      ; branch currents
 
     ;; The `Box` type observation space consists of perforamnces, the distance
     ;; to the target, as well as general information about the current
@@ -145,16 +135,18 @@
 
     (let [(, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
              fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-             mcm1 mcm2 ) (unscale-value action self.action-scale-min 
-                                               self.action-scale-max)
-          
-          (, Mcm11 Mcm12)      (dec-to-frac mcm1)
-          (, Mcm21 Mcm22)      (dec-to-frac mcm2)
+             i1 i2 ) (unscale-value action self.action-scale-min 
+                                           self.action-scale-max)
+
           (, Mcm31 Mcm32 Mdp1) (, 2 2 2)
 
+          M1 (-> (/ self.i0 i1) (Fraction) (.limit-denominator 100))
+          M2 (-> (/ (/ i1 2) i2) (Fraction) (.limit-denominator 100))
+
+          (, Mcm11 Mcm12) (, M1.numerator M1.denominator)
+          (, Mcm21 Mcm22) (, M2.numerator M2.denominator)
+
           vx 1.25 
-          i1 (* self.i0 (/ Mcm11 Mcm12))
-          i2 (* 0.5 i1 (/ Mcm21 Mcm22))
 
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vsup 2) 0.0]])
           cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vsup 2) 0.0]])
@@ -182,17 +174,17 @@
                    "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 
                    "Md"    Mdp1 }]
 
-      (.size-step (super) (self.clip-sizing sizing))))
+      (.size-step (super) sizing)))
   
-  (defn clip-sizing ^dict [self ^dict sizing]
-    """
-    Clip the chosen values according to PDK Specifiactions.
-    """
-    (dfor (, p v) (.items sizing)
-      [p (cond [(.startswith p "M") (max v 1.0)]
-               [(.startswith p "L") (max v 0.35e-6)]
-               [(.startswith p "W") (-> v (max 0.4e-6) (min 150e-6))]
-               [True v])]))
+  ;(defn clip-sizing ^dict [self ^dict sizing]
+  ;  """
+  ;  Clip the chosen values according to PDK Specifiactions.
+  ;  """
+  ;  (dfor (, p v) (.items sizing)
+  ;    [p (cond [(.startswith p "M") (max v 1.0)]
+  ;             [(.startswith p "L") (max v 0.35e-6)]
+  ;             [(.startswith p "W") (-> v (max 0.4e-6) (min 150e-6))]
+  ;             [True v])]))
 
   (defn target-specification ^dict [self &optional ^bool [random False] 
                                                    ^bool [noisy True]]

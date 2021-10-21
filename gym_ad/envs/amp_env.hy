@@ -1,4 +1,5 @@
 (import yaml)
+(import json)
 (import [h5py :as h5])
 (import [torch :as pt])
 (import [numpy :as np])
@@ -126,7 +127,16 @@
     ;; circuit performance.
     (setv self.ckt-path ckt-path
           self.pdk-path pdk-path
-          self.amplifier (self.amp-maker self.ckt-path :pdk-path self.pdk-path)))
+          self.amplifier (self.amp-maker self.ckt-path :pdk-path self.pdk-path))
+
+    ;; Specify constants as they are defined in the netlist and by the PDK.
+    (setv params (ac.current-parameters self.amplifier)
+          self.vs   (get params "vs")   ; Some voltage 
+          self.cl   (get params "cl")   ; Load Capacitance
+          self.rl   (get params "rl")   ; Load Resistance
+          self.i0   (get params "i0")   ; Bias Current
+          self.vsup (get params "vsup") ; Supply Voltage
+          #_/ ))
   
   (defn render [self &optional ^str [mode "human"]]
     """
@@ -263,38 +273,6 @@
 
       (np.nan-to-num obs)))
 
-  ;(defn individual-rewards ^dict [self]
-  ;  """
-  ;  Hand crafted reward functions for each individual performance parameter.
-  ;  """
-  ;  {"a_0"         (absolute-condition (. self.target ["a_0"])                '<=)  ; t dB ≤ x
-  ;   "ugbw"        (ranged-condition #* (. self.target ["ugbw"]))                   ; t1 Hz ≤ x & t2 Hz ≥ x
-  ;   "pm"          (absolute-condition (. self.target ["pm"])                 '<=)  ; t dB ≤ x
-  ;   "gm"          (absolute-condition (np.abs (. self.target ["gm"]))        '<=)  ; t ° ≤ |x|
-  ;   "sr_r"        (ranged-condition #* (. self.target ["sr_r"]))                   ; t1 V/s ≤ x & t2 V/s ≥ x
-  ;   "sr_f"        (ranged-condition #* (np.abs (. self.target ["sr_f"])))          ; t1 V/s ≤ |x| & t2 V/s ≥ x
-  ;   "vn_1Hz"      (absolute-condition (. self.target ["vn_1Hz"])             '>=)  ; t V ≥ x
-  ;   "vn_10Hz"     (absolute-condition (. self.target ["vn_10Hz"])            '>=)  ; t V ≥ x
-  ;   "vn_100Hz"    (absolute-condition (. self.target ["vn_100Hz"])           '>=)  ; t V ≥ x
-  ;   "vn_1kHz"     (absolute-condition (. self.target ["vn_1kHz"])            '>=)  ; t V ≥ x
-  ;   "vn_10kHz"    (absolute-condition (. self.target ["vn_10kHz"])           '>=)  ; t V ≥ x
-  ;   "vn_100kHz"   (absolute-condition (. self.target ["vn_100kHz"])          '>=)  ; t V ≥ x
-  ;   "psrr_n"      (absolute-condition (. self.target ["psrr_n"])             '<=)  ; t dB ≤ x
-  ;   "psrr_p"      (absolute-condition (. self.target ["psrr_p"])             '<=)  ; t dB ≤ x
-  ;   "cmrr"        (absolute-condition (. self.target ["cmrr"])               '<=)  ; t dB ≤ x
-  ;   "v_il"        (absolute-condition (. self.target ["v_il"])               '>=)  ; t V ≥ x
-  ;   "v_ih"        (absolute-condition (. self.target ["v_ih"])               '<=)  ; t V ≤ x
-  ;   "v_ol"        (absolute-condition (. self.target ["v_ol"])               '>=)  ; t V ≥ x
-  ;   "v_oh"        (absolute-condition (. self.target ["v_oh"])               '<=)  ; t V ≤ x
-  ;   "i_out_min"   (absolute-condition (. self.target ["i_out_min"])          '<=)  ; t A ≤ x
-  ;   "i_out_max"   (absolute-condition (. self.target ["i_out_max"])          '>=)  ; t A ≥ x
-  ;   "overshoot_r" (absolute-condition (. self.target ["overshoot_r"])        '>=)  ; t % ≥ x
-  ;   "overshoot_f" (absolute-condition (. self.target ["overshoot_f"])        '>=)  ; t % ≥ x
-  ;   "voff_stat"   (absolute-condition (. self.target ["voff_stat"])          '>=)  ; t V ≥ x
-  ;   "voff_sys"    (absolute-condition (np.abs (. self.target ["voff_sys"]))  '>=)  ; t V ≥ |x|
-  ;   "A"           (absolute-condition (. self.target ["A"])                  '>=)  ; t μm^2 ≥ x
-  ;   #_/ })
-
   (defn reward ^float [self &optional ^dict [performance {}]
                                       ^list [params []]]
     """
@@ -323,9 +301,14 @@
                              ((eval c) t p))
 
           cost         (+ (* (np.tanh (np.abs loss)) mask) 
-                          (* (- (** loss 2.0)) (np.invert mask)))
-         ]
-      (-> cost (np.sum))))
+                          (* (- (** loss 2.0)) (np.invert mask))) ]
+
+       (when (or (np.any (np.isnan cost)) (np.any (np.isinf cost)))
+          (let [time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
+              json-file (.format "./parameters-{}.json" time-stamp) ]
+            (ac.dump-state self.amplifier :file-name json-file)))
+
+       (-> cost (np.nan-to-num) (np.sum))))
  
   (defn done ^bool [self]
     """
