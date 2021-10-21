@@ -456,11 +456,11 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
-    (.__init__ (super SymAmpXH035Env self) :pdk-path pdk-path :ckt-path ckt-path
-                                           :nmos-path nmos-path :pmos-path pmos-path
-                                           :max-moves max-moves :random-target random-target
-                                           :target target :data-log-prefix data-log-prefix
-                                           #_/ ))
+    (.__init__ (super UnSymAmpXH035Env self) :pdk-path pdk-path :ckt-path ckt-path
+                                             :nmos-path nmos-path :pmos-path pmos-path
+                                             :max-moves max-moves :random-target random-target
+                                             :target target :data-log-prefix data-log-prefix
+                                             #_/ ))
  
   (defn target-specification ^dict [self &optional ^bool [random False] 
                                                    ^bool [noisy True]]

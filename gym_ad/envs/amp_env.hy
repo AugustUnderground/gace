@@ -65,7 +65,7 @@
                                        "voff_stat" "voff_sys" 
                                        "overshoot_r" "overshoot_f"
                                        "i_out_max" "i_out_min" 
-                                       ;"A"
+                                       "A"
                                        #_/ ])
     
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.

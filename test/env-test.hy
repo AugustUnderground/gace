@@ -26,16 +26,17 @@
       pmos-path f"../models/xh035-pmos"
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       moa-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op6"
-      sym-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
+      sym-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
       sym-env-name "gym_ad:sym-amp-xh035-v0"
+      uns-env-name "gym_ad:sym-amp-xh035-v1"
       moa-env-name "gym_ad:miller-amp-xh035-v0"
       mod-env-name "gym_ad:miller-amp-xh035-v1"
       )
 
 ;; Create Environment
-(setv env (gym.make mod-env-name
+(setv env (gym.make uns-env-name
                     :pdk-path        pdk-path
-                    :ckt-path        moa-path
+                    :ckt-path        sym-path
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :data-log-prefix data-path
