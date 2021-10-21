@@ -76,35 +76,74 @@ devices.
 Where the `performance` are the simulation / analyses results and `distance` is
 `| target - performance |`.
 
-### Symmetrical Amplifier
+### Miller Amplifier (OP1)
 
-![sym](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/sym.png)
-
-Registered as `gym_ad:sym-amp-xh035-v0`.
-
-#### Action Space
-
-4 `gmoverid`s and `fug`s for each building block and mirror ratios for `MPCM1`
-and `MPCM2`. `(, 10) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
-handled in the environment. For a new technology, a new class should be
-derived.
-
-### Miller Amplifier
-
-![moa](https://raw.githubusercontent.com/AugustUnderground/smacd2021-b4.4/master/notebooks/fig/moa.png)
+![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
 Registered as `gym_ad:miller-amp-xh035-v0`.
 
 #### Action Space
 
 4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance
-and the mirror ratios `MNCM12` and `MNCM13` in reference to `MNCM11`. 
+and the branch currents `i1` and `i2`. 
 `(, 12) ∈ [-1.0; 1.0]` in total.
+
+### Symmetrical Amplifier (OP2)
+
+![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
+
+Registered as `gym_ad:sym-amp-xh035-v0`.
+
+#### Action Space
+
+4 `gmoverid`s and `fug`s for each building block and branch currents `i1` and
+`i2` `(, 10) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
+handled in the environment. For a new technology, a new class should be
+derived.
+
+### Un-Symmetrical Amplifier (OP3)
+
+![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
+
+Registered as `gym_ad:sym-amp-xh035-v1`.
+
+#### Action Space
+
+4 `gmoverid`s and `fug`s for each building block and branch current `i1`, `i2`
+and `i3`. `(, 11) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
+handled in the environment. For a new technology, a new class should be
+derived.
+
+### Symmetrical Amplifier with Cascode (OP4)
+
+![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
+
+Registered as `gym_ad:sym-amp-xh035-v2`.
+
+#### Action Space
+
+**UNDER CONSTRUCTION**
+
+### ... (OP5)
+
+**UNDER CONSTRUCTION**
+
+### Miller Amplifier without R and C (OP6)
+
+![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
+
+Registered as `gym_ad:miller-amp-xh035-v1`.
+
+#### Action Space
+
+4 `gmoverid`s and `fug`s for each building block, the weird transistors
+and the branch currents `i1` and `i2`. 
+`(, 14) ∈ [-1.0; 1.0]` in total.
 
 ## TODO
 
 - [ ] Fix reward function
 - [X] remove target tolerance 
-- [ ] adjust info key for observations
-- [ ] set done when met mask true for all
+- [X] adjust info key for observations
+- [X] set done when met mask true for all
 - [ ] new env with sim mask as action
