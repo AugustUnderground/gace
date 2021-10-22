@@ -22,23 +22,24 @@
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
       data-path  f"../data/symamp/xh035")
 
-(setv nmos-path f"../models/xh035-nmos"
-      pmos-path f"../models/xh035-pmos"
+(setv ;nmos-path f"../models/xh035-nmos"
+      nmos-path f"/mnt/data/share/xh035-nmos-20211022-091316"
+      ;pmos-path f"../models/xh035-pmos"
+      pmos-path f"/mnt/data/share/xh035-pmos-20211022-084243"
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       moa-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op1"
-      sym-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
+      sym-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
       cas-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
       sym-env-name "gym_ad:sym-amp-xh035-v0"
       uns-env-name "gym_ad:sym-amp-xh035-v1"
       moa-env-name "gym_ad:miller-amp-xh035-v0"
       mod-env-name "gym_ad:miller-amp-xh035-v1"
-      cas-env-name "gym_ad:symcas-amp-xh035-v0"
-      )
+      cas-env-name "gym_ad:symcas-amp-xh035-v0")
 
 ;; Create Environment
-(setv env (gym.make cas-env-name
+(setv env (gym.make sym-env-name
                     :pdk-path        pdk-path
-                    :ckt-path        cas-path
+                    :ckt-path        sym-path
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :data-log-prefix data-path

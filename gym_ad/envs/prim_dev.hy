@@ -3,6 +3,8 @@
 (import [pandas :as pd])
 (import [joblib :as jl])
 
+(import [precept [PreceptModule PreceptDataFrameModule]])
+
 (import [.util [*]])
 
 (require [hy.contrib.walk [let]]) 
@@ -10,6 +12,61 @@
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
+
+(defclass PrimitiveDevice []
+  """
+  This class represents a specific XFAB device. It expects a scaled 
+  numpy array ∈ [0;1] as input.
+  """
+  (defn __init__ [self ^str model-path ^str scale-x-path ^str scale-y-path]
+    """
+    Constructs a primitive device that can handle pre-scaled input for
+    predictions: X ∈ [0;1].
+    This is not portable and only works with the 'correct' models.
+    Arguments:
+      model-path: Directory pointing to a torchscript *.pt model.
+    """
+    (setv self.path     model-path
+          self.params-x ["gmoverid" "fug" "Vds" "Vbs"]
+          self.params-y ["idoverw" "L" "gdsoverw" "Vgs"]
+          self.trafo-x  ["fug"]
+          self.trafo-y  ["idoverw" "gdsoverw"]
+          self.mask-x   (np.array (lfor px self.params-x (int (in px self.trafo-x))))
+          self.mask-y   (np.array (lfor py self.params-y (int (in py self.trafo-y)))))
+
+    (setv self.scaler-x (jl.load scale-x-path)
+          self.scaler-y (jl.load scale-y-path)
+          self.scale-x  (fn [X] (self.scaler-x.transform X))
+          self.scale-y  (fn [Y] (self.scaler-y.inverse-transform Y)))
+
+    (setv self.trafo-x  (fn [X] (+ (* (np.log10 (np.abs X) 
+                                                :where (> (np.abs X) 0)) 
+                                      self.mask-x) 
+                                   (* X (- 1 self.mask-x))))
+          self.trafo-y  (fn [Y] (+ (* (np.power 10 Y) self.mask-y) 
+                                   (* Y (- 1 self.mask-y)))))
+
+    (setv self.model (-> self.path 
+                         (PreceptModule.load-from-checkpoint)
+                         (.cpu) (.eval))))
+  
+  (defn predict ^np.array [self ^np.array X]
+  """
+  Make a prediction based on electrical characteristics.
+  Arguments:
+    X:      numpy array of inputs. Shape: (1, 4)
+  Returns:  numpy array with re-scaled and transformed outputs of machine
+            learning model.
+  """
+    (with [_ (pt.no-grad)]
+      (-> X (self.trafo-x) 
+            (self.scale-x) 
+            (np.float32) 
+            (pt.from-numpy) 
+            (self.model) 
+            (.numpy) 
+            (self.scale-y) 
+            (self.trafo-y)))))
 
 (defclass PrimitiveDeviceDf []
   """
@@ -50,8 +107,7 @@
         (setv Y.gdsw (np.power 10 Y.gdsw.values))
         Y))))
 
-
-(defclass PrimitiveDevice []
+(defclass PrimitiveDeviceTs []
   """
   This class represents a specific XFAB device. It expects a scaled 
   numpy array ∈ [0;1] as input.

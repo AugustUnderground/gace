@@ -69,10 +69,10 @@
                                        #_/ ])
     
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
-    (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.pt" 
+    (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.ckpt" 
                                      f"{nmos-path}/scale.X" 
                                      f"{nmos-path}/scale.Y")
-          self.pmos (PrimitiveDevice f"{pmos-path}/model.pt" 
+          self.pmos (PrimitiveDevice f"{pmos-path}/model.ckpt" 
                                      f"{pmos-path}/scale.X" 
                                      f"{pmos-path}/scale.Y"))
 
