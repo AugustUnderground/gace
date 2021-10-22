@@ -5,6 +5,6 @@ stable-baselines3
 numpy
 scipy
 matplotlib
-scikit-optimize
 torch
-aclib
+hace
+precept
