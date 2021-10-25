@@ -27,13 +27,10 @@
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
       data-path  f"../data/symamp/xh035")
 
-(setv nmos-path f"../../models/xh035-nmos"
-      pmos-path f"../../models/xh035-pmos"
+(setv nmos-path f"/mnt/data/share/xh035-nmos-20211022-091316"
+      pmos-path f"/mnt/data/share/xh035-pmos-20211022-084243"
       pdk-path  f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
-      jar-path  f"{HOME}/.m2/repository/edlab/eda/characterization/0.0.1/characterization-0.0.1-jar-with-dependencies.jar"
-      moa-path  f"../library/moa"
-      sym-path  f"../../ACE/ace/resource/xh035-3V3/op2"
-      tech-cfg  f"../library/techdef/xh035.yaml"
+      sym-path  f"../ACE/ace/resource/xh035-3V3/op2"
       env1-name "gym_ad:miller-amp-xh035-v0"
       env2-name "gym_ad:sym-amp-xh035-v0")
 
@@ -49,7 +46,8 @@
 ;; Vectorize for normalization
 ;(setv denv (DummyVecEnv [#%(identity env)]))       ; just 1 env
 ;(setv dnenv (VecNormalize denv :training True :norm-obs True :norm-reward True))
-(setv venv (DummyVecEnv (list (repeat #%(identity env) 64))))  ; n envs
+;(setv venv (DummyVecEnv (list (repeat #%(identity env) 64))))  ; n envs
+(setv venv (SubprocVecEnv (list (repeat #%(identity env) 64))))  ; n envs
 (setv nenv (VecNormalize venv :training True :norm-obs True :norm-reward True))
 
 ;; Add some Gaussian Noise

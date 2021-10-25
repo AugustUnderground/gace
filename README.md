@@ -22,7 +22,7 @@ After installing:
 ```python
 import gym
 
-env = gym.make( 'gym_ad:sym-amp-xh035-v0'           # Only working env right now
+env = gym.make( 'gym_ad:op2-xh035-v0'               # Only working env right now
               , pdk-path  = '/path/to/tech'         # path to xfab pdk
               , ckt-path  = '/path/to/op2'          # path to testbench
               , nmos-path = '/path/to/models/nmos'  # path to nmos model
@@ -74,13 +74,13 @@ devices.
 ```
 
 Where the `performance` are the simulation / analyses results and `distance` is
-`| target - performance |`.
+the normalized error `| target - performance | / target`.
 
 ### Miller Amplifier (OP1)
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
-Registered as `gym_ad:miller-amp-xh035-v0`.
+Registered as `gym_ad:op1-xh035-v0`.
 
 #### Action Space
 
@@ -92,7 +92,7 @@ and the branch currents `i1` and `i2`.
 
 ![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
 
-Registered as `gym_ad:sym-amp-xh035-v0`.
+Registered as `gym_ad:op2-xh035-v0`.
 
 #### Action Space
 
@@ -105,7 +105,7 @@ derived.
 
 ![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
 
-Registered as `gym_ad:sym-amp-xh035-v1`.
+Registered as `gym_ad:op3-xh035-v0`.
 
 #### Action Space
 
@@ -118,7 +118,7 @@ derived.
 
 ![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
 
-Registered as `gym_ad:sym-amp-xh035-v2`.
+Registered as `gym_ad:op4-xh035-v0`.
 
 #### Action Space
 
@@ -135,7 +135,7 @@ derived.
 
 ![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
 
-Registered as `gym_ad:miller-amp-xh035-v1`.
+Registered as `gym_ad:op6-xh035-v0`.
 
 #### Action Space
 
