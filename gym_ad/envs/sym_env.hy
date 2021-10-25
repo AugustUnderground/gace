@@ -228,12 +228,12 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
     """
     Generate a noisy target specification.
     """
-    (let [ts {"a_0"         55.0                                      
-              "ugbw"        3500000.0
+    (let [ts {"a_0"         55.0
+              "ugbw"        3750000.0
               "pm"          65.0
               "gm"          -30.0
-              "sr_r"        3500000.0
-              "sr_f"        -3500000.0
+              "sr_r"        3750000.0
+              "sr_f"        -3750000.0
               "vn_1Hz"      5e-06
               "vn_10Hz"     2e-06
               "vn_100Hz"    5e-07
@@ -245,14 +245,14 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
               "cmrr"        80.0
               "v_il"        0.9
               "v_ih"        3.2
-              "v_ol"        0.1
+              "v_ol"        1.65
               "v_oh"        3.2
               "i_out_min"   -7e-5
               "i_out_max"   7e-5
               "overshoot_r" 2.0
               "overshoot_f" 2.0
               "voff_stat"   3e-3
-              "voff_sys"    1.5e-3
+              "voff_sys"    -1.5e-3
               "A"           5.5e-10
               #_/ }
               factor (cond [random (np.abs (np.random.normal 1 0.5))]
@@ -467,12 +467,12 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
     """
     Generate a noisy target specification.
     """
-    (let [ts {"a_0"         55.0                                      
-              "ugbw"        3500000.0
+    (let [ts {"a_0"         55.0
+              "ugbw"        3750000.0
               "pm"          65.0
               "gm"          -30.0
-              "sr_r"        3500000.0
-              "sr_f"        -3500000.0
+              "sr_r"        3750000.0
+              "sr_f"        -3750000.0
               "vn_1Hz"      5e-06
               "vn_10Hz"     2e-06
               "vn_100Hz"    5e-07
@@ -484,14 +484,14 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
               "cmrr"        80.0
               "v_il"        0.9
               "v_ih"        3.2
-              "v_ol"        0.1
+              "v_ol"        1.65
               "v_oh"        3.2
               "i_out_min"   -7e-5
               "i_out_max"   7e-5
               "overshoot_r" 2.0
               "overshoot_f" 2.0
               "voff_stat"   3e-3
-              "voff_sys"    1.5e-3
+              "voff_sys"    -1.5e-3
               "A"           5.5e-10
               #_/ }
               factor (cond [random (np.abs (np.random.normal 1 0.5))]

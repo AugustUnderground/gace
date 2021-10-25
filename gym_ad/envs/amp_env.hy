@@ -94,9 +94,9 @@
             {"a_0"         '<=
              "ugbw"        '<=
              "pm"          '<=
-             "gm"          '<=
+             "gm"          '>=
              "sr_r"        '<=
-             "sr_f"        '<=
+             "sr_f"        '>=
              "vn_1Hz"      '>=
              "vn_10Hz"     '>=
              "vn_100Hz"    '>=
@@ -110,12 +110,12 @@
              "v_ih"        '<=
              "v_ol"        '>=
              "v_oh"        '<=
-             "i_out_min"   '<=
+             "i_out_min"   '>=
              "i_out_max"   '>=
              "overshoot_r" '>=
              "overshoot_f" '>=
              "voff_stat"   '>=
-             "voff_sys"    '>=
+             "voff_sys"    '<=
              "A"           '>=
              #_/ })
 
