@@ -32,6 +32,10 @@ register( id          = 'op4-xh035-v0'
         , entry_point = 'gym_ad.envs:SymCasAmpXH035Env'
         , )
 
+register( id          = 'op4-xh035-v1'
+        , entry_point = 'gym_ad.envs:SymCasAmpXH035GeomEnv'
+        , )
+
 ## AC²E: OP6
 register( id          = 'op6-xh035-v0'
         , entry_point = 'gym_ad.envs:MillerAmpModXH035Env'

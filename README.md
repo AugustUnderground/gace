@@ -239,15 +239,23 @@ Registered as `gym_ad:op4-xh035-vX`.
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                     |
-|---------|----------------------|-------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`. |
+| Version | Domain               | Description                                                                                                                 |
+|---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`.                             |
+| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> reference transistor, as well as <br/> mirror ratios `M1`, `M2` and `M3`. |
 
 ```python
 # v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (15 , )
+              , dtype = np.float32 
+              , )
+
+# v1 action space
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (18 , )
               , dtype = np.float32 
               , )
 ```

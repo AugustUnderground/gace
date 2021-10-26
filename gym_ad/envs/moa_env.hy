@@ -632,8 +632,7 @@
                                  :dtype np.float32)
           w-min (list (repeat 0.4e-6 6))  w-max (list (repeat 150e-6 6))
           l-min (list (repeat 0.35e-6 6)) l-max (list (repeat 15e-6 6))
-          m-min [1 1 1 1 1 1]                 
-          m-max [3 40 4 4 10 40]
+          m-min [1 1 1 1 1 1]             m-max [3 40 4 4 10 40]
           self.action-scale-min (np.array (+ w-min l-min m-min))
           self.action-scale-max (np.array (+ w-max l-max m-max))))
  

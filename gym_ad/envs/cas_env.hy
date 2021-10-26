@@ -23,7 +23,7 @@
 
 (defclass SymmetricalCascodeAmplifier [SingleEndedOpAmpEnv]
   """
-  Derived amplifier class, implementing the Symmetrical Amplifier in the XFAB
+  Derived amplifier class, implementing the Cascode Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
   Observation Space:
     - See SingleEndedOpAmpEnv
@@ -47,7 +47,7 @@
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
     """
-    Constructs a Symmetrical Amplifier Environment with XH035 device models and
+    Constructs a Cascode Amplifier Environment with XH035 device models and
     the corresponding netlist.
     Arguments:
       pdk-path:   This will be passed to the ACE backend.
@@ -88,7 +88,7 @@
                               (self.target-specification :random random-target
                                                          :noisy True)))
 
-    ;; The action space consists of 10 parameters ∈ [0;1]. One gm/id and fug for
+    ;; The action space consists of 15 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
     ;; currents / mirror ratios in the future.
     (setv self.action-space (Box :low -1.0 :high 1.0 
@@ -172,7 +172,7 @@
 
   (defn render [self &optional [mode "ascii"]]
     """
-    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
+    Prints an ASCII Schematic of the Cascode Amplifier courtesy
     https://github.com/Blokkendoos/AACircuit
     """
     (cond [(= mode "ascii")
@@ -217,7 +217,7 @@
 
 (defclass SymCasAmpXH035Env [SymmetricalCascodeAmplifier]
   """
-  Symmetrical Amplifier in XH035 Technology.
+  Cascode Amplifier in XH035 Technology.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
@@ -271,3 +271,64 @@
                            [True   1.0])]
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ]))))
+
+(defclass SymCasAmpXH035GeomEnv [SymCasAmpXH035Env]
+  """
+  Cascode Amplifier in XH035 Technology.
+  """
+
+  (setv metadata {"render.modes" ["human" "ascii"]})
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^int [max-moves 200]
+                                 ^bool [random-target False]
+                                 ^dict [target None] ^str [data-log-prefix ""]]
+
+    (.__init__ (super SymCasAmpXH035GeomEnv self) :pdk-path pdk-path 
+                                                  :ckt-path ckt-path
+                                                  :max-moves max-moves 
+                                                  :random-target random-target
+                                                  :target target 
+                                                  :data-log-prefix data-log-prefix
+                                                  #_/ )
+
+    ;; The action space consists of 18 parameters ∈ [-1;1]. 
+    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcm3"  "Wc1" "Wr"
+    ;;   "Ld" "Lcm1"  "Lcm2"  "Lcm3"  "Lc1" "Lr"
+    ;;        "Mcm11" "Mcm21"         "Mc1"
+    ;;        "Mcm12" "Mcm22"
+    ;;        "Mcm13"                           ]
+    (setv self.action-space (Box :low -1.0 :high 1.0 
+                                 :shape (, 18) 
+                                 :dtype np.float32)
+          w-min (list (repeat 0.4e-6 6))  w-max (list (repeat 150e-6 6))
+          l-min (list (repeat 0.35e-6 6)) l-max (list (repeat 15e-6 6))
+          m-min [1 1 1 1 1 1]             m-max [3 3 20 3 20 16]
+          self.action-scale-min (np.array (+ ))
+          self.action-scale-max (np.array (+ ))))
+ 
+
+  (defn step [self action]
+    """
+    Takes an array of geometric parameters for each building block and mirror 
+    ratios.  This is passed to the parent class where the netlist ist modified
+    and then simulated, returning observations, reward, done and info.
+    """
+
+    (let [(, Wdp1 Wcm1  Wcm2  Wcm3  Wls1 Wref 
+             Ldp1 Lcm1  Lcm2  Lcm3  Lls1 Lref 
+                  Mcm11 Mcm21       Mls1 
+                  Mcm12 Mcm22 
+                  Mcm13) (unscale-value action self.action-scale-min 
+                                               self.action-scale-max)
+
+          (, Mcm31 Mcm32 Mdp1) (, 2 2 2)
+
+          sizing { "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Ld" Ldp1 "Lc1" Lls1 "Lr" Lref
+                   "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wd" Wdp1 "Wc1" Wls1 "Wr" Wref
+                   "Mcm11" Mcm11 "Mcm21" Mcm21   "Mcm31" Mcm31 "Md" Mdp1 "Mc1" Mls1 
+                   "Mcm12" Mcm12 "Mcm22" Mcm22   "Mcm32" Mcm32  
+                   "Mcm13" Mcm13 
+                  #_/ }]
+
+      (.size-step (super) sizing))))

@@ -44,20 +44,14 @@
                     :random-target   False))
 
 ;; GEOM
-(setv env (gym.make "gym_ad:op6-xh035-v1"
+(setv env (gym.make "gym_ad:op4-xh035-v1"
                     :pdk-path        pdk-path
-                    :ckt-path        op6-path
+                    :ckt-path        op4-path
                     :data-log-prefix data-path
                     :random-target   False))
 
 ;; Check if no Warnings
 (check-env env :warn True)
-
-(setv foo [-1.0 -0.36093295 1.0 0.43878222 0.00887966 0.98940694
-           -0.6869546 -1.0 -0.02716774 -0.43879426])
-
-(setv bar [-0.08755815 0.69160175 0.3732996 1.0 -0.166852 
-           0.8064401 0.13569689 -1.0 -1.0 0.8056166])
 
 (env.reset)
 
