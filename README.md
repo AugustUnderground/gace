@@ -144,7 +144,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
 
-Registered as `gym_ad:op2-xh035-v0`.
+Registered as `gym_ad:op2-xh035-vX`.
 
 #### Action Space
 
@@ -185,7 +185,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
 
-Registered as `gym_ad:op3-xh035-v0`.
+Registered as `gym_ad:op3-xh035-vX`.
 
 #### Action Space
 
@@ -226,7 +226,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
 
-Registered as `gym_ad:op4-xh035-v0`.
+Registered as `gym_ad:op4-xh035-vX`.
 
 #### Action Space
 
@@ -263,7 +263,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
 
-Registered as `gym_ad:op6-xh035-v0`.
+Registered as `gym_ad:op6-xh035-vX`.
 
 #### Action Space
 
