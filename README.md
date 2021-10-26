@@ -292,12 +292,16 @@ gym.spaces.Box( low   = -np.inf
               , )
 ```
 
-## Debugging
+## Known Issues and Debugging
 
 Whenever the environment produces observations that contain `NaN` a
 `parameters-<timestamp>.json` file will be produced. This can be used with
 [HAC²E](https://github.com/AugustUnderground/hace) to load that particular
 state and analyze what went wrong.
+
+Currently we cope with `NaN`s by using numpy's 
+[nan_to_num](https://numpy.org/doc/stable/reference/generated/numpy.nan_to_num.html) 
+function. Be aware, such values can cause problems on GPU.
 
 ## TODO
 
@@ -308,3 +312,4 @@ state and analyze what went wrong.
 - [ ] new Env with geometrical action space
 - [ ] new Env with sim mask as action
 - [ ] demo Agent
+- [ ] handle `NaN`s better
