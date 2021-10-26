@@ -115,9 +115,9 @@ Registered as `gym_ad:op1-xh035-vX`.
 
 #### Action Space 
 
-| Version | Domain               | Description                                                                                                          |
-|---------|----------------------|----------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance and the branch currents `i1` and `i2`. |
+| Version | <div style="width:290px">Domain</div> | Description                                                                                                          |
+|---------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]`                           | 4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance and the branch currents `i1` and `i2`. |
 
 ```python
 # v0 action space
