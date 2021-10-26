@@ -1,7 +1,7 @@
 # Analog Design Gym
 
-[gym](https://gym.openai.com/) environments for analog integrated circuit
-design, based on [AC²E](https://github.com/mattschw/ace) /
+A collection of [gym](https://gym.openai.com/) environments for analog 
+integrated circuit design, based on [AC²E](https://github.com/mattschw/ace) /
 [HAC²E](https://github.com/AugustUnderground/hace).
 
 ## Installation
@@ -71,6 +71,26 @@ and operating point characteristics for all devices in the circuit.
 , "distance":    {"Same keys as 'performance'": ...}
 , "state":       {"electrical characteristics": ...} }
 ```
+
+### Reward
+
+The overall reward `r` is calculated based on individual performance
+parameters:
+
+```
+r = ∑ ( (tanh(| l |) · m) + (- l² · (1 - m)) )
+```
+
+Where `l` is the vector with normalized losses for each performance `p` and
+target value `t`
+
+```
+l = | t - p | / t
+```
+
+and `m` is a mask showing whether the performance was reached, i.e. `p > t`, in
+which case `tanh` is applied so the reward doesn't increase infinitely.
+Otherwise the loss is squared and negated.
 
 ### Miller Amplifier (OP1)
 
