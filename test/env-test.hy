@@ -27,23 +27,25 @@
       ;pmos-path f"../models/xh035-pmos"
       pmos-path f"/mnt/data/share/xh035-pmos-20211022-084243"
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
-      moa-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op1"
-      sym-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
-      cas-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4")
+      op1-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op1"
+      op2-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
+      op3-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
+      op4-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
+      )
 
 ;; Create Environment
 (setv env (gym.make "gym_ad:op2-xh035-v0"
                     :pdk-path        pdk-path
-                    :ckt-path        sym-path
+                    :ckt-path        op2-path
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
                     :data-log-prefix data-path
                     :random-target   False))
 
 ;; GEOM
-(setv env (gym.make "gym_ad:op2-xh035-v1"
+(setv env (gym.make "gym_ad:op3-xh035-v1"
                     :pdk-path        pdk-path
-                    :ckt-path        sym-path
+                    :ckt-path        op3-path
                     :data-log-prefix data-path
                     :random-target   False))
 

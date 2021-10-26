@@ -187,13 +187,22 @@ Registered as `gym_ad:op3-xh035-v0`.
 - `v0`: Continuous `ℝ ¹¹ ∈ [-1.0; 1.0]`, Same as _op2_ with an additional
   branch current. 4 `gmoverid`s and `fug`s for each building block and branch
   currents `i1`, `i2` and `i3`. 
-
+- `v1`: Continuous `ℝ ¹⁵ ∈ [-1.0; 1.0]`, Same as _op2_ with an additional
+  mirror ratio. 4 `W`s and `L`s for each building block and mirror ratios `M1`
+  `M2` and `M3`.
 
 ```python
 # v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (11 , )
+              , dtype = np.float32 
+              , )
+
+# v1 action space
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (15 , )
               , dtype = np.float32 
               , )
 ```

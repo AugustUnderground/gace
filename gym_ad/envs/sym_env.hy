@@ -269,15 +269,12 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
     (.__init__ (super SymAmpXH035GeomEnv self) :pdk-path pdk-path 
                                                :ckt-path ckt-path
-                                               :nmos-path nmos-path 
-                                               :pmos-path pmos-path
                                                :max-moves max-moves 
                                                :random-target random-target
                                                :target target 
@@ -294,7 +291,7 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
                                  :dtype np.float32)
           w-min (list (repeat 0.4e-6 4))  w-max (list (repeat 150e-6 4))
           l-min (list (repeat 0.35e-6 4)) l-max (list (repeat 15e-6 4))
-          m-min (list (repeat 1.0 4))     m-max [3 16 3 20]
+          m-min (list (repeat 1.0 4))     m-max [3 3 16 20]
           self.action-scale-min (np.array (+ w-min l-min m-min))
           self.action-scale-max (np.array (+ w-max l-max m-max))))
 
@@ -401,7 +398,7 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 246)  :dtype np.float32)))
+                                      :shape (, 245)  :dtype np.float32)))
 
   (defn step [self action]
     """
@@ -555,3 +552,60 @@ MNCM11 +-||   |       |                 ||-+ MNCM12             |
                            [True   1.0])]
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ]))))
+
+(defclass UnSymAmpXH035GeomEnv [UnSymAmpXH035Env]
+  """
+  Un-Symmetrical Amplifier in XH035 Technology with geometrical action space.
+  """
+
+  (setv metadata {"render.modes" ["human" "ascii"]})
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^int [max-moves 200]
+                                 ^bool [random-target False]
+                                 ^dict [target None] ^str [data-log-prefix ""]]
+
+    (.__init__ (super UnSymAmpXH035GeomEnv self) :pdk-path pdk-path 
+                                               :ckt-path ckt-path
+                                               :max-moves max-moves 
+                                               :random-target random-target
+                                               :target target 
+                                               :data-log-prefix data-log-prefix
+                                               #_/ )
+
+    ;; The action space consists of 14 geometrical parameters ∈ [-1;1]:
+    ;;  [ 'Wd', 'Wcm1',  'Wcm2',  'Wcm3'      # ∈ [ 0.4e-6  ; 150e-6 ]
+    ;;  , 'Ld', 'Lcm1',  'Lcm2',  'Lcm3'      # ∈ [ 0.35e-6 ; 15e-6  ]
+    ;;        , 'Mcm11', 'Mcm212', 'Mcm31'
+    ;;        , 'Mcm12', 'Mcm222', 'Mcm32'
+    ;;                 , 'Mcm2x1'
+    ;;]
+    (setv self.action-space (Box :low -1.0 :high 1.0 
+                                 :shape (, 15) 
+                                 :dtype np.float32)
+          w-min (list (repeat 0.4e-6 4))  w-max (list (repeat 150e-6 4))
+          l-min (list (repeat 0.35e-6 4)) l-max (list (repeat 15e-6 4))
+          m-min (list (repeat 1.0 7))     
+          m-max [3 16 10 10 20 20 3] ;; M11, M12, M31, M32, M212, M222, M2x1
+          self.action-scale-min (np.array (+ w-min l-min m-min))
+          self.action-scale-max (np.array (+ w-max l-max m-max))))
+
+  (defn step [self action]
+    """
+    Takes an array of geometrical parameters for each building block.
+    """
+    (let [(, Wdp1 Wcm1  Wcm2   Wcm3 
+             Ldp1 Lcm1  Lcm2   Lcm3  
+             Mcm11 Mcm12 Mcm31 Mcm32
+             Mcm212 Mcm222 Mcm2x1 ) (unscale-value action self.action-scale-min 
+                                                          self.action-scale-max)
+
+          Mdp1 2 
+
+          sizing { "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Ld" Ldp1
+                   "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wd" Wdp1
+                   "Mcm11" Mcm11 "Mcm212" Mcm212 "Mcm31" Mcm31 "Md" Mdp1 
+                   "Mcm12" Mcm12 "Mcm222" Mcm222 "Mcm32" Mcm32 
+                                 "Mcm2x1" Mcm2x1 }]
+
+      (.size-step (super) sizing))))

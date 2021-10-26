@@ -19,6 +19,10 @@ register( id          = 'op3-xh035-v0'
         , entry_point = 'gym_ad.envs:UnSymAmpXH035Env'
         , )
 
+register( id          = 'op3-xh035-v1'
+        , entry_point = 'gym_ad.envs:UnSymAmpXH035GeomEnv'
+        , )
+
 ## AC²E: OP4
 register( id          = 'op4-xh035-v0'
         , entry_point = 'gym_ad.envs:SymCasAmpXH035Env'
