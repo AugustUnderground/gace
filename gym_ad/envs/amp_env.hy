@@ -69,12 +69,13 @@
                                        #_/ ])
     
     ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
-    (setv self.nmos (PrimitiveDevice f"{nmos-path}/model.ckpt" 
-                                     f"{nmos-path}/scale.X" 
-                                     f"{nmos-path}/scale.Y")
-          self.pmos (PrimitiveDevice f"{pmos-path}/model.ckpt" 
-                                     f"{pmos-path}/scale.X" 
-                                     f"{pmos-path}/scale.Y"))
+    (when (and nmos-path pmos-path)
+      (setv self.nmos (PrimitiveDeviceTs f"{nmos-path}/model.pt" 
+                                         f"{nmos-path}/scale.X" 
+                                         f"{nmos-path}/scale.Y")
+            self.pmos (PrimitiveDeviceTs f"{pmos-path}/model.pt" 
+                                         f"{pmos-path}/scale.X" 
+                                         f"{pmos-path}/scale.Y")))
 
     ;; Amplifier ID:
     ;;  1 - Miller Operational Amplifier

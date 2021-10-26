@@ -40,6 +40,13 @@
                     :data-log-prefix data-path
                     :random-target   False))
 
+;; GEOM
+(setv env (gym.make "gym_ad:op2-xh035-v1"
+                    :pdk-path        pdk-path
+                    :ckt-path        sym-path
+                    :data-log-prefix data-path
+                    :random-target   False))
+
 ;; Check if no Warnings
 (check-env env :warn True)
 
