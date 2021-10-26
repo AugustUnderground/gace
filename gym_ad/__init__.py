@@ -36,3 +36,7 @@ register( id          = 'op4-xh035-v0'
 register( id          = 'op6-xh035-v0'
         , entry_point = 'gym_ad.envs:MillerAmpModXH035Env'
         , )
+
+register( id          = 'op6-xh035-v1'
+        , entry_point = 'gym_ad.envs:MillerAmpModXH035GeomEnv'
+        , )

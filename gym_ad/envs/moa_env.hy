@@ -299,17 +299,17 @@
                                                   :data-log-prefix data-log-prefix
                                                   #_/ )
 
-    ;; The action space consists of 12 parameters ∈ [-1;1]. Ws and Ls for
+    ;; The action space consists of 14 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios as well as the cap and res.
-    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"
+    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
     ;;   "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
     ;;        "Mcm11"         "Mcs"
     ;;        "Mcm12" 
     ;;        "Mcm13"                             ]
     (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 14) 
+                                 :shape (, 15) 
                                  :dtype np.float32)
-          w-min (list (repeat 0.4e-6 5))  w-max (list (repeat 150e-6 5))
+          w-min (list (repeat 0.4e-6 6))  w-max (list (repeat 150e-6 6))
           l-min (list (repeat 0.35e-6 5)) l-max (list (repeat 15e-6 5))
           m-min [1 1 1 1]                 m-max [3 40 10 40]
           self.action-scale-min (np.array (+ w-min l-min m-min))
@@ -322,14 +322,13 @@
     ratios This is passed to the parent class where the netlist ist modified
     and then simulated, returning observations, reward, done and info.
     """
-    (let [ (, Wdp1 Wcm1 Wcm2 Wcs1 Wcap 
+    (let [ (, Wdp1 Wcm1 Wcm2 Wcs1 Wcap Wres
               Ldp1 Lcm1 Lcm2 Lcs1      Lres 
                    Mcm11     Mcs1 
                    Mcm12 
                    Mcm13 ) (unscale-value action self.action-scale-min 
                                                self.action-scale-max)
           
-          Wres self.Wres 
           (, Mdp1 Mcm21 Mcm22) (, 2 2 2)
           Mcap                  1 
 
@@ -485,12 +484,12 @@
           ;Vds-res (abs (- (/ self.vsup 2.0) Vgs-cap))
           ;Vbs-res (abs (- self.vsup 0.0))
 
-          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"  Lcs1  
-                  "Ld"    Ldp1  "Lr1"   Lres  "Lc1"  Lcap
-                  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"  Wcs1  
-                  "Wd"    Wdp1  "Wr1"   Wres  "Wc1"  Wcap
-                  "Mcm11" Mcm11 "Mcm21" Mcm2  "Mcs"  Mcs1  
-                  "Md"    Mdp1  "Mr1"   Mres  "Mc1"  Mcap
+          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  
+                  "Ld"    Ldp1  "Lr1"   Lres  "Lc1"   Lcap
+                  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1  
+                  "Wd"    Wdp1  "Wr1"   Wres  "Wc1"   Wcap
+                  "Mcm11" Mcm11 "Mcm21" Mcm2  "Mcs"   Mcs1  
+                  "Md"    Mdp1  "Mr1"   Mres  "Mc1"   Mcap
                   "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
                   #_/ }]
 
@@ -594,3 +593,72 @@
                            [True   1.0])]
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ]))))
+
+(defclass MillerAmpModXH035GeomEnv [MillerAmpModXH035Env]
+  """
+  Miller Amplifier in XH035 Technology.
+  """
+
+  (setv metadata {"render.modes" ["human" "ascii"]})
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^int [max-moves 200]
+                                 ^bool [random-target False]
+                                 ^dict [target None] ^str [data-log-prefix ""]]
+
+    (setv self.cs   0.85e-15 ; Poly Capacitance per μm^2
+          self.rs 100     ; Sheet Resistance in Ω/□
+          self.Wres 2e-6  ; Resistor Width in m
+          self.Mcap 1e-6  ; Capacitance multiplier
+          #_/ )
+
+    (.__init__ (super MillerAmpModXH035GeomEnv self) :pdk-path pdk-path 
+                                                     :ckt-path ckt-path
+                                                     :max-moves max-moves 
+                                                     :random-target random-target
+                                                     :target target 
+                                                     :data-log-prefix data-log-prefix
+                                                     #_/ )
+
+    ;; The action space consists of 12 parameters ∈ [-1;1]. Ws and Ls for
+    ;; each building block and mirror ratios as well as the cap and res.
+    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wc1" "Wr1"
+    ;;   "Ld" "Lcm1"  "Lcm2"  "Lcs" "Lc1" "Lr1"
+    ;;        "Mcm11"         "Mcs" "Mc1" "Mr1"
+    ;;        "Mcm12"        
+    ;;        "Mcm13"                           ]
+    (setv self.action-space (Box :low -1.0 :high 1.0 
+                                 :shape (, 18) 
+                                 :dtype np.float32)
+          w-min (list (repeat 0.4e-6 6))  w-max (list (repeat 150e-6 6))
+          l-min (list (repeat 0.35e-6 6)) l-max (list (repeat 15e-6 6))
+          m-min [1 1 1 1 1 1]                 
+          m-max [3 40 4 4 10 40]
+          self.action-scale-min (np.array (+ w-min l-min m-min))
+          self.action-scale-max (np.array (+ w-max l-max m-max))))
+ 
+  (defn step [self action]
+    """
+    Takes an array of geometric parameters for each building block and mirror
+    ratios This is passed to the parent class where the netlist ist modified
+    and then simulated, returning observations, reward, done and info.
+    """
+    (let [ (, Wdp1 Wcm1  Wcm2  Wcs1 Wcap Wres 
+              Ldp1 Lcm1  Lcm2  Lcs1 Lcap Lres 
+                   Mcm11       Mcs1 Mcap Mres 
+                   Mcm12        
+                   Mcm13  ) (unscale-value action self.action-scale-min 
+                                                  self.action-scale-max)
+          
+          (, Mdp1 Mcm2) (, 2 2)
+
+          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  
+                  "Ld"    Ldp1  "Lr1"   Lres  "Lc1"   Lcap
+                  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1  
+                  "Wd"    Wdp1  "Wr1"   Wres  "Wc1"   Wcap
+                  "Mcm11" Mcm11 "Mcm21" Mcm2  "Mcs"   Mcs1  
+                  "Md"    Mdp1  "Mr1"   Mres  "Mc1"   Mcap
+                  "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
+                  #_/ }]
+
+      (.size-step (super) sizing))))

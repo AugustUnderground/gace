@@ -7,5 +7,6 @@ from gym_ad.envs.sym_env import ( SymAmpXH035Env
 from gym_ad.envs.moa_env import ( MillerAmpXH035Env
                                 , MillerAmpXH035GeomEnv
                                 , MillerAmpModXH035Env
+                                , MillerAmpModXH035GeomEnv
                                 )
 from gym_ad.envs.cas_env import ( SymCasAmpXH035Env )

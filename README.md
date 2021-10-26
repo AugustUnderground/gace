@@ -127,6 +127,14 @@ gym.spaces.Box( low = -1.0
               , shape = (12 , )
               , dtype = np.float32 
               , )
+
+# v1 action space
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (14 , )
+              , dtype = np.float32 
+              , )
+
 ```
 
 #### Observation Space
@@ -268,15 +276,23 @@ Registered as `gym_ad:op6-xh035-vX`.
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                                                |
-|---------|----------------------|----------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`. |
+| Version | Domain               | Description                                                                                                                  |
+|---------|----------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`.   |
+| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> the weird transistors plus the mirror ratios <br/> currents `M1` and `M2`. |
 
 ```python
 # v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (14 , )
+              , dtype = np.float32 
+              , )
+
+# v1 action space
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (18 , )
               , dtype = np.float32 
               , )
 ```

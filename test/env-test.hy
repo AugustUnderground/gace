@@ -31,6 +31,7 @@
       op2-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
       op3-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
       op4-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
+      op6-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op6"
       )
 
 ;; Create Environment
@@ -43,9 +44,9 @@
                     :random-target   False))
 
 ;; GEOM
-(setv env (gym.make "gym_ad:op1-xh035-v1"
+(setv env (gym.make "gym_ad:op6-xh035-v1"
                     :pdk-path        pdk-path
-                    :ckt-path        op1-path
+                    :ckt-path        op6-path
                     :data-log-prefix data-path
                     :random-target   False))
 
