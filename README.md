@@ -36,10 +36,9 @@ Where `<nmos|pmos>_path` is the location of the corresponding `model.pt`.
 
 ### Observation Space
 
-All Amplifier environments share the same kind of observations, which is a
-concatenations of targets, performances, distance between target and
-performance as well as the current sizing and characteristics of individual
-devices.
+The observation space includes the current perforamnce, the specified target,
+the normalized distance between target and current performance (`| t - p | / t`) 
+and operating point characteristics for all devices in the circuit.
 
 ```json
 { "performance": { "a_0":         "DC Gain"
@@ -73,9 +72,6 @@ devices.
 , "state":       {"electrical characteristics": ...} }
 ```
 
-Where the `performance` are the simulation / analyses results and `distance` is
-the normalized error `| target - performance | / target`.
-
 ### Miller Amplifier (OP1)
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
@@ -84,9 +80,30 @@ Registered as `gym_ad:op1-xh035-v0`.
 
 #### Action Space
 
+Continuous `ℝ ¹² ∈ [-1.0; 1.0]`:
+
+```python
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (12 , )
+              , dtype = np.float32 
+              , )
+```
+
 4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance
 and the branch currents `i1` and `i2`. 
-`(, 12) ∈ [-1.0; 1.0]` in total.
+
+#### Observation Space
+
+Continuous `ℝ ¹⁵⁰ ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (150 , )
+              , dtype = np.float32
+              , )
+```
 
 ### Symmetrical Amplifier (OP2)
 
@@ -96,10 +113,30 @@ Registered as `gym_ad:op2-xh035-v0`.
 
 #### Action Space
 
+Continuous `ℝ ¹⁰ ∈ [-1.0; 1.0]`:
+
+```python
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (10 , )
+              , dtype = np.float32 
+              , )
+```
+
 4 `gmoverid`s and `fug`s for each building block and branch currents `i1` and
-`i2` `(, 10) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
-handled in the environment. For a new technology, a new class should be
-derived.
+`i2`.
+
+#### Observation Space
+
+Continuous `ℝ ²⁴⁵ ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (245 , )
+              , dtype = np.float32
+              , )
+```
 
 ### Un-Symmetrical Amplifier (OP3)
 
@@ -109,10 +146,30 @@ Registered as `gym_ad:op3-xh035-v0`.
 
 #### Action Space
 
-4 `gmoverid`s and `fug`s for each building block and branch current `i1`, `i2`
-and `i3`. `(, 11) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
-handled in the environment. For a new technology, a new class should be
-derived.
+Continuous `ℝ ¹¹ ∈ [-1.0; 1.0]`:
+
+```python
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (11 , )
+              , dtype = np.float32 
+              , )
+```
+
+Same as _op2_ with an additional branch current. 4 `gmoverid`s and `fug`s for
+each building block and branch currents `i1`, `i2` and `i3`. 
+
+#### Observation Space
+
+Same as _op2_, continuous `ℝ ²⁴⁵ ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (245 , )
+              , dtype = np.float32
+              , )
+```
 
 ### Symmetrical Amplifier with Cascode (OP4)
 
@@ -122,10 +179,30 @@ Registered as `gym_ad:op4-xh035-v0`.
 
 #### Action Space
 
-6 `gmoverid`s and `fug`s for each building block and branch current `i1`, `i2`
-and `i3`. `(, 15) ∈ [-1.0; 1.0]` in total. De-normalization and scaling is
-handled in the environment. For a new technology, a new class should be
-derived.
+Continuous `ℝ ¹⁵ ∈ [-1.0; 1.0]`:
+
+```python
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (15 , )
+              , dtype = np.float32 
+              , )
+```
+
+6 `gmoverid`s and `fug`s for each building block and branch currents `i1`, `i2`
+and `i3`. 
+
+#### Observation Space
+
+Continuous `ℝ ²⁸⁴ ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (284 , )
+              , dtype = np.float32
+              , )
+```
 
 ### ... (OP5)
 
@@ -139,14 +216,36 @@ Registered as `gym_ad:op6-xh035-v0`.
 
 #### Action Space
 
+Continuous `ℝ ¹⁴ ∈ [-1.0; 1.0]`:
+
+```python
+gym.spaces.Box( low = -1.0
+              , high = 1.0
+              , shape = (14 , )
+              , dtype = np.float32 
+              , )
+```
+
 4 `gmoverid`s and `fug`s for each building block, the weird transistors
 and the branch currents `i1` and `i2`. 
-`(, 14) ∈ [-1.0; 1.0]` in total.
+
+#### Observation Space
+
+Same as _op1_, continuous `ℝ ¹⁵⁰ ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (150 , )
+              , dtype = np.float32
+              , )
+```
 
 ## TODO
 
-- [ ] Fix reward function
+- [X] Fix reward function
 - [X] remove target tolerance 
 - [X] adjust info key for observations
 - [X] set done when met mask true for all
-- [ ] new env with sim mask as action
+- [ ] new Env with sim mask as action
+- [ ] Demo Agent
