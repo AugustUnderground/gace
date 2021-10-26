@@ -66,7 +66,7 @@ and operating point characteristics for all devices in the circuit.
                  , "overshoot_f": "Slew rate overswing falling"
                  , "voff_stat":   "Statistical Offset"
                  , "voff_sys":    "Systematic Offset"
-                 , "A"            "Area" }
+                 , "A":           "Area" }
 , "target":      {"Same keys as 'performance'": "..."}
 , "distance":    {"Same keys as 'performance'": "..."}
 , "state":       {"electrical characteristics": "..."} }
