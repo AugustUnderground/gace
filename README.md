@@ -148,10 +148,10 @@ Registered as `gym_ad:op2-xh035-v0`.
 
 #### Action Space
 
-| Version | Domain               | Description                                                                         |
-|---------|----------------------|-------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁰ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block and branch currents `i1` and `i2`. |
-| `v1`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block and mirror ratios `Mcm1` and `Mcm2`.        |
+| Version | Domain               | Description                                                                               |
+|---------|----------------------|-------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁰ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1` and `i2`. |
+| `v1`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block and <br/> mirror ratios `Mcm1` and `Mcm2`.        |
 
 ```python
 # v0 action space
@@ -189,10 +189,10 @@ Registered as `gym_ad:op3-xh035-v0`.
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                                                                |
-|---------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹¹ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional branch current. 4 `gmoverid`s and `fug`s for each building block and branch currents `i1`, `i2` and `i3`. |
-| `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional mirror ratio. 4 `W`s and `L`s for each building block and mirror ratios `M1` `M2` and `M3`.               |
+| Version | Domain               | Description                                                                                                                                            |
+|---------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹¹ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional branch current. <br/> 4 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`. |
+| `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional mirror ratio. <br/> 4 `W`s and `L`s for each building block and <br/> mirror ratios `M1` `M2` and `M3`.               |
 
 ```python
 # v0 action space
@@ -230,9 +230,9 @@ Registered as `gym_ad:op4-xh035-v0`.
 
 #### Action Space
 
-| Version | Domain               | Description                                                                               |
-|---------|----------------------|-------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building block and branch currents `i1`, `i2` and `i3`. |
+| Version | Domain               | Description                                                                                     |
+|---------|----------------------|-------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`. |
 
 ```python
 # v0 action space
@@ -267,9 +267,9 @@ Registered as `gym_ad:op6-xh035-v0`.
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                                    |
-|---------|----------------------|----------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block, the weird transistors and the branch currents `i1` and `i2`. |
+| Version | Domain               | Description                                                                                                                |
+|---------|----------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`. |
 
 ```python
 # v0 action space
