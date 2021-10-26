@@ -27,7 +27,7 @@
 
 (defclass MillerAmplifierEnv [SingleEndedOpAmpEnv]
   """
-  Derived amplifier class, implementing the Symmetrical Amplifier in the XFAB
+  Derived amplifier class, implementing the Miller Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
   Observation Space:
     - See AmplifierXH035Env
@@ -51,7 +51,7 @@
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
     """
-    Constructs a Symmetrical Amplifier Environment with XH035 device models and
+    Constructs a Miller Amplifier Environment with XH035 device models and
     the corresponding netlist.
     Arguments:
       pdk-path:   This will be passed to the ACE backend.
@@ -92,7 +92,7 @@
                                  (self.target-specification :random random-target
                                                             :noisy True)))
 
-    ;; The action space consists of 10 parameters ∈ [0;1]. One gm/id and fug for
+    ;; The action space consists of 12 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
     ;; currents / mirror ratios in the future.
     (setv self.action-space (Box :low -1.0 :high 1.0 
@@ -169,7 +169,7 @@
 
   (defn render [self &optional [mode "ascii"]]
     """
-    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
+    Prints an ASCII Schematic of the Miller Amplifier courtesy
     https://github.com/Blokkendoos/AACircuit
     """
     (cond [(= mode "ascii")
@@ -212,7 +212,7 @@
 
 (defclass MillerAmpXH035Env [MillerAmplifierEnv]
   """
-  Symmetrical Amplifier in XH035 Technology.
+  Miller Amplifier in XH035 Technology.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
@@ -273,10 +273,77 @@
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ]))))
 
+(defclass MillerAmpXH035GeomEnv [MillerAmpXH035Env]
+  """
+  Miller Amplifier in XH035 Technology.
+  """
+
+  (setv metadata {"render.modes" ["human" "ascii"]})
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^int [max-moves 200]
+                                 ^bool [random-target False]
+                                 ^dict [target None] ^str [data-log-prefix ""]]
+
+    (setv self.cs   0.85e-15 ; Poly Capacitance per μm^2
+          self.rs 100     ; Sheet Resistance in Ω/□
+          self.Wres 2e-6  ; Resistor Width in m
+          self.Mcap 1e-6  ; Capacitance multiplier
+          #_/ )
+
+    (.__init__ (super MillerAmpXH035GeomEnv self) :pdk-path pdk-path 
+                                                  :ckt-path ckt-path
+                                                  :max-moves max-moves 
+                                                  :random-target random-target
+                                                  :target target 
+                                                  :data-log-prefix data-log-prefix
+                                                  #_/ )
+
+    ;; The action space consists of 12 parameters ∈ [-1;1]. Ws and Ls for
+    ;; each building block and mirror ratios as well as the cap and res.
+    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"
+    ;;   "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
+    ;;        "Mcm11"         "Mcs"
+    ;;        "Mcm12" 
+    ;;        "Mcm13"                             ]
+    (setv self.action-space (Box :low -1.0 :high 1.0 
+                                 :shape (, 14) 
+                                 :dtype np.float32)
+          w-min (list (repeat 0.4e-6 5))  w-max (list (repeat 150e-6 5))
+          l-min (list (repeat 0.35e-6 5)) l-max (list (repeat 15e-6 5))
+          m-min [1 1 1 1]                 m-max [3 40 10 40]
+          self.action-scale-min (np.array (+ w-min l-min m-min))
+          self.action-scale-max (np.array (+ w-max l-max m-max))))
+ 
+
+  (defn step [self action]
+    """
+    Takes an array of geometric parameters for each building block and mirror
+    ratios This is passed to the parent class where the netlist ist modified
+    and then simulated, returning observations, reward, done and info.
+    """
+    (let [ (, Wdp1 Wcm1 Wcm2 Wcs1 Wcap 
+              Ldp1 Lcm1 Lcm2 Lcs1      Lres 
+                   Mcm11     Mcs1 
+                   Mcm12 
+                   Mcm13 ) (unscale-value action self.action-scale-min 
+                                               self.action-scale-max)
+          
+          Wres self.Wres 
+          (, Mdp1 Mcm21 Mcm22) (, 2 2 2)
+          Mcap                  1 
+
+          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  "Ld"    Ldp1 
+                  "Lres"  Lres  "Mcm11" Mcm11 "Mcm12" Mcm12 "Mcm13" Mcm13 
+                  "Mcm21" Mcm21 "Mcm22" Mcm22 "Mcs"   Mcs1  "Md"    Mdp1  
+                  "Mcap"  Mcap  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1 
+                  "Wd"    Wdp1  "Wres"  Wres  "Wcap"  Wcap}]
+
+      (.size-step (super) sizing))))
 
 (defclass MillerAmplifierModEnv [SingleEndedOpAmpEnv]
   """
-  Derived amplifier class, implementing the Symmetrical Amplifier in the XFAB
+  Derived amplifier class, implementing the Miller Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
   Observation Space:
     - See AmplifierXH035Env
@@ -300,7 +367,7 @@
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
     """
-    Constructs a Symmetrical Amplifier Environment with XH035 device models and
+    Constructs a Miller Amplifier Environment with XH035 device models and
     the corresponding netlist.
     Arguments:
       pdk-path:   This will be passed to the ACE backend.
@@ -341,7 +408,7 @@
                                  (self.target-specification :random random-target
                                                             :noisy True)))
 
-    ;; The action space consists of 10 parameters ∈ [0;1]. One gm/id and fug for
+    ;; The action space consists of 14 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
     ;; currents / mirror ratios in the future.
     (setv self.action-space (Box :low -1.0 :high 1.0 
@@ -431,7 +498,7 @@
 
   (defn render [self &optional [mode "ascii"]]
     """
-    Prints an ASCII Schematic of the Symmetrical Amplifier courtesy
+    Prints an ASCII Schematic of the Miller Amplifier courtesy
     https://github.com/Blokkendoos/AACircuit
     """
     (cond [(= mode "ascii")
@@ -473,7 +540,7 @@
 
 (defclass MillerAmpModXH035Env [MillerAmplifierModEnv]
   """
-  Symmetrical Amplifier in XH035 Technology.
+  Miller Amplifier in XH035 Technology.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})

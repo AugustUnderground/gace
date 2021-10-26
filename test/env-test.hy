@@ -43,9 +43,9 @@
                     :random-target   False))
 
 ;; GEOM
-(setv env (gym.make "gym_ad:op3-xh035-v1"
+(setv env (gym.make "gym_ad:op1-xh035-v1"
                     :pdk-path        pdk-path
-                    :ckt-path        op3-path
+                    :ckt-path        op1-path
                     :data-log-prefix data-path
                     :random-target   False))
 
