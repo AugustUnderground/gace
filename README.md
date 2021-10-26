@@ -67,9 +67,9 @@ and operating point characteristics for all devices in the circuit.
                  , "voff_stat":   "Statistical Offset"
                  , "voff_sys":    "Systematic Offset"
                  , "A":           "Area" }
-, "target":      {"Same keys as 'performance'": "..."}
-, "distance":    {"Same keys as 'performance'": "..."}
-, "state":       {"electrical characteristics": "..."} }
+, "target":      { "Same keys as 'performance'": "..." }
+, "distance":    { "Same keys as 'performance'": "..." }
+, "state":       { "electrical characteristics": "..." } }
 ```
 
 ### Reward
