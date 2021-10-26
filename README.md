@@ -226,9 +226,9 @@ gym.spaces.Box( low   = -np.inf
               , )
 ```
 
-### ... (OP5)
+### Un-Symmetrical Amplifier with Cascode (OP5)
 
-**UNDER CONSTRUCTION**
+<b align="center">UNDER CONSTRUCTION</b>
 
 ### Miller Amplifier without R and C (OP6)
 
