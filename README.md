@@ -94,26 +94,34 @@ and `m` is a mask showing whether the performance was reached, i.e. `p > t`, in
 which case `tanh` is applied so the reward doesn't increase infinitely.
 Otherwise the loss is squared and negated.
 
+### Variations
+
+| Version | Description                                      |
+|---------|--------------------------------------------------|
+| `v0`    | Electrical design space (`gmoverid`, `fug`, ...) |
+| `v1`    | Geometric Design Space (`W`, `L`, ...)           |
+| `v2`    | TBA                                              |
+
 ### Miller Amplifier (OP1)
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
-Registered as `gym_ad:op1-xh035-v0`.
+Registered as `gym_ad:op1-xh035-vX`.
 
-#### Action Space
+#### Action Space 
 
-Continuous `ℝ ¹² ∈ [-1.0; 1.0]`:
+- `v0`: Continuous `ℝ ¹² ∈ [-1.0; 1.0]`, 4 `gmoverid`s and `fug`s for each
+  building block, 1 resistance, 1 capacitance and the branch currents `i1` and
+  `i2`. 
 
 ```python
+# v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (12 , )
               , dtype = np.float32 
               , )
 ```
-
-4 `gmoverid`s and `fug`s for each building block, 1 resistance, 1 capacitance
-and the branch currents `i1` and `i2`. 
 
 #### Observation Space
 
@@ -135,18 +143,17 @@ Registered as `gym_ad:op2-xh035-v0`.
 
 #### Action Space
 
-Continuous `ℝ ¹⁰ ∈ [-1.0; 1.0]`:
+- `v0`: Continuous `ℝ ¹⁰ ∈ [-1.0; 1.0]`, 4 `gmoverid`s and `fug`s for each
+  building block and branch currents `i1` and `i2`.
 
 ```python
+# v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (10 , )
               , dtype = np.float32 
               , )
 ```
-
-4 `gmoverid`s and `fug`s for each building block and branch currents `i1` and
-`i2`.
 
 #### Observation Space
 
@@ -168,18 +175,19 @@ Registered as `gym_ad:op3-xh035-v0`.
 
 #### Action Space
 
-Continuous `ℝ ¹¹ ∈ [-1.0; 1.0]`:
+- `v0`: Continuous `ℝ ¹¹ ∈ [-1.0; 1.0]`, Same as _op2_ with an additional
+  branch current. 4 `gmoverid`s and `fug`s for each building block and branch
+  currents `i1`, `i2` and `i3`. 
+
 
 ```python
+# v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (11 , )
               , dtype = np.float32 
               , )
 ```
-
-Same as _op2_ with an additional branch current. 4 `gmoverid`s and `fug`s for
-each building block and branch currents `i1`, `i2` and `i3`. 
 
 #### Observation Space
 
@@ -201,18 +209,17 @@ Registered as `gym_ad:op4-xh035-v0`.
 
 #### Action Space
 
-Continuous `ℝ ¹⁵ ∈ [-1.0; 1.0]`:
+- `v0`: Continuous `ℝ ¹⁵ ∈ [-1.0; 1.0]`, 6 `gmoverid`s and `fug`s for each
+  building block and branch currents `i1`, `i2` and `i3`. 
 
 ```python
+# v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (15 , )
               , dtype = np.float32 
               , )
 ```
-
-6 `gmoverid`s and `fug`s for each building block and branch currents `i1`, `i2`
-and `i3`. 
 
 #### Observation Space
 
@@ -238,18 +245,17 @@ Registered as `gym_ad:op6-xh035-v0`.
 
 #### Action Space
 
-Continuous `ℝ ¹⁴ ∈ [-1.0; 1.0]`:
+- `v0`: Continuous `ℝ ¹⁴ ∈ [-1.0; 1.0]`: 4 `gmoverid`s and `fug`s for each
+  building block, the weird transistors and the branch currents `i1` and `i2`. 
 
 ```python
+# v0 action space
 gym.spaces.Box( low = -1.0
               , high = 1.0
               , shape = (14 , )
               , dtype = np.float32 
               , )
 ```
-
-4 `gmoverid`s and `fug`s for each building block, the weird transistors
-and the branch currents `i1` and `i2`. 
 
 #### Observation Space
 
@@ -263,11 +269,19 @@ gym.spaces.Box( low   = -np.inf
               , )
 ```
 
+## Debugging
+
+Whenever the environment produces observations that contain `NaN` a
+`parameters-<timestamp>.json` file will be produced. This can be used with
+[HAC²E](https://github.com/AugustUnderground/hace) to load that particular
+state and analyze what went wrong.
+
 ## TODO
 
-- [X] Fix reward function
+- [X] fix reward function
 - [X] remove target tolerance 
 - [X] adjust info key for observations
 - [X] set done when met mask true for all
+- [ ] new Env with geometrical action space
 - [ ] new Env with sim mask as action
-- [ ] Demo Agent
+- [ ] demo Agent
