@@ -118,6 +118,7 @@ Registered as `gym_ad:op1-xh035-vX`.
 | Version | Domain               | Description                                                                                                                     |
 |---------|----------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block,<br/> 1 resistance, 1 capacitance and the branch currents <br/> `i1` and `i2`. |
+| `v1`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block,<br/> geometric sizes for Rc and Cc as well as <br/> mirror rations `M1` and `M2`.      |
 
 ```python
 # v0 action space
