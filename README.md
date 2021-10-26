@@ -85,7 +85,9 @@ Where `l` is the vector with normalized losses for each performance `p` and
 target value `t`
 
 ```
-l = | t - p | / t
+    | t - p |
+l = ---------
+        t
 ```
 
 and `m` is a mask showing whether the performance was reached, i.e. `p > t`, in
