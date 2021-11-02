@@ -126,4 +126,13 @@ def test_v1_xh035():
         env.close()
 
 def test_inv():
-    pass
+    pdk_path  = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
+    nand_path = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4'
+    env = gym.make( f'gace:nand4-xh035-v1'
+                  , pdk_path        = pdk_path
+                  , ckt_path        = nand_path
+                  , data_log_prefix = None
+                  , random_start    = True
+                  , )
+    _test_env(env)
+    env.close()
