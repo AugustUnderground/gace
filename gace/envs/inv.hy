@@ -24,24 +24,24 @@
 (import [hy.contrib.sequences [Sequence end-sequence]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(defclass SingleEndedOpAmpEnv [gym.Env]
+(defclass Nand4Env [gym.Env]
   """
-  Abstract parent class for all single ended amplifier environments.
+  Abstract parent class for all inverter environments.
   """
 
   (setv metadata {"render.modes" ["human"]})
 
-  (defn __init__ [self ^(of list str) pdk-path  ^str ckt-path
-                  ^str nmos-path ^str pmos-path
-                  ^int max-moves 
+  (defn __init__ [self ^(of list str) pdk-path ^str ckt-path
+                  ^int max-moves ^bool random-start 
+                  ^float tolerance 
        &optional ^str   [data-log-prefix ""]
                  #_/ ] 
     """
-    Initialzies the basics required by every amplifier implementing this
+    Initialzies the basics required by every inverter implementing this
     interface.
     """
 
-    (.__init__ (super SingleEndedOpAmpEnv self))
+    (.__init__ (super Nand4Env self))
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
@@ -56,109 +56,50 @@
           self.reset-counter  0)
 
     ;; Define list of universal performances for all Amplifiers
-    (setv self.performance-parameters ["a_0" "ugbw" "pm" "gm" "sr_r" "sr_f" 
-                                       "vn_1Hz" "vn_10Hz" "vn_100Hz" "vn_1kHz" 
-                                       "vn_10kHz" "vn_100kHz" 
-                                       "psrr_n" "psrr_p" "cmrr" 
-                                       "v_ol" "v_oh" "v_il" "v_ih"
-                                       "voff_stat" "voff_sys" 
-                                       "overshoot_r" "overshoot_f"
-                                       "i_out_max" "i_out_min" 
-                                       "A"
-                                       #_/ ])
-    
-    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
-    (when (and nmos-path pmos-path)
-      (setv self.nmos (PrimitiveDeviceTs f"{nmos-path}/model.pt" 
-                                         f"{nmos-path}/scale.X" 
-                                         f"{nmos-path}/scale.Y")
-            self.pmos (PrimitiveDeviceTs f"{pmos-path}/model.pt" 
-                                         f"{pmos-path}/scale.X" 
-                                         f"{pmos-path}/scale.Y")))
-
-
-    ;; Predicate for meeting the specification
-    (setv self.reward-condition 
-            {"a_0"         '<=
-             "ugbw"        '<=
-             "pm"          '<=
-             "gm"          '>=
-             "sr_r"        '<=
-             "sr_f"        '>=
-             "vn_1Hz"      '>=
-             "vn_10Hz"     '>=
-             "vn_100Hz"    '>=
-             "vn_1kHz"     '>=
-             "vn_10kHz"    '>=
-             "vn_100kHz"   '>=
-             "psrr_n"      '<=
-             "psrr_p"      '<=
-             "cmrr"        '<=
-             "v_il"        '>=
-             "v_ih"        '<=
-             "v_ol"        '>=
-             "v_oh"        '<=
-             "i_out_min"   '>=
-             "i_out_max"   '>=
-             "overshoot_r" '>=
-             "overshoot_f" '>=
-             "voff_stat"   '>=
-             "voff_sys"    '<=
-             "A"           '>=
-             #_/ })
-
+    (setv self.performance-parameters ["vs0" "vs2" "vs1" "vs3"])
+  
     ;; Loss function: | performance - target | / target
-    (setv self.loss (fn [x y] (/ (np.abs (- x y)) y)))
+    (setv self.tolerance tolerance
+          self.loss (fn [x y] (/ (np.abs (- x y)) y)))
 
-    ;; The `amplifier` communicates with the spectre simulator and returns the 
+    ;; Whether to use a random starting value or the initial ones.
+    (setv self.random-start random-start)
+
+    ;; The `inverter` communicates with the spectre simulator and returns the 
     ;; circuit performance.
     (setv self.ckt-path ckt-path
           self.pdk-path pdk-path
-          self.amplifier (ac.single-ended-opamp self.ckt-path :pdk-path self.pdk-path))
+          self.inverter (ac.nand-4 self.ckt-path :pdk-path self.pdk-path))
 
     ;; Specify constants as they are defined in the netlist and by the PDK.
-    (setv params (ac.current-parameters self.amplifier)
-          self.vs   (get params "vs")   ; Some voltage 
-          self.cl   (get params "cl")   ; Load Capacitance
-          self.rl   (get params "rl")   ; Load Resistance
-          self.i0   (get params "i0")   ; Bias Current
-          self.vsup (get params "vsup") ; Supply Voltage
+    (setv params    (ac.current-parameters self.inverter)
+          self.vdd  (get params "vdd")                ; Supply voltage 
           #_/ ))
-  
+
   (defn render [self &optional ^str [mode "human"]]
     """
     Prints a generic ASCII Amplifier symbol for 'human' mode, in case the
-    derived amplifier doesn't implement its own render method (which it
+    derived inverter doesn't implement its own render method (which it
     should).
     """
-    (let [ascii-amp (.format "
-            VDD
-             |         
-          |\\ |         
-          | \\|   Generic Amplifier Subcircuit
-  INP ----+  + 
-          |   \\
-          |    \\
-    B ----+ op  >---- O
-          |    /
-          |   /
-  INN ----+  +
-          | /|
-          |/ |
-             |
-            VSS ") ]
+    (let [ascii-inv (.format "
+      +-----+
+      |  1  |
+ A ---|     |O--- Q
+      |     |
+      +-----+
+      ") ]
       (cond [(= mode "human")
-             (print ascii-amp)]
+             (print ascii-inv)]
           [True 
            (raise (NotImplementedError f"Only 'human' mode is implemented."))])))
-
   (defn close [self]
     """
     Closes the spectre session.
     """
-    (.stop self.amplifier)
-    (del self.amplifier)
-    (setv self.amplifier None))
+    (.stop self.inverter)
+    (del self.inverter)
+    (setv self.inverter None))
 
   (defn seed [self rng-seed]
     """
@@ -177,8 +118,8 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
-    (unless self.amplifier
-      (setv self.amplifier (ac.single-ended-opamp self.ckt-path :pdk-path self.pdk-path)))
+    (unless self.inverter
+      (setv self.inverter (ac.nand-4 self.ckt-path :pdk-path self.pdk-path)))
 
     ;; Reset the step counter and increase the reset counter.
     (setv self.moves         (int 0)
@@ -189,16 +130,16 @@
     (setv self.data-log (pd.DataFrame))
 
     ;; Starting parameters are either random or close to a known solution.
-    (setv parameters (self.starting-point :random self.random-target
-                                          :noise (not self.random-target)))
+    (setv parameters (self.starting-point :random self.random-start
+                                          :noise (not self.random-start)))
     
-    ;; Target can be random or close to a known acheivable.
-    (setv self.target (if self.random-target
-      (self.target-specification :random self.random-target :noisy False)
-      (dfor (, p v) (.items self.target) [p (* v (np.random.normal 1.0 0.01))])))
+    ;; Target is always VDD/2 for every switching voltage
+    (setv self.target (dict (zip self.performance-parameters 
+                                 (repeat (/ self.vdd 2.0) 
+                                         (len self.performance-parameters)))))
 
     ;; Get the current performance for the initial parameters
-    (setv self.performance (ac.evaluate-circuit self.amplifier :params parameters))
+    (setv self.performance (ac.evaluate-circuit self.inverter :params parameters))
 
     (.observation self))
 
@@ -211,8 +152,8 @@
       [noise]:    Add noise to found starting point. (default = True)
     Returns:      Starting point sizing.
     """
-    (let [sizing (if random (ac.random-sizing self.amplifier) 
-                            (ac.initial-sizing self.amplifier))]
+    (let [sizing (if random (ac.random-sizing self.inverter) 
+                            (ac.initial-sizing self.inverter))]
       (if noise
           (dfor (, p s) (.items sizing) 
                 [p (if (or (.startswith p "W") (.startswith p "L")) 
@@ -228,30 +169,24 @@
     Each circuit has to make sure the geometric parameters are within reason.
     """
 
-    (setv self.performance (ac.evaluate-circuit self.amplifier :params action)
+    (setv self.performance (ac.evaluate-circuit self.inverter :params action)
           self.data-log 
           (self.data-log.append (dfor (, k v) (.items self.performance) [k v])
                                 :ignore-index True))
 
     (, (.observation self) (.reward self) (.done self) (.info self)))
- 
+
   (defn observation ^np.array [self]
     """
     Returns a 'observation-space' conform dictionary with the current state of
     the circuit and its performance.
     """
     (let [p-getter (itemgetter #* self.performance-parameters)
-        s-getter (itemgetter #* (-> self.performance (.keys) (set) 
-                                    (.difference self.performance-parameters) 
-                                    (list)))
-          perf (->> self.performance (p-getter) (flatten) (np.array))
-          targ (->> self.target (p-getter) (flatten) (np.array))
-
+          perf (->> self.performance (p-getter) (np.array))
+          targ (->> self.target (p-getter) (np.array))
           dist (self.loss perf targ)
 
-          stat (-> self.performance (s-getter) (flatten) (np.array))
-
-          obs (-> (, perf targ dist stat) 
+          obs (-> (, perf targ dist) 
                   (np.hstack) 
                   (np.squeeze) 
                   (np.float32))]
@@ -277,16 +212,7 @@
 
           performances (-> perf-dict (p-getter) (np.array))
           targets      (-> self.target (p-getter) (np.array))
-          loss         (/ (np.abs (- performances targets)) targets)
-
-          mask         (lfor (, c p t) 
-                             (zip (-> self.reward-condition 
-                                      (p-getter) (list)) 
-                                  performances targets)
-                             ((eval c) t p))
-
-          cost         (+ (* (np.tanh (np.abs loss)) mask) 
-                          (* (- (** loss 2.0)) (np.invert mask))) ]
+          cost         (/ (np.abs (- performances targets)) targets) ]
 
        (when (or (np.any (np.isnan cost)) (np.any (np.isinf cost)))
           (let [time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
@@ -294,7 +220,7 @@
             (ac.dump-state self.amplifier :file-name json-file)))
 
        (-> cost (np.nan-to-num) (np.sum))))
- 
+
   (defn done ^bool [self]
     """
     Returns True if the target is met (all predicatets given in 
@@ -305,12 +231,8 @@
           targ (list (map #%(->> %1 (get self.target) (np.nan-to-num) (np.mean))
                                     self.performance-parameters))
 
-          mask (lfor (, c p t) 
-                     (zip (-> self.reward-condition 
-                              (p-getter) (list)) 
-                          perf targ)
-                     ((eval c) t p))
-
+          loss (np.sum (self.loss (np.array targ) (np.array perf)))
+          
           time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))]
 
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
@@ -324,7 +246,7 @@
 
       ;; 'done' when either maximum number of steps are exceeded, or the
       ;; overall loss is less than the specified target loss.
-      (or (> self.moves self.max-moves) (all mask))))
+      (bool (or (> self.moves self.max-moves) (<= loss self.tolerance)))))
 
   (defn info ^dict [self]
     """

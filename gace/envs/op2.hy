@@ -79,7 +79,6 @@
 
     ;; Initialize parent Environment.
     (.__init__ (super OP2Env self) 
-               AmplifierID.SYMMETRICAL 
                [pdk-path] ckt-path
                nmos-path pmos-path
                max-moves

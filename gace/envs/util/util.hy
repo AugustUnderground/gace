@@ -14,13 +14,6 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defclass AmplifierID [Enum] 
-  """
-  Supported / Available Operational Amplifieres
-  """
-  (setv MILLER      1
-        SYMMETRICAL 2))
-
 (defn scale-value ^float [^float x ^float x-min ^float x-max
                 &optional ^float [a -1.0] ^float [b 1.0]]
   """

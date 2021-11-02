@@ -29,8 +29,8 @@
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       moa-path  f"../library/moa"
       sym-path  f"../ACE/ace/resource/xh035-3V3/op2"
-      sym-env-name "gym_ad:sym-amp-xh035-v0"
-      moa-env-name "gym_ad:miller-amp-xh035-v0")
+      sym-env-name "gace:op2-xh035-v0"
+      moa-env-name "gace:op1-xh035-v0")
 
 (setv cfg {"gamma" 0.9
            "lr" 1e-2
@@ -50,9 +50,9 @@
                          "random_target" False }})
 
 (.init ray)
-(tune.register-env "symAmpEnv" #%(gym.make sym-env-name #** %1))
+(tune.register-env "op2Env" #%(gym.make sym-env-name #** %1))
 
-(setv trainer (ppo.PPOTrainer :env "symAmpEnv" :config cfg))
+(setv trainer (ppo.PPOTrainer :env "op2Env" :config cfg))
 
 (setv max-iters 10000)
 

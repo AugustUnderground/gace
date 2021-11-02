@@ -7,7 +7,7 @@ from gace.envs.util import check_env
 # |---------+--------------------------------------------|
 # | v0      | Electrical Action Space (gmoverid and fug) |
 # | v1      | Geometrical Action Space (W, L and M)      |
-# | v2      | Dict action space with sim mask            |
+# | v2      | TBA                                        |
 #
 # Technolgies:
 #   - X-Fab XH035: 350nm
@@ -59,4 +59,9 @@ register( id          = 'op6-xh035-v0'
 
 register( id          = 'op6-xh035-v1'
         , entry_point = 'gace.envs:OP6XH035GeomEnv'
+        , )
+
+## AC²E: NAND4
+register( id          = 'nand4-xh035-v1'
+        , entry_point = 'gace.envs:NAND4XH035GeomEnv'
         , )

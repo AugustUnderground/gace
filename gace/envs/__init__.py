@@ -17,3 +17,6 @@ from gace.envs.op4 import ( OP4XH035Env, OP4XH035GeomEnv )
 
 # Alternative Miller Amplifier (no passives)
 from gace.envs.op6 import ( OP6XH035Env, OP6XH035GeomEnv )
+
+# 4 NAND Gate Inverter Chain
+from gace.envs.nd4 import NAND4XH035GeomEnv

@@ -79,7 +79,6 @@
 
     ;; Initialize parent Environment.
     (.__init__ (super OP1Env self) 
-               AmplifierID.SYMMETRICAL 
                [pdk-path] ckt-path
                nmos-path pmos-path
                max-moves
@@ -339,5 +338,3 @@
                   "Wd"    Wdp1  "Wres"  Wres  "Wcap"  Wcap}]
 
       (.size-step (super) sizing))))
-
-

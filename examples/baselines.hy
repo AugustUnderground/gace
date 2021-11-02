@@ -31,8 +31,8 @@
       pmos-path f"/mnt/data/share/xh035-pmos-20211022-084243"
       pdk-path  f"{HOME}/gonzo/Opt/pdk/x-fab/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
       sym-path  f"../ACE/ace/resource/xh035-3V3/op2"
-      env1-name "gym_ad:miller-amp-xh035-v0"
-      env2-name "gym_ad:sym-amp-xh035-v0")
+      env1-name "gace:op1-xh035-v0"
+      env2-name "gace:op2-xh035-v0")
 
 ;; Create Environment
 (setv env (gym.make env2-name
@@ -46,8 +46,8 @@
 ;; Vectorize for normalization
 ;(setv denv (DummyVecEnv [#%(identity env)]))       ; just 1 env
 ;(setv dnenv (VecNormalize denv :training True :norm-obs True :norm-reward True))
-;(setv venv (DummyVecEnv (list (repeat #%(identity env) 64))))  ; n envs
-(setv venv (SubprocVecEnv (list (repeat #%(identity env) 64))))  ; n envs
+(setv venv (DummyVecEnv (list (repeat #%(identity env) 64))))  ; n envs
+;(setv venv (SubprocVecEnv (list (repeat #%(identity env) 64))))  ; n envs
 (setv nenv (VecNormalize venv :training True :norm-obs True :norm-reward True))
 
 ;; Add some Gaussian Noise

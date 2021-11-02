@@ -339,7 +339,7 @@ Currently we cope with `NaN`s by using numpy's
 function. Be aware, such values can cause problems on GPU.
 
 Test can be run, if [pytest](https://pytest.org) is installed, by calling
-`pytest` in the root of this repository.
+`pytest` in the root of this repository, which takes about ~5 min.
 
 ```bash
 $ pytest

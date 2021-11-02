@@ -23,7 +23,7 @@
       data-path  f"../data/symamp/xh035")
 
 (setv ;nmos-path f"../models/xh035-nmos"
-      nmos-path f"/mnt/data/share/xh035-nmos-20211022-091316"
+     nmos-path f"/mnt/data/share/xh035-nmos-20211022-091316"
       ;pmos-path f"../models/xh035-pmos"
       pmos-path f"/mnt/data/share/xh035-pmos-20211022-084243"
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
@@ -32,6 +32,7 @@
       op3-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
       op4-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
       op6-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op6"
+      nd4-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4"
       #_/ )
 
 ;; Create Environment
@@ -50,11 +51,11 @@
 (gace.check-env env)
 
 ;; GEOM
-(setv env (gym.make "gace:op4-xh035-v1"
+(setv env (gym.make "gace:nand4-xh035-v1"
                     :pdk-path        pdk-path
-                    :ckt-path        op4-path
+                    :ckt-path        nd4-path
                     :data-log-prefix data-path
-                    :random-target   False))
+                    :random-start   False))
 
 ;; Check if no Warnings
 (check-env env :warn True)
