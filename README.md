@@ -1,4 +1,4 @@
-# Analog Design Gym
+<h1 align="center">GAC²E</h1>
 
 A collection of [gym](https://gym.openai.com/) environments for analog 
 integrated circuit design, based on [AC²E](https://github.com/mattschw/ace) /
@@ -7,13 +7,20 @@ integrated circuit design, based on [AC²E](https://github.com/mattschw/ace) /
 ## Installation
 
 ```bash
-$ pip install git+https://github.com/augustunderground/gym-analog-design.git
+$ pip install git+https://github.com/augustunderground/gace.git
+```
+
+Or clone and install a local copy
+
+```bash
+$ git clone https://github.com/augustunderground/gace.git
+$ pip install .
 ```
 
 ## Requirements
 
-Creating an environment requires trained NMOS and PMOS models and HAC²E
-including all dependencies.
+Creating an environment requires trained NMOS and PMOS models and
+[HAC²E](https://github.com/AugustUnderground/hace), including all dependencies.
 
 ## Getting Started
 
@@ -22,7 +29,7 @@ After installing:
 ```python
 import gym
 
-env = gym.make(             'gym_ad:op2-xh035-v0'   # Only working env right now
+env = gym.make(             'gace:op2-xh035-v0'     # Symmetrical Amplifier
               , pdk-path  = '/path/to/tech'         # path to xfab pdk
               , ckt-path  = '/path/to/op2'          # path to testbench
               , nmos-path = '/path/to/models/nmos'  # path to nmos model
@@ -30,7 +37,8 @@ env = gym.make(             'gym_ad:op2-xh035-v0'   # Only working env right now
               , random-target = False )             # start close to target
 ```
 
-Where `<nmos|pmos>_path` is the location of the corresponding `model.pt`.
+Where `<nmos|pmos>_path` must contain a torchscript model `model.pt` and input
+and output scalers `scale.X` and `scale.Y` respectively.
 
 ## Environments
 
@@ -96,8 +104,9 @@ Otherwise the loss is squared and negated.
 
 ### Action Spaces
 
-All actions spaces are _continuous_ and implemented with `gym.spaces.Box`. For
-further details, see the descriptions for specific environments.
+Action Spaces in `v0` and `v1` are _continuous_ and implemented with
+`gym.spaces.Box`. For further details, see the descriptions for specific
+environments.
 
 ### Variations
 
@@ -111,7 +120,7 @@ further details, see the descriptions for specific environments.
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
-Registered as `gym_ad:op1-xh035-vX`.
+Registered as `gace:op1-xh035-vX`.
 
 #### Action Space 
 
@@ -153,7 +162,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
 
-Registered as `gym_ad:op2-xh035-vX`.
+Registered as `gace:op2-xh035-vX`.
 
 #### Action Space
 
@@ -194,7 +203,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
 
-Registered as `gym_ad:op3-xh035-vX`.
+Registered as `gace:op3-xh035-vX`.
 
 #### Action Space
 
@@ -235,7 +244,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
 
-Registered as `gym_ad:op4-xh035-vX`.
+Registered as `gace:op4-xh035-vX`.
 
 #### Action Space
 
@@ -280,7 +289,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
 
-Registered as `gym_ad:op6-xh035-vX`.
+Registered as `gace:op6-xh035-vX`.
 
 #### Action Space
 
@@ -334,7 +343,8 @@ function. Be aware, such values can cause problems on GPU.
 - [X] remove target tolerance 
 - [X] adjust info key for observations
 - [X] set done when met mask true for all
-- [ ] new Env with geometrical action space
+- [X] new Env with geometrical action space
+- [X] restructure to fit ace
 - [ ] new Env with sim mask as action
 - [ ] demo Agent
 - [ ] handle `NaN`s better

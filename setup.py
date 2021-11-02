@@ -1,6 +1,6 @@
 import setuptools
  
-package_name = 'gym_ad'
+package_name = 'gace'
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
@@ -9,7 +9,7 @@ with open('requirements.txt', 'r') as req:
     requirements = req.read().splitlines()
  
 setuptools.setup( name                          = package_name
-                , version                       = '0.0.2'
+                , version                       = '0.1.0'
                 , author                        = 'Yannick Uhlmann'
                 , author_email                  = 'augustunderground@protonmail.com'
                 , description                   = 'Analog circuit design gym environments for operational amplifiers'
