@@ -219,7 +219,7 @@
               json-file (.format "./parameters-{}.json" time-stamp) ]
             (ac.dump-state self.amplifier :file-name json-file)))
 
-       (-> cost (np.nan-to-num) (np.sum))))
+       (-> cost (np.nan-to-num) (np.sum) (np.float32) (-))))
 
   (defn done ^bool [self]
     """

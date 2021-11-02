@@ -41,7 +41,7 @@ env = gym.make(                 'gace:op2-xh035-v0'     # Symmetrical Amplifier
 Where `<nmos|pmos>_path` must contain a torchscript model `model.pt` and input
 and output scalers `scale.X` and `scale.Y` respectively.
 
-## Environments
+## Single Ended OpAmp Environments
 
 ### Observation Space
 
@@ -326,6 +326,77 @@ gym.spaces.Box( low   = -np.inf
               , dtype = np.float32
               , )
 ```
+
+## NAND 4 Environments
+
+### Observation Space
+
+The observation space includes the current perforamnce, the specified target,
+the normalized distance between target and current performance (`| t - p | / t`) 
+and operating point characteristics for all devices in the circuit.
+
+```json
+{ "performance": { "vs0": "Switching Voltage 0"
+                 , "vs2": "Switching Voltage 1"
+                 , "vs1": "Switching Voltage 2"
+                 , "vs3": "Switching Voltage 3" }
+, "target":      { "Same keys as 'performance'": "..." }
+, "distance":    { "Same keys as 'performance'": "..." }
+, "state":       { "electrical characteristics": "..." } }
+```
+
+### Reward
+
+The overall reward `r` is calculated based on individual performance
+parameters:
+
+```
+r = - ∑ ( | t - p | / t )
+```
+
+### Action Spaces
+
+Action Spaces in `v1` are _continuous_ and implemented with
+`gym.spaces.Box`. For further details, see the descriptions for specific
+environments.
+
+### Variations
+
+For now, only `v1` is implemented for NAND4 Environments.
+
+### 4 Gate Inverter Chain (NAND4)
+
+![nand4](https://github.com/matthschw/ace/blob/main/figures/nand4.png)
+
+Registered as `gace:nand4-xh035-vX`.
+
+#### Action Space
+
+| Version | Domain              | Description                        |
+|---------|---------------------|------------------------------------|
+| `v1`    | `ℝ ⁴ ∈ [-1.0; 1.0]` | 5 `W`s for each gate in the chain. |
+
+```python
+# v1 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (5 , )
+              , dtype = np.float32
+              , )
+```
+
+#### Observation Space
+
+Same as _op1_, continuous `ℝ ¹² ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (12 , )
+              , dtype = np.float32
+              , )
+```
+
 
 ## Known Issues, Debugging and Testing
 
