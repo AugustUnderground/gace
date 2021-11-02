@@ -11,8 +11,8 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
-(import [.amp_env [SingleEndedOpAmpEnv]])
-(import [.util [*]])
+(import [.amp [SingleEndedOpAmpEnv]])
+(import [.util.util [*]])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -21,7 +21,7 @@
 (import [hy.contrib.sequences [Sequence end-sequence]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(defclass SymmetricalCascodeAmplifier [SingleEndedOpAmpEnv]
+(defclass OP4Env [SingleEndedOpAmpEnv]
   """
   Derived amplifier class, implementing the Cascode Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
@@ -74,7 +74,7 @@
                                 ckt-path)))
 
     ;; Initialize parent Environment.
-    (.__init__ (super SymmetricalCascodeAmplifier self) 
+    (.__init__ (super OP4Env self) 
                AmplifierID.SYMMETRICAL 
                [pdk-path] ckt-path
                nmos-path pmos-path
@@ -215,7 +215,7 @@
 " )]
           [True (.render (super) mode)])))
 
-(defclass SymCasAmpXH035Env [SymmetricalCascodeAmplifier]
+(defclass OP4XH035Env [OP4Env]
   """
   Cascode Amplifier in XH035 Technology.
   """
@@ -228,11 +228,11 @@
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
-    (.__init__ (super SymCasAmpXH035Env self) :pdk-path pdk-path :ckt-path ckt-path
-                                             :nmos-path nmos-path :pmos-path pmos-path
-                                             :max-moves max-moves :random-target random-target
-                                             :target target :data-log-prefix data-log-prefix
-                                             #_/ ))
+    (.__init__ (super OP4XH035Env self) :pdk-path pdk-path :ckt-path ckt-path
+                                        :nmos-path nmos-path :pmos-path pmos-path
+                                        :max-moves max-moves :random-target random-target
+                                        :target target :data-log-prefix data-log-prefix
+                                        #_/ ))
  
   (defn target-specification ^dict [self &optional ^bool [random False] 
                                                    ^bool [noisy True]]
@@ -272,7 +272,7 @@
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ]))))
 
-(defclass SymCasAmpXH035GeomEnv [SymCasAmpXH035Env]
+(defclass OP4XH035GeomEnv [OP4XH035Env]
   """
   Cascode Amplifier in XH035 Technology.
   """
@@ -284,13 +284,13 @@
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
-    (.__init__ (super SymCasAmpXH035GeomEnv self) :pdk-path pdk-path 
-                                                  :ckt-path ckt-path
-                                                  :max-moves max-moves 
-                                                  :random-target random-target
-                                                  :target target 
-                                                  :data-log-prefix data-log-prefix
-                                                  #_/ )
+    (.__init__ (super OP4XH035GeomEnv self) :pdk-path pdk-path 
+                                            :ckt-path ckt-path
+                                            :max-moves max-moves 
+                                            :random-target random-target
+                                            :target target 
+                                            :data-log-prefix data-log-prefix
+                                            #_/ )
 
     ;; The action space consists of 18 parameters ∈ [-1;1]. 
     ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcm3"  "Wc1" "Wr"

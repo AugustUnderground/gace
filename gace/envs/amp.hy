@@ -12,8 +12,8 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete Tuple]])
 
-(import [.prim_dev [*]])
-(import [.util [*]])
+(import [.util.prim [*]])
+(import [.util.util [*]])
 
 (import [hace :as ac])
 
@@ -147,11 +147,11 @@
     (let [ascii-amp (.format "
             VDD
              |         
-          |\ |         
-          | \|   Generic Amplifier Subcircuit
+          |\\ |         
+          | \\|   Generic Amplifier Subcircuit
   INP ----+  + 
-          |   \
-          |    \
+          |   \\
+          |    \\
     B ----+ op  >---- O
           |    /
           |   /
@@ -161,8 +161,7 @@
              |
             VSS ") ]
       (cond [(= mode "human")
-             (print ascii-amp)
-             ascii-amp]
+             (print ascii-amp)]
           [True 
            (raise (NotImplementedError f"Only 'human' mode is implemented."))])))
 

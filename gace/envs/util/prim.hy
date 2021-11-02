@@ -5,7 +5,7 @@
 
 (import [precept [PreceptModule PreceptDataFrameModule]])
 
-(import [.util [*]])
+(import [..util [*]])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])

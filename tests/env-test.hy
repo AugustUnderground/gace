@@ -3,11 +3,11 @@
 (import logging)
 (import [functools [partial]])
 (import [datetime [datetime :as dt]])
-(import [icecream [ic]])
 (import [numpy :as np])
 (import [h5py :as h5])
 (import [hace :as ac])
 (import gym)
+(import gace)
 (import [operator [itemgetter]])
 (import [stable-baselines3.common.env-checker [check-env]])
 (require [hy.contrib.walk [let]]) 
@@ -32,10 +32,10 @@
       op3-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
       op4-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
       op6-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op6"
-      )
+      #_/ )
 
 ;; Create Environment
-(setv env (gym.make "gym_ad:op2-xh035-v0"
+(setv env (gym.make "gace:op2-xh035-v0"
                     :pdk-path        pdk-path
                     :ckt-path        op2-path
                     :nmos-path       nmos-path
@@ -43,8 +43,14 @@
                     :data-log-prefix data-path
                     :random-target   False))
 
+
+(lfor _ (range 10) (env.observation-space.contains (.reset env)))
+
+
+(gace.check-env env)
+
 ;; GEOM
-(setv env (gym.make "gym_ad:op4-xh035-v1"
+(setv env (gym.make "gace:op4-xh035-v1"
                     :pdk-path        pdk-path
                     :ckt-path        op4-path
                     :data-log-prefix data-path
