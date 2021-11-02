@@ -35,6 +35,14 @@
       nd4-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4"
       #_/ )
 
+;; GEOM
+(setv env (gym.make "gace:nand4-xh035-v1"
+                    :pdk-path        pdk-path
+                    :ckt-path        nd4-path
+                    :data-log-prefix data-path
+                    :random-start   True))
+
+
 ;; Create Environment
 (setv env (gym.make "gace:op2-xh035-v0"
                     :pdk-path        pdk-path
@@ -47,15 +55,7 @@
 
 (lfor _ (range 10) (env.observation-space.contains (.reset env)))
 
-
 (gace.check-env env)
-
-;; GEOM
-(setv env (gym.make "gace:nand4-xh035-v1"
-                    :pdk-path        pdk-path
-                    :ckt-path        nd4-path
-                    :data-log-prefix data-path
-                    :random-start   False))
 
 ;; Check if no Warnings
 (check-env env :warn True)
