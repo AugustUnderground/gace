@@ -109,7 +109,7 @@ Action Spaces in `v0` and `v1` are _continuous_ and implemented with
 `gym.spaces.Box`. For further details, see the descriptions for specific
 environments.
 
-### Variations
+### Variants
 
 | Version | Description                                      |
 |---------|--------------------------------------------------|
@@ -117,11 +117,18 @@ environments.
 | `v1`    | Geometric Design Space (`W`, `L`, ...)           |
 | `v2`    | TBA                                              |
 
+### Technologies
+
+- [X] X-Fab XH035 350nm
+- [ ] SkyWater 130nm
+- [ ] GPDK 180nm
+- [ ] PTM 130nm
+
 ### Miller Amplifier (OP1)
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
-Registered as `gace:op1-xh035-vX`.
+Registered as `gace:op1-<tech>-<var>`.
 
 #### Action Space 
 
@@ -163,7 +170,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
 
-Registered as `gace:op2-xh035-vX`.
+Registered as `gace:op2-<tech>-<var>`.
 
 #### Action Space
 
@@ -204,7 +211,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
 
-Registered as `gace:op3-xh035-vX`.
+Registered as `gace:op3-<tech>-<var>`.
 
 #### Action Space
 
@@ -245,7 +252,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
 
-Registered as `gace:op4-xh035-vX`.
+Registered as `gace:op4-<tech>-<var>`.
 
 #### Action Space
 
@@ -290,7 +297,7 @@ gym.spaces.Box( low   = -np.inf
 
 ![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
 
-Registered as `gace:op6-xh035-vX`.
+Registered as `gace:op6-<tech>-<var>`.
 
 #### Action Space
 
@@ -368,7 +375,7 @@ For now, only `v1` is implemented for NAND4 Environments.
 
 ![nand4](https://github.com/matthschw/ace/blob/main/figures/nand4.png)
 
-Registered as `gace:nand4-xh035-vX`.
+Registered as `gace:nand4-<tech>-<var>`.
 
 #### Action Space
 
@@ -387,7 +394,7 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Same as _op1_, continuous `ℝ ¹² ∈ (-∞ ; ∞)`:
+Continuous `ℝ ¹² ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
@@ -396,7 +403,6 @@ gym.spaces.Box( low   = -np.inf
               , dtype = np.float32
               , )
 ```
-
 
 ## Known Issues, Debugging and Testing
 
