@@ -131,17 +131,17 @@ Registered as `gace:op1-xh035-vX`.
 
 ```python
 # v0 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (12 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 
 # v1 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (14 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 
 ```
@@ -173,17 +173,17 @@ Registered as `gace:op2-xh035-vX`.
 
 ```python
 # v0 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (10 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 
 # v1 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (12 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 ```
 
@@ -214,17 +214,17 @@ Registered as `gace:op3-xh035-vX`.
 
 ```python
 # v0 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (11 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 
 # v1 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (15 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 ```
 
@@ -255,17 +255,17 @@ Registered as `gace:op4-xh035-vX`.
 
 ```python
 # v0 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (15 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 
 # v1 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (18 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 ```
 
@@ -300,17 +300,17 @@ Registered as `gace:op6-xh035-vX`.
 
 ```python
 # v0 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (14 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 
 # v1 action space
-gym.spaces.Box( low = -1.0
-              , high = 1.0
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
               , shape = (18 , )
-              , dtype = np.float32 
+              , dtype = np.float32
               , )
 ```
 
