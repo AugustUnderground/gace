@@ -97,7 +97,50 @@
           
           sizing {"wn0" Wn0 "wn1" Wn1 "wn2" Wn2 "wn3" Wn3 "wp" Wp1}]
 
-      (.size-step (super) sizing))))
+      (.size-step (super) sizing)))
+  
+  (defn render [self &optional [mode "ascii"]]
+    """
+    Prints an ASCII Schematic of the Miller Amplifier courtesy
+    https://github.com/Blokkendoos/AACircuit
+    """
+    (cond [(= mode "ascii")
+           (print f"
+VDD #---------o----------o----------o----------.                        
+              |          |          |          |                        
+              |          |          |          |                        
+           ||-+ MP0   ||-+ MP1   ||-+ MP2   ||-+ MP3                    
+           ||->       ||->       ||->       ||->                        
+        .--||-+    .--||-+    .--||-+    .--||-+                        
+        |     |    |     |    |     |    |     |                        
+        |     '----)-----o----)-----o----)-----o----# O                 
+        |          |          |          |     |                        
+        |          |          |          |  ||-+ MN3                    
+        |          |          |          |  ||<-                        
+ I3 #---)----------)----------)----------o--||-+                        
+        |          |          |                |                        
+        |          |          |                |                        
+        |          |          |                |                        
+        |          |          |             ||-+ MN2                    
+        |          |          |             ||<-                        
+ I2 #---)----------)----------o-------------||-+                        
+        |          |                           |                        
+        |          |                           |                        
+        |          |                           |                        
+        |          |                        ||-+ MN1                    
+        |          |                        ||<-                        
+ I1 #---)----------o------------------------||-+                        
+        |                                      |                        
+        |                                      |                        
+        |                                      |                        
+        |                                   ||-+ MN0                    
+        |                                   ||<-                        
+ I0 #---o-----------------------------------||-+                        
+                                               |                        
+                                               |                        
+VSS #------------------------------------------'   
+  " )]
+          [True (.render (super) mode)])))
 
 (defclass NAND4XH035GeomEnv [NAND4Env]
   """
