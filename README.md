@@ -326,7 +326,7 @@ gym.spaces.Box( low   = -np.inf
               , )
 ```
 
-## Known Issues and Debugging
+## Known Issues, Debugging and Testing
 
 Whenever the environment produces observations that contain `NaN` a
 `parameters-<timestamp>.json` file will be produced. This can be used with
@@ -336,6 +336,13 @@ state and analyze what went wrong.
 Currently we cope with `NaN`s by using numpy's 
 [nan_to_num](https://numpy.org/doc/stable/reference/generated/numpy.nan_to_num.html) 
 function. Be aware, such values can cause problems on GPU.
+
+Test can be run, if [pytest](https://pytest.org) is installed, by calling
+`pytest` in the root of this repository.
+
+```bash
+$ pytest
+```
 
 ## TODO
 
