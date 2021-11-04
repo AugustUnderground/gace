@@ -147,7 +147,8 @@ VSS #------------------------------------------'
   4 NAND Gate Inverter Chain.
   """
 
-  (setv metadata {"render.modes" ["human" "ascii"]})
+  (setv metadata {"render.modes" ["human" "ascii"]
+                  "ace.env" "nand4"})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^int [max-moves 200]

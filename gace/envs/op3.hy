@@ -67,6 +67,9 @@
 
     """
 
+    ;; ACE Environment ID
+    (setv self.ace-env "op3")
+
     ;; Check given paths
     (unless (or pdk-path (not (os.path.exists pdk-path)))
       (raise (FileNotFoundError errno.ENOENT 

@@ -67,6 +67,9 @@
 
     """
 
+    ;; ACE Environment ID
+    (setv self.ace-env "op1")
+
     ;; Check given paths
     (unless (or pdk-path (not (os.path.exists pdk-path)))
       (raise (FileNotFoundError errno.ENOENT 
@@ -285,18 +288,18 @@
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
     (setv self.cs   0.85e-15 ; Poly Capacitance per μm^2
-          self.rs 100     ; Sheet Resistance in Ω/□
-          self.Wres 2e-6  ; Resistor Width in m
-          self.Mcap 1e-6  ; Capacitance multiplier
+          self.rs   100      ; Sheet Resistance in Ω/□
+          self.Wres 2e-6     ; Resistor Width in m
+          self.Mcap 1e-6     ; Capacitance multiplier
           #_/ )
 
     (.__init__ (super OP1XH035GeomEnv self) :pdk-path pdk-path 
-                                                  :ckt-path ckt-path
-                                                  :max-moves max-moves 
-                                                  :random-target random-target
-                                                  :target target 
-                                                  :data-log-prefix data-log-prefix
-                                                  #_/ )
+                                            :ckt-path ckt-path
+                                            :max-moves max-moves 
+                                            :random-target random-target
+                                            :target target 
+                                            :data-log-prefix data-log-prefix
+                                            #_/ )
 
     ;; The action space consists of 14 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios as well as the cap and res.

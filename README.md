@@ -29,12 +29,15 @@ After installing:
 ```python
 import gym
 
-env = gym.make(                 'gace:op2-xh035-v0'     # Symmetrical Amplifier
-              , pdk_path      = '/path/to/tech'         # path to xfab pdk
-              , ckt_path      = '/path/to/op2'          # path to testbench
-              , nmos_path     = '/path/to/models/nmos'  # path to nmos model
-              , pmos_path     = '/path/to/models/pmos'  # paht to pmos model
-              , random_target = False                   # start close to target
+env = gym.make(                   'gace:op2-xh035-v0'     # Symmetrical Amplifier
+              , pdk_path        = '/path/to/tech'         # path to xfab pdk
+              , ckt_path        = '/path/to/op2'          # path to testbench
+              , nmos_path       = '/path/to/models/nmos'  # path to nmos model
+              , pmos_path       = '/path/to/models/pmos'  # paht to pmos model
+              , random_target   = False                   # start close to target
+              , max_moves       = 200                     # Reset env after this many steps
+              , target          = {}                      # Dict like 'perforamnce' below
+              , debug_log       = '/path/to/data/log'     # Prefix of data log file
               , )
 ```
 

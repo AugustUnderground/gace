@@ -216,7 +216,9 @@
 
        (when (or (np.any (np.isnan cost)) (np.any (np.isinf cost)))
           (let [time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
-              json-file (.format "./parameters-{}.json" time-stamp) ]
+              json-file (.format "./{}-parameters-{}.json" 
+                                 (get self.metadata "ace.env") 
+                                 time-stamp)]
             (ac.dump-state self.amplifier :file-name json-file)))
 
        (-> cost (np.nan-to-num) (np.sum) (-) (float))))
