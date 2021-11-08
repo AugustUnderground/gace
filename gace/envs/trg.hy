@@ -24,82 +24,93 @@
 (import [hy.contrib.sequences [Sequence end-sequence]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(defclass InverterEnv [gym.Env]
+(defclass TriggerEnv [gym.Env]
   """
-  Abstract parent class for all inverter environments.
+  Abstract parent class for all trigger environments.
   """
 
   (setv metadata {"render.modes" ["human"]})
 
   (defn __init__ [self ^(of list str) pdk-path ^str ckt-path
-                  ^int max-moves ^bool random-start 
+                  ^int max-moves 
+                  ^bool random-start 
+                  ^bool random-target 
                   ^float tolerance 
        &optional ^str   [data-log-prefix ""]
                  #_/ ] 
     """
-    Initialzies the basics required by every inverter implementing this
+    Initialzies the basics required by every trigger implementing this
     interface.
     """
 
-    (.__init__ (super InverterEnv self))
+    (.__init__ (super TriggerEnv self))
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
-    ;; If no `data-log-prefix` is provided, the data will be discarded after each
-    ;; episode.
+    ;; If no `data-log-prefix` is provided, the data will be discarded after
+    ;; each episode.
     (setv self.data-log-prefix  data-log-prefix
-          self.data-log       (pd.DataFrame))
+          self.data-log         (pd.DataFrame))
 
     ;; Initialize parameters
     (setv self.last-reward    (- np.inf)
           self.max-moves      max-moves
-          self.reset-counter  0)
+          self.reset-counter  0
+          self.random-target  random-target
+          self.random-start   random-start)
 
     ;; Define list of universal performances for all Amplifiers
-    (setv self.performance-parameters ["vs0" "vs2" "vs1" "vs3"])
+    (setv self.performance-parameters ["v_il" "v_ih" "t_phl" "t_plh"])
   
     ;; Loss function: | performance - target | / target
     (setv self.tolerance tolerance
           self.loss (fn [x y] (/ (np.abs (- x y)) y)))
 
-    ;; Whether to use a random starting value or the initial ones.
-    (setv self.random-start random-start)
-
-    ;; The `inverter` communicates with the spectre simulator and returns the 
+    ;; The `trigger` communicates with the spectre simulator and returns the 
     ;; circuit performance.
     (setv self.ckt-path ckt-path
           self.pdk-path pdk-path
-          self.inverter (ac.nand-4 self.ckt-path :pdk-path self.pdk-path))
+          self.trigger (ac.schmitt-trigger self.ckt-path :pdk-path self.pdk-path))
 
     ;; Specify constants as they are defined in the netlist and by the PDK.
-    (setv params    (ac.current-parameters self.inverter)
-          self.vdd  (get params "vdd")                ; Supply voltage 
-          #_/ ))
+    (setv params    (ac.current-parameters self.trigger)
+          self.vdd  (get params "vdd")                    ; Supply voltage 
+          #_/ )
+
+;; Generate random target of None was provided.
+    (setv self.random-target random-target
+          self.target        (self.target-specification :random random-target
+                                                        :noisy True)))
 
   (defn render [self &optional ^str [mode "human"]]
     """
-    Prints a generic ASCII Inverter symbol for 'human' mode, in case the
-    derived inverter doesn't implement its own render method (which it
+    Prints a generic ASCII Amplifier symbol for 'human' mode, in case the
+    derived trigger doesn't implement its own render method (which it
     should).
     """
-    (let [ascii-inv (.format "
-      +-----+
-      |  1  |
- A ---|     |O--- Q
-      |     |
-      +-----+
+    (let [ascii-trg (.format "
+       +----------+
+       |          |
+       |   +--+-- |
+       |   |  |   |
+ I  ---+   |  |   +--- O
+       |   |  |   |
+       | --+--+   |
+       |          |
+       +----------+
       ") ]
       (cond [(= mode "human")
-             (print ascii-inv)]
+             (print ascii-trg)]
           [True 
            (raise (NotImplementedError f"Only 'human' mode is implemented."))])))
+
   (defn close [self]
     """
     Closes the spectre session.
     """
-    (.stop self.inverter)
-    (del self.inverter)
-    (setv self.inverter None))
+    (.stop self.trigger)
+    (del self.trigger)
+    (setv self.trigger None))
 
   (defn seed [self rng-seed]
     """
@@ -118,8 +129,8 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
-    (unless self.inverter
-      (setv self.inverter (ac.nand-4 self.ckt-path :pdk-path self.pdk-path)))
+    (unless self.trigger
+      (setv self.trigger (ac.schmitt-trigger self.ckt-path :pdk-path self.pdk-path)))
 
     ;; Reset the step counter and increase the reset counter.
     (setv self.moves         (int 0)
@@ -133,13 +144,13 @@
     (setv parameters (self.starting-point :random self.random-start
                                           :noise (not self.random-start)))
     
-    ;; Target is always VDD/2 for every switching voltage
-    (setv self.target (dict (zip self.performance-parameters 
-                                 (repeat (/ self.vdd 2.0) 
-                                         (len self.performance-parameters)))))
+    ;; New target or add noise to given target
+    (setv self.target (if self.random-target
+      (self.target-specification :random self.random-target :noisy False)
+      (dfor (, p v) (.items self.target) [p (* v (np.random.normal 1.0 0.01))])))
 
     ;; Get the current performance for the initial parameters
-    (setv self.performance (ac.evaluate-circuit self.inverter :params parameters))
+    (setv self.performance (ac.evaluate-circuit self.trigger :params parameters))
 
     (.observation self))
 
@@ -152,8 +163,8 @@
       [noise]:    Add noise to found starting point. (default = True)
     Returns:      Starting point sizing.
     """
-    (let [sizing (if random (ac.random-sizing self.inverter) 
-                            (ac.initial-sizing self.inverter))]
+    (let [sizing (if random (ac.random-sizing self.trigger) 
+                            (ac.initial-sizing self.trigger))]
       (if noise
           (dfor (, p s) (.items sizing) 
                 [p (if (or (.startswith p "W") (.startswith p "L")) 
@@ -169,7 +180,7 @@
     Each circuit has to make sure the geometric parameters are within reason.
     """
 
-    (setv self.performance (ac.evaluate-circuit self.inverter :params action)
+    (setv self.performance (ac.evaluate-circuit self.trigger :params action)
           self.data-log 
           (self.data-log.append (dfor (, k v) (.items self.performance) [k v])
                                 :ignore-index True))
@@ -212,16 +223,17 @@
 
           performances (-> perf-dict (p-getter) (np.array))
           targets      (-> self.target (p-getter) (np.array))
-          cost         (/ (np.abs (- performances targets)) targets) ]
+          cost         (/ (np.abs (- performances targets)) targets)]
 
        (when (or (np.any (np.isnan cost)) (np.any (np.isinf cost)))
           (let [time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
               json-file (.format "./{}-parameters-{}.json" 
-                                 (get self.metadata "ace.env") 
+                                 self.ace-env
                                  time-stamp)]
             (ac.dump-state self.amplifier :file-name json-file)))
 
        (-> cost (np.nan-to-num) (np.sum) (-) (float))))
+
 
   (defn done ^bool [self]
     """

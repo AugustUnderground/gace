@@ -52,6 +52,8 @@ The observation space includes the current perforamnce, the specified target,
 the normalized distance between target and current performance (`| t - p | / t`) 
 and operating point characteristics for all devices in the circuit.
 
+#### OP# Environments
+
 ```json
 { "performance": { "a_0":         "DC Gain"
                  , "ugbw":        "Unity Gain Bandwidth"
@@ -337,7 +339,7 @@ gym.spaces.Box( low   = -np.inf
               , )
 ```
 
-## NAND 4 Environments
+## Inverter Environments
 
 ### Observation Space
 
@@ -372,7 +374,7 @@ environments.
 
 ### Variations
 
-For now, only `v1` is implemented for NAND4 Environments.
+For now, only `v1` is implemented for Inverter Environments.
 
 ### 4 Gate Inverter Chain (NAND4)
 
@@ -384,13 +386,82 @@ Registered as `gace:nand4-<tech>-<var>`.
 
 | Version | Domain              | Description                        |
 |---------|---------------------|------------------------------------|
-| `v1`    | `ℝ ⁴ ∈ [-1.0; 1.0]` | 5 `W`s for each gate in the chain. |
+| `v1`    | `ℝ ⁵ ∈ [-1.0; 1.0]` | 5 `W`s for each gate in the chain. |
 
 ```python
 # v1 action space
 gym.spaces.Box( low   = -1.0
               , high  = 1.0
               , shape = (5 , )
+              , dtype = np.float32
+              , )
+```
+
+#### Observation Space
+
+Continuous `ℝ ¹² ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (12 , )
+              , dtype = np.float32
+              , )
+```
+
+## Schmitt Trigger Environments
+
+### Observation Space
+
+The observation space includes the current perforamnce, the specified target,
+the normalized distance between target and current performance (`| t - p | / t`) 
+and operating point characteristics for all devices in the circuit.
+
+```json
+{ "v_il":  "Threshold Vdd/2 - delta"
+, "v_ih":  "Threshold Vdd/2 + delta"
+, "t_phl": "Propagation Delay"
+, "t_plh": "Propagation Delay" 
+, "target":   { "Same keys as 'performance'": "..." }
+, "distance": { "Same keys as 'performance'": "..." } }
+```
+
+### Reward
+
+The overall reward `r` is calculated based on individual performance
+parameters:
+
+```
+r = - ∑ ( | t - p | / t )
+```
+
+### Action Spaces
+
+Action Spaces in `v1` are _continuous_ and implemented with
+`gym.spaces.Box`. For further details, see the descriptions for specific
+environments.
+
+### Variations
+
+For now, only `v1` is implemented for Schmitt Trigger Environments.
+
+### Schmitt Trigger (ST1)
+
+![st1](https://github.com/matthschw/ace/blob/main/figures/st1.png)
+
+Registered as `gace:nand4-<tech>-<var>`.
+
+#### Action Space
+
+| Version | Domain              | Description                        |
+|---------|---------------------|------------------------------------|
+| `v1`    | `ℝ ⁶ ∈ [-1.0; 1.0]` | 6 `W`s for each gate in the chain. |
+
+```python
+# v1 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (6 , )
               , dtype = np.float32
               , )
 ```

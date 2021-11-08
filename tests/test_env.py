@@ -136,3 +136,15 @@ def test_inv():
                   , )
     _test_env(env)
     env.close()
+
+def test_trg():
+    pdk_path = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
+    trg_path = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1'
+    env = gym.make( f'gace:st1-xh035-v1'
+                  , pdk_path        = pdk_path
+                  , ckt_path        = trg_path
+                  , data_log_prefix = None
+                  , random_start    = True
+                  , )
+    _test_env(env)
+    env.close()

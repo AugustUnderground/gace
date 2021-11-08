@@ -11,7 +11,7 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
-(import [.inv [Nand4Env]])
+(import [.inv [InverterEnv]])
 (import [.util.util [*]])
 
 (require [hy.contrib.walk [let]]) 
@@ -25,22 +25,10 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass NAND4Env [Nand4Env]
+(defclass NAND4Env [InverterEnv]
   """
-  Derived amplifier class, implementing the Miller Amplifier in the XFAB
+  Derived inverter class, implementing the 4 gate inverter chain in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
-  Observation Space:
-    - See AmplifierXH035Env
-
-  Action Space:
-    Continuous Box a: (14,) ∈ [1.0;1.0]
-
-    Where
-    a = [ gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1 
-          fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-          i1 i2 ] 
-
-      where i1 and i2 are the branch currents.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
@@ -61,6 +49,9 @@
       random-start: Generate new random starting point for each episode.
       tolerance:  Tolerance for reaching target.
     """
+
+    ;; ACE Environment ID
+    (setv self.ace-env "nand4")
 
     ;; Check given paths
     (unless (or pdk-path (not (os.path.exists pdk-path)))
@@ -95,7 +86,7 @@
                                                  self.action-scale-min 
                                                  self.action-scale-max)
           
-          sizing {"wn0" Wn0 "wn1" Wn1 "wn2" Wn2 "wn3" Wn3 "wp" Wp1}]
+          sizing {"Wn0" Wn0 "Wn1" Wn1 "Wn2" Wn2 "Wn3" Wn3 "Wp" Wp1}]
 
       (.size-step (super) sizing)))
   
@@ -155,9 +146,6 @@ VSS #------------------------------------------'
                                  ^bool [random-start True]
                                  ^float [tolerance 1e-3]
                                  ^str [data-log-prefix ""]]
-
-    ;; Supply Voltage
-    (setv self.vdd 3.3)
 
     (.__init__ (super NAND4XH035GeomEnv self) :pdk-path pdk-path 
                                               :ckt-path ckt-path

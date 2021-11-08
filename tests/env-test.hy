@@ -33,12 +33,13 @@
       op4-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
       op6-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op6"
       nd4-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4"
+      st1-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1"
       #_/ )
 
 ;; GEOM
-(setv env (gym.make "gace:nand4-xh035-v1"
+(setv env (gym.make "gace:st1-xh035-v1"
                     :pdk-path        pdk-path
-                    :ckt-path        nd4-path
+                    :ckt-path        st1-path
                     :data-log-prefix data-path
                     :random-start   True))
 

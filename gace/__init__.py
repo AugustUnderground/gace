@@ -65,3 +65,8 @@ register( id          = 'op6-xh035-v1'
 register( id          = 'nand4-xh035-v1'
         , entry_point = 'gace.envs:NAND4XH035GeomEnv'
         , )
+
+## AC²E: ST1
+register( id          = 'st1-xh035-v1'
+        , entry_point = 'gace.envs:ST1XH035GeomEnv'
+        , )

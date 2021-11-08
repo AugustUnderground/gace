@@ -29,18 +29,6 @@
   """
   Derived amplifier class, implementing the Symmetrical Amplifier in the XFAB
   XH035 Technology. Only works in combinatoin with the right netlists.
-  Observation Space:
-    - See SingleEndedOpAmpEnv
-
-  Action Space:
-    Continuous Box a: (11,) ∈ [-1.0;1.0]
-
-    Where
-    a = [ gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1 
-          fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-          i1 i2 i3 ] 
-
-      i* are the branch currents.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
