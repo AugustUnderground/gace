@@ -449,13 +449,13 @@ For now, only `v1` is implemented for Schmitt Trigger Environments.
 
 ![st1](https://github.com/matthschw/ace/blob/main/figures/st1.png)
 
-Registered as `gace:nand4-<tech>-<var>`.
+Registered as `gace:st1-<tech>-<var>`.
 
 #### Action Space
 
-| Version | Domain              | Description                        |
-|---------|---------------------|------------------------------------|
-| `v1`    | `ℝ ⁶ ∈ [-1.0; 1.0]` | 6 `W`s for each gate in the chain. |
+| Version | Domain              | Description                               |
+|---------|---------------------|-------------------------------------------|
+| `v1`    | `ℝ ⁶ ∈ [-1.0; 1.0]` | 6 `W`s for each device in schmit trigger. |
 
 ```python
 # v1 action space
