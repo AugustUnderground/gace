@@ -74,8 +74,8 @@
     ;; The `Box` type observation space consists of perforamnces, the distance
     ;; to the target, as well as general information about the current
     ;; operating point.
-    (setv self.observation-space (Box :low (- self.vdd) :high self.vdd
-                                      :shape (, 12)  :dtype np.float32)))
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf
+                                      :shape (, 12)   :dtype np.float32)))
   
   (defn step [self action]
     """
