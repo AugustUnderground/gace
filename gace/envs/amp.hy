@@ -322,7 +322,8 @@
                           perf targ)
                      ((eval c) t p))
 
-          time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))]
+          time-stamp (-> dt (.now) (.strftime "%H%M%S_%y%m%d"))
+          hdf-key (.format "{}_{}" self.ace-env time-stamp)]
 
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.
@@ -330,7 +331,9 @@
         (-> self.data-log (.rename :columns (dfor c self.data-log.columns.values
                                                 [c (-> c (.replace ":" "-") 
                                                         (.replace "." "_"))])) 
-                          (.to-hdf self.data-log-path :append True :mode "r+")))
+                          (.to-hdf self.data-log-path :key hdf-key
+                                                      :append True 
+                                                      :mode "a")))
 
       ;; 'done' when either maximum number of steps are exceeded, or the
       ;; overall loss is less than the specified target loss.
