@@ -260,7 +260,7 @@
       (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ]))))
 
-(defclass OP4XH035GeomEnv [OP5XH035Env]
+(defclass OP5XH035GeomEnv [OP5XH035Env]
   """
   Unsymmetrical Cascode Amplifier in XH035 Technology, with geometrical action
   space.
@@ -273,7 +273,7 @@
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
-    (.__init__ (super OP4XH035GeomEnv self) :pdk-path pdk-path 
+    (.__init__ (super OP5XH035GeomEnv self) :pdk-path pdk-path 
                                             :ckt-path ckt-path
                                             :max-moves max-moves 
                                             :random-target random-target
@@ -314,8 +314,8 @@
 
           sizing { "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Ld" Ldp1 "Lc1"  Lls1  "Lr" Lref
                    "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wd" Wdp1 "Wc1"  Wls1  "Wr" Wref
-                   "Mcm11" Mcm11 "Mcm212" Mcm21  "Mcm31" Mcm31 "Md" Mdp1 "Mc11" Mls11
-                   "Mcm12" Mcm12 "Mcm222" Mcm22  "Mcm32" Mcm32           "Mc12" Mls12
+                   "Mcm11" Mcm11 "Mcm212" Mcm212 "Mcm31" Mcm31 "Md" Mdp1 "Mc11" Mls11
+                   "Mcm12" Mcm12 "Mcm222" Mcm222 "Mcm32" Mcm32           "Mc12" Mls12
                    "Mcm13" Mcm13 "Mcm2x1" Mcm2x1
                   #_/ }]
 

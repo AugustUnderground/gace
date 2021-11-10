@@ -32,10 +32,9 @@
   (setv metadata {"render.modes" ["human"]})
 
   (defn __init__ [self ^(of list str) pdk-path  ^str ckt-path
-                  ^str nmos-path ^str pmos-path
-                  ^int max-moves 
-       &optional ^str   [data-log-prefix ""]
-                 #_/ ] 
+                  ^str nmos-path ^str pmos-path ^int max-moves 
+                  &optional ^str [data-log-prefix ""]
+                  #_/ ] 
     """
     Initialzies the basics required by every amplifier implementing this
     interface.
@@ -48,7 +47,7 @@
     ;; If no `data-log-prefix` is provided, the data will be discarded after each
     ;; episode.
     (setv self.data-log-prefix  data-log-prefix
-          self.data-log       (pd.DataFrame))
+          self.data-log         (pd.DataFrame))
 
     ;; Initialize parameters
     (setv self.last-reward    (- np.inf)

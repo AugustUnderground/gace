@@ -87,64 +87,86 @@ def _test_env(env):
         assert not np.any(np.isinf(obs)), \
                f'Observations contain +/-Infs.'
 
-def test_v0_xh035():
-    amps = ['1', '2', '3', '4', '6']
+def _test_amp_v0(env_id, pdk_path, amp_path, nmos_path, pmos_path):
+    env = gym.make( env_id
+                  , pdk_path        = pdk_path
+                  , ckt_path        = amp_path
+                  , nmos_path       = nmos_path
+                  , pmos_path       = pmos_path
+                  , data_log_prefix = ""
+                  , random_target   = True
+                  , )
+    _test_env(env)
+    env.close()
+
+def _test_amp_v1(env_id, pdk_path, amp_path):
+    env = gym.make( env_id
+                  , pdk_path        = pdk_path
+                  , ckt_path        = amp_path
+                  , data_log_prefix = ""
+                  , random_target   = True
+                  , )
+    _test_env(env)
+    env.close()
+
+def _test_amp_xh035(a):
     nmos_path = '/mnt/data/share/xh035-nmos-20211022-091316'
     pmos_path = '/mnt/data/share/xh035-pmos-20211022-084243'
     pdk_path  = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
     ace_path  = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3'
 
-    for a in amps:
-        op = f'op{a}'
-        op_path = f'{ace_path}/{op}'
-        env = gym.make( f'gace:{op}-xh035-v0'
-                      , pdk_path        = pdk_path
-                      , ckt_path        = op_path
-                      , nmos_path       = nmos_path
-                      , pmos_path       = pmos_path
-                      , data_log_prefix = None
-                      , random_target   = False
-                      , )
-        _test_env(env)
-        env.close()
+    amp_path = f'{ace_path}/{a}'
 
-def test_v1_xh035():
-    amps = ['1', '2', '3', '4', '6']
+    _test_amp_v0(f'gace:{a}-xh035-v0', pdk_path, amp_path, nmos_path, pmos_path)
+    _test_amp_v1(f'gace:{a}-xh035-v1', pdk_path, amp_path)
+
+def test_amp():
+    amps = [f'op{(op+1)}' for op in range(6)]
+    for a in amps:
+        _test_amp_xh035(a)
+
+def _test_inv_v1(env_id, pdk_path, nand_path):
+    env = gym.make( env_id
+                  , pdk_path        = pdk_path
+                  , ckt_path        = nand_path
+                  , data_log_prefix = ""
+                  , random_start    = True
+                  , )
+    _test_env(env)
+    env.close()
+
+def _test_inv_xh035(i):
     pdk_path  = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
     ace_path  = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3'
 
-    for a in amps:
-        op = f'op{a}'
-        op_path = f'{ace_path}/{op}'
-        env = gym.make( f'gace:{op}-xh035-v1'
-                      , pdk_path        = pdk_path
-                      , ckt_path        = op_path
-                      , data_log_prefix = None
-                      , random_target   = False
-                      , )
-        _test_env(env)
-        env.close()
+    inv_path = f'{ace_path}/{i}'
+
+    _test_inv_v1(f'gace:{i}-xh035-v1', pdk_path, inv_path)
 
 def test_inv():
-    pdk_path  = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
-    nand_path = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4'
-    env = gym.make( f'gace:nand4-xh035-v1'
+    invs = ['nand4']
+    for i in invs:
+        _test_inv_xh035(i)
+
+def _test_trg_v1(env_id, pdk_path, trg_path):
+    env = gym.make( env_id
                   , pdk_path        = pdk_path
-                  , ckt_path        = nand_path
-                  , data_log_prefix = None
+                  , ckt_path        = trg_path
+                  , data_log_prefix = ""
                   , random_start    = True
                   , )
     _test_env(env)
     env.close()
 
+def _test_trg_xh035(t):
+    pdk_path  = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
+    ace_path  = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3'
+
+    trg_path = f'{ace_path}/{t}'
+
+    _test_trg_v1(f'gace:{t}-xh035-v1', pdk_path, trg_path)
+
 def test_trg():
-    pdk_path = '/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
-    trg_path = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1'
-    env = gym.make( f'gace:st1-xh035-v1'
-                  , pdk_path        = pdk_path
-                  , ckt_path        = trg_path
-                  , data_log_prefix = None
-                  , random_start    = True
-                  , )
-    _test_env(env)
-    env.close()
+    trgs = [f'st{(st+1)}' for st in range(1)]
+    for t in trgs:
+        _test_trg_xh035(t)

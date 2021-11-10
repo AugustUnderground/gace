@@ -62,7 +62,7 @@
     (.__init__ (super OP1Env self) 
                [pdk-path] ckt-path
                nmos-path pmos-path
-               max-moves random-target
+               max-moves
                :data-log-prefix data-log-prefix
                #_/ )
 
