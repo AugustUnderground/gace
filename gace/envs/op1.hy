@@ -27,26 +27,21 @@
 
 (defclass OP1Env [SingleEndedOpAmpEnv]
   """
-  Derived amplifier class, implementing the Miller Amplifier in the XFAB
-  XH035 Technology. Only works in combinatoin with the right netlists.
+  Derived amplifier class, implementing the Miller Amplifier 
+  Only works in combinatoin with the right netlists.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-path ""]]
     """
-    Constructs a Miller Amplifier Environment with XH035 device models and
-    the corresponding netlist.
+    Constructs a Miller Amplifier Environment 
     Arguments:
       pdk-path:   This will be passed to the ACE backend.
       ckt-path:   This will be passed to the ACE backend.
-      nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
-                  `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
-      pmos-path:  Same as 'nmos-path', but for PMOS model.
       max-moves:  Maximum amount of steps the agent is allowed to take per
                   episode, before it counts as failed. Default = 200.
       random-target: Generate new random target for each episode.
@@ -61,7 +56,6 @@
     ;; Initialize parent Environment.
     (.__init__ (super OP1Env self) 
                [pdk-path] ckt-path
-               nmos-path pmos-path
                max-moves
                :data-log-path data-log-path
                #_/ )
@@ -193,6 +187,10 @@
 (defclass OP1XH035Env [OP1Env]
   """
   Miller Amplifier in XH035 Technology.
+  Additional Arguments:
+      nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
+                  `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
+      pmos-path:  Same as 'nmos-path', but for PMOS model.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
@@ -209,11 +207,22 @@
           self.Mcap 1e-6     ; Capacitance multiplier
           #_/ )
 
+    ;; ACE backend directory
+    (setv self.ace-backend "xh035-3V3")
+
     (.__init__ (super OP1XH035Env self) :pdk-path pdk-path :ckt-path ckt-path
-                                        :nmos-path nmos-path :pmos-path pmos-path
                                         :max-moves max-moves :random-target random-target
                                         :target target :data-log-path data-log-path
-                                        #_/ ))
+                                        #_/ )
+
+    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
+    (when (and nmos-path pmos-path)
+      (setv self.nmos (PrimitiveDeviceTs f"{nmos-path}/model.pt" 
+                                         f"{nmos-path}/scale.X" 
+                                         f"{nmos-path}/scale.Y")
+            self.pmos (PrimitiveDeviceTs f"{pmos-path}/model.pt" 
+                                         f"{pmos-path}/scale.X" 
+                                         f"{pmos-path}/scale.Y"))))
  
   (defn target-specification ^dict [self &optional ^bool [random False] 
                                                    ^bool [noisy True]]
@@ -304,7 +313,7 @@
                                                self.action-scale-max)
           
           (, Mdp1 Mcm21 Mcm22) (, 2 2 2)
-          Mcap                  1 
+          Mcap 1 
 
           sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  "Ld"    Ldp1 
                   "Lres"  Lres  "Mcm11" Mcm11 "Mcm12" Mcm12 "Mcm13" Mcm13 

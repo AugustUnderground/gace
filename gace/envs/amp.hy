@@ -1,3 +1,4 @@
+(import os)
 (import yaml)
 (import json)
 (import [h5py :as h5])
@@ -31,9 +32,9 @@
 
   (setv metadata {"render.modes" ["human"]})
 
-  (defn __init__ [self ^(of list str) pdk-path  ^str ckt-path
-                  ^str nmos-path ^str pmos-path ^int max-moves 
-                  &optional ^str [data-log-path ""]
+  (defn __init__ [self ^(of list str) pdk-path 
+                  ^int max-moves 
+                  &optional ^str [ckt-path ""] ^str [data-log-path ""]
                   #_/ ] 
     """
     Initialzies the basics required by every amplifier implementing this
@@ -41,6 +42,34 @@
     """
 
     (.__init__ (super SingleEndedOpAmpEnv self))
+
+    ;; Check for PDK
+    (unless (or pdk-path (not (os.path.exists pdk-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                pdk-path)))
+    
+    ;; Check ACE backend Testbench
+    (setv self.ckt-path
+            (cond [(and pdk-path (os.path.exists pdk-path)) ckt-path]
+                  [(in "ACE_BACKEND" os.environ) (os.environ.get "ACE_BACKEND")]
+                  []
+                  [True (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                f"No ACE Testbench found."))]))
+
+;; The `amplifier` communicates with the spectre simulator and returns the 
+    ;; circuit performance.
+    (setv self.ckt-path ckt-path
+          self.pdk-path pdk-path
+          self.amplifier (ac.single-ended-opamp self.ckt-path :pdk-path self.pdk-path))
+
+
+
+    (unless (or ckt-path (not (os.path.exists ckt-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                ckt-path)))
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
@@ -66,15 +95,6 @@
                                        "A"
                                        #_/ ])
     
-    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
-    (when (and nmos-path pmos-path)
-      (setv self.nmos (PrimitiveDeviceTs f"{nmos-path}/model.pt" 
-                                         f"{nmos-path}/scale.X" 
-                                         f"{nmos-path}/scale.Y")
-            self.pmos (PrimitiveDeviceTs f"{pmos-path}/model.pt" 
-                                         f"{pmos-path}/scale.X" 
-                                         f"{pmos-path}/scale.Y")))
-
 
     ;; Predicate for meeting the specification
     (setv self.reward-condition 
@@ -108,22 +128,6 @@
 
     ;; Loss function: | performance - target | / target
     (setv self.loss (fn [x y] (/ (np.abs (- x y)) y)))
-
-    ;; Check given paths
-    (unless (or pdk-path (not (os.path.exists pdk-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                pdk-path)))
-    (unless (or ckt-path (not (os.path.exists ckt-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                ckt-path)))
-
-    ;; The `amplifier` communicates with the spectre simulator and returns the 
-    ;; circuit performance.
-    (setv self.ckt-path ckt-path
-          self.pdk-path pdk-path
-          self.amplifier (ac.single-ended-opamp self.ckt-path :pdk-path self.pdk-path))
 
     ;; Specify constants as they are defined in the netlist and by the PDK.
     (setv params (ac.current-parameters self.amplifier)

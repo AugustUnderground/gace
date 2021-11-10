@@ -30,7 +30,6 @@
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-path ""]]
@@ -40,9 +39,6 @@
     Arguments:
       pdk-path:   This will be passed to the ACE backend.
       ckt-path:   This will be passed to the ACE backend.
-      nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
-                  `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
-      pmos-path:  Same as 'nmos-path', but for PMOS model.
       max-moves:  Maximum amount of steps the agent is allowed to take per
                   episode, before it counts as failed. Default = 200.
       random-target: Generate new random target for each episode.
@@ -57,7 +53,6 @@
     ;; Initialize parent Environment.
     (.__init__ (super OP4Env self) 
                [pdk-path] ckt-path
-               nmos-path pmos-path
                max-moves
                :data-log-path data-log-path
                #_/ )
@@ -199,6 +194,10 @@
 (defclass OP4XH035Env [OP4Env]
   """
   Cascode Amplifier in XH035 Technology.
+  Additional Arguments:
+      nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
+                  `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
+      pmos-path:  Same as 'nmos-path', but for PMOS model.
   """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
@@ -210,10 +209,18 @@
                                  ^dict [target None] ^str [data-log-path ""]]
 
     (.__init__ (super OP4XH035Env self) :pdk-path pdk-path :ckt-path ckt-path
-                                        :nmos-path nmos-path :pmos-path pmos-path
                                         :max-moves max-moves :random-target random-target
                                         :target target :data-log-path data-log-path
-                                        #_/ ))
+                                        #_/ )
+
+    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
+    (when (and nmos-path pmos-path)
+      (setv self.nmos (PrimitiveDeviceTs f"{nmos-path}/model.pt" 
+                                         f"{nmos-path}/scale.X" 
+                                         f"{nmos-path}/scale.Y")
+            self.pmos (PrimitiveDeviceTs f"{pmos-path}/model.pt" 
+                                         f"{pmos-path}/scale.X" 
+                                         f"{pmos-path}/scale.Y"))))
  
   (defn target-specification ^dict [self &optional ^bool [random False] 
                                                    ^bool [noisy True]]
