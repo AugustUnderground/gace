@@ -20,17 +20,19 @@
       model-path f"./models/baselines/a2c-miller-amp-xh035-{time-stamp}.mod"
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-{time-stamp}.mod"
       ;model-path f"./models/baselines/a2c-sym-amp-xh035-100456-210903.mod"
-      data-path  f"../data/symamp/xh035")
+      data-path  f"../data/ace/{time-stamp}-log.hdf")
 
 (setv ;nmos-path f"../models/xh035-nmos"
      nmos-path f"/mnt/data/share/xh035-nmos-20211022-091316"
       ;pmos-path f"../models/xh035-pmos"
       pmos-path f"/mnt/data/share/xh035-pmos-20211022-084243"
       pdk-path  f"/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos"
+      ace-home  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3"
       op1-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op1"
       op2-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op2"
       op3-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op3"
       op4-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op4"
+      op5-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op5"
       op6-path  f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/op6"
       nd4-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4"
       st1-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1"
@@ -40,23 +42,45 @@
 (setv env (gym.make "gace:st1-xh035-v1"
                     :pdk-path        pdk-path
                     :ckt-path        st1-path
-                    :data-log-prefix data-path
+                    :data-log-path data-path
                     :random-start   True))
 
 
 ;; Create Environment
-(setv env (gym.make "gace:op2-xh035-v0"
+(setv env (gym.make "gace:op6-xh035-v0"
                     :pdk-path        pdk-path
-                    :ckt-path        op2-path
+                    :ckt-path        op6-path
                     :nmos-path       nmos-path
                     :pmos-path       pmos-path
-                    :data-log-prefix data-path
+                    :data-log-path   data-path
                     :random-target   False))
 
+(gace.check-env env)
+(setx obs (.reset env))
 
 (lfor _ (range 10) (env.observation-space.contains (.reset env)))
 
-(gace.check-env env)
+(for [o (range 6)]
+  (setv op f"op{(inc o)}"
+    ckt-path f"{ace-home}/{op}")
+  (setv env0 (gym.make f"gace:{op}-xh035-v0"
+                       :pdk-path        pdk-path
+                       :ckt-path        ckt-path
+                       :nmos-path       nmos-path
+                       :pmos-path       pmos-path
+                       :random-target   True))
+  (setv env1 (gym.make f"gace:{op}-xh035-v1"
+                       :pdk-path        pdk-path
+                       :ckt-path        ckt-path
+                       :random-target   True))
+  (print f"TESTING {op} v0")
+  (gace.check-env env0)
+  (print f"TESTING {op} v1")
+  (gace.check-env env1)
+  (print f"\n\n")
+  (del env0) (del env1))
+
+
 
 ;; Check if no Warnings
 (check-env env :warn True)
