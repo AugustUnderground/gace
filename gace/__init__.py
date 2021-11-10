@@ -52,6 +52,15 @@ register( id          = 'op4-xh035-v1'
         , entry_point = 'gace.envs:OP4XH035GeomEnv'
         , )
 
+## AC²E: OP5
+register( id          = 'op5-xh035-v0'
+        , entry_point = 'gace.envs:OP5XH035Env'
+        , )
+
+register( id          = 'op5-xh035-v1'
+        , entry_point = 'gace.envs:OP5XH035GeomEnv'
+        , )
+
 ## AC²E: OP6
 register( id          = 'op6-xh035-v0'
         , entry_point = 'gace.envs:OP6XH035Env'

@@ -296,7 +296,44 @@ gym.spaces.Box( low   = -np.inf
 
 ### Un-Symmetrical Amplifier with Cascode (OP5)
 
-<b align="center">UNDER CONSTRUCTION</b>
+![op5](https://github.com/matthschw/ace/blob/main/figures/op5.png)
+
+Registered as `gace:op5-<tech>-<var>`.
+
+#### Action Space
+
+| Version | Domain               | Description                                                                                                                       |
+|---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁶ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2`, `i3` and `i4`.                             |
+| `v1`    | `ℝ ²² ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> reference transistor, as well as <br/> mirror ratios `M1`, `M2`, `M3` and `M4`. |
+
+```python
+# v0 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (16 , )
+              , dtype = np.float32
+              , )
+
+# v1 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (22 , )
+              , dtype = np.float32
+              , )
+```
+
+#### Observation Space
+
+Continuous `ℝ ²³³ ∈ (-∞ ; ∞)`:
+
+```python
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (233 , )
+              , dtype = np.float32
+              , )
+```
 
 ### Miller Amplifier without R and C (OP6)
 
@@ -506,4 +543,5 @@ $ pytest
 - [X] restructure to fit ace
 - [ ] new Env with sim mask as action
 - [ ] demo Agent
-- [ ] handle `NaN`s better
+- [X] handle `NaN`s better
+- [ ] find better limit/range for obs space
