@@ -89,7 +89,7 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 245)  :dtype np.float32)))
+                                      :shape (, 246)  :dtype np.float32)))
 
   (defn step [self action]
     """
