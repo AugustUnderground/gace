@@ -141,10 +141,10 @@
           Wls1 (/ i2 (get ls1-out 0)) 
           Wref (/ i3 (get ref-out 0)) 
 
-          sizing { "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Ld" Ldp1 "Lc1" Lls1 "Lr" Lref
-                   "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wd" Wdp1 "Wc1" Wls1 "Wr" Wref
-                   "Mcm11" Mcm11 "Mcm21" Mcm21   "Mcm31" Mcm31 "Md" Mdp1 "Mc1" Mls1 
-                   "Mcm12" Mcm12 "Mcm22" Mcm22   "Mcm32" Mcm32  
+          sizing { "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  "Ld" Ldp1 "Lc1" Lls1 "Lr" Lref
+                   "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1 "Wc1" Wls1 "Wr" Wref
+                   "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 "Md" Mdp1 "Mc1" Mls1 
+                   "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32  
                    "Mcm13" Mcm13 
                   #_/ }]
 
@@ -284,9 +284,8 @@
           w-min (list (repeat 0.4e-6 6))  w-max (list (repeat 150e-6 6))
           l-min (list (repeat 0.35e-6 6)) l-max (list (repeat 15e-6 6))
           m-min [1 1 1 1 1 1]             m-max [3 3 20 3 20 16]
-          self.action-scale-min (np.array (+ ))
-          self.action-scale-max (np.array (+ ))))
- 
+          self.action-scale-min (np.array (+ w-min l-min m-min))
+          self.action-scale-max (np.array (+ w-max l-max m-max))))
 
   (defn step [self action]
     """
