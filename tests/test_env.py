@@ -41,7 +41,7 @@ def _test_env(env):
     assert isinstance(obs, np.ndarray), \
            f'The observation returned by `reset` must be a numpy array.'
 
-    assert evn.observation_space.shape[0] == obs.shape[0], \
+    assert env.observation_space.shape[0] == obs.shape[0], \
             f'The dimensions of the observation space do not match.'
 
     #assert env.observation_space.contains(obs), \
@@ -49,7 +49,7 @@ def _test_env(env):
 
     act = env.action_space.sample()
 
-    assert evn.action_space.shape[0] == act.shape[0], \
+    assert env.action_space.shape[0] == act.shape[0], \
             f'The dimensions of the action space do not match.'
 
     res = env.step(act)
@@ -100,7 +100,7 @@ def _test_amp_v0(env_id, pdk_path, amp_path, nmos_path, pmos_path):
                   , ckt_path        = amp_path
                   , nmos_path       = nmos_path
                   , pmos_path       = pmos_path
-                  , data_log_prefix = ""
+                  , data_log_path   = ""
                   , random_target   = True
                   , )
     _test_env(env)
@@ -110,7 +110,7 @@ def _test_amp_v1(env_id, pdk_path, amp_path):
     env = gym.make( env_id
                   , pdk_path        = pdk_path
                   , ckt_path        = amp_path
-                  , data_log_prefix = ""
+                  , data_log_path   = ""
                   , random_target   = True
                   , )
     _test_env(env)
@@ -136,7 +136,7 @@ def _test_inv_v1(env_id, pdk_path, nand_path):
     env = gym.make( env_id
                   , pdk_path        = pdk_path
                   , ckt_path        = nand_path
-                  , data_log_prefix = ""
+                  , data_log_path   = ""
                   , random_start    = True
                   , )
     _test_env(env)
@@ -159,7 +159,7 @@ def _test_trg_v1(env_id, pdk_path, trg_path):
     env = gym.make( env_id
                   , pdk_path        = pdk_path
                   , ckt_path        = trg_path
-                  , data_log_prefix = ""
+                  , data_log_path   = ""
                   , random_start    = True
                   , )
     _test_env(env)
