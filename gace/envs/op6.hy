@@ -58,16 +58,6 @@
     ;; ACE Environment ID
     (setv self.ace-env "op6")
 
-    ;; Check given paths
-    (unless (or pdk-path (not (os.path.exists pdk-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                pdk-path)))
-    (unless (or ckt-path (not (os.path.exists ckt-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                ckt-path)))
-
     ;; Initialize parent Environment.
     (.__init__ (super OP6Env self) 
                [pdk-path] ckt-path

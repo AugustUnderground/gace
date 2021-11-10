@@ -58,21 +58,11 @@
     ;; ACE Environment ID
     (setv self.ace-env "op1")
 
-    ;; Check given paths
-    (unless (or pdk-path (not (os.path.exists pdk-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                pdk-path)))
-    (unless (or ckt-path (not (os.path.exists ckt-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                ckt-path)))
-
     ;; Initialize parent Environment.
     (.__init__ (super OP1Env self) 
                [pdk-path] ckt-path
                nmos-path pmos-path
-               max-moves
+               max-moves random-target
                :data-log-prefix data-log-prefix
                #_/ )
 
@@ -214,9 +204,9 @@
                                  ^dict [target None] ^str [data-log-prefix ""]]
 
     (setv self.cs   0.85e-15 ; Poly Capacitance per μm^2
-          self.rs 100     ; Sheet Resistance in Ω/□
-          self.Wres 2e-6  ; Resistor Width in m
-          self.Mcap 1e-6  ; Capacitance multiplier
+          self.rs   100      ; Sheet Resistance in Ω/□
+          self.Wres 2e-6     ; Resistor Width in m
+          self.Mcap 1e-6     ; Capacitance multiplier
           #_/ )
 
     (.__init__ (super OP1XH035Env self) :pdk-path pdk-path :ckt-path ckt-path
@@ -274,12 +264,6 @@
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
                                  ^dict [target None] ^str [data-log-prefix ""]]
-
-    (setv self.cs   0.85e-15 ; Poly Capacitance per μm^2
-          self.rs   100      ; Sheet Resistance in Ω/□
-          self.Wres 2e-6     ; Resistor Width in m
-          self.Mcap 1e-6     ; Capacitance multiplier
-          #_/ )
 
     (.__init__ (super OP1XH035GeomEnv self) :pdk-path pdk-path 
                                             :ckt-path ckt-path

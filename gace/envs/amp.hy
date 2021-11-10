@@ -110,6 +110,16 @@
     ;; Loss function: | performance - target | / target
     (setv self.loss (fn [x y] (/ (np.abs (- x y)) y)))
 
+    ;; Check given paths
+    (unless (or pdk-path (not (os.path.exists pdk-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                pdk-path)))
+    (unless (or ckt-path (not (os.path.exists ckt-path)))
+      (raise (FileNotFoundError errno.ENOENT 
+                                (os.strerror errno.ENOENT) 
+                                ckt-path)))
+
     ;; The `amplifier` communicates with the spectre simulator and returns the 
     ;; circuit performance.
     (setv self.ckt-path ckt-path
