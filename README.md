@@ -44,6 +44,36 @@ env = gym.make(                   'gace:op2-xh035-v0'     # Symmetrical Amplifie
 Where `<nmos|pmos>_path` must contain a torchscript model `model.pt` and input
 and output scalers `scale.X` and `scale.Y` respectively.
 
+## Machine Learning Models for v0 Environments
+
+The models used for `v0` envs are trained with
+[precept](https://github.com/electronics-and-drives/precept) and _must_ have
+the following mapping:
+
+```
+[ gmoverid          [ log₁₀(idoverw)
+, log₁₀(fug)   ↦    , L
+, Vds               , log₁₀(gdsoverw)
+, Vbs ]             , Vgs ]
+```
+
+The paths (`nmos_path`, `pmos_path`) _must_ be structured like this:
+
+```
+nmos_path
+├── model.ckpt  # Optional
+├── model.pt    # TorchScript model produced by precept
+├── scale.X     # Scikit MinMax Scaler for inputs
+└── scale.Y     # Scikit MinMax Scaler for outputs
+```
+
+The `model.pt` _must_ be a
+[torchscript](https://pytorch.org/tutorials/recipes/torchscript_inference.html)
+module adhering to the specified input and output dimensions. The scalers
+`scale.<X|Y>` _must_ be
+[MinMaxScalers](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html)
+dumped with joblib.
+
 ## Single Ended OpAmp Environments
 
 ### Observation Space
@@ -124,8 +154,8 @@ environments.
 
 ### Technologies
 
-- [X] X-Fab XH035 350nm
-- [ ] SkyWater 130nm
+- [X] X-Fab XH035 350nm as `xh035`
+- [ ] SkyWater 130nm as `sky130`
 - [ ] GPDK 180nm
 - [ ] PTM 130nm
 
@@ -135,17 +165,17 @@ environments.
 
 Registered as:
 
-| Technology | ID                  |
-|------------|---------------------|
-| XH035      | `gace:op1-xh035-vX` |
-| Sky130     | TBA                 |
+| Technology | IDs                                      |
+|------------|------------------------------------------|
+| XH035      | `gace:op1-xh035-v0`, `gace:op1-xh035-v1` |
+| Sky130     | TBA                                      |
 
 #### Action Space 
 
 | Version | Domain               | Description                                                                                                                     |
 |---------|----------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block,<br/> 1 resistance, 1 capacitance and the branch currents <br/> `i1` and `i2`. |
-| `v1`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block,<br/> geometric sizes for Rc and Cc as well as <br/> mirror rations `M1` and `M2`.      |
+| `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block,<br/> geometric sizes for Rc and Cc as well as <br/> mirror rations `M1` and `M2`.      |
 
 ```python
 # v0 action space
@@ -166,12 +196,12 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Continuous `ℝ ¹⁵⁰ ∈ (-∞ ; ∞)`:
+Continuous `ℝ ²¹¹ ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (150 , )
+              , shape = (211 , )
               , dtype = np.float32
               , )
 ```
@@ -182,10 +212,10 @@ gym.spaces.Box( low   = -np.inf
 
 Registered as:
 
-| Technology | ID                  |
-|------------|---------------------|
-| XH035      | `gace:op2-xh035-vX` |
-| Sky130     | TBA                 |
+| Technology | IDs                                      |
+|------------|------------------------------------------|
+| XH035      | `gace:op2-xh035-v0`, `gace:op2-xh035-v1` |
+| Sky130     | TBA                                      |
 
 #### Action Space
 
@@ -212,12 +242,12 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Continuous `ℝ ²⁴⁵ ∈ (-∞ ; ∞)`:
+Continuous `ℝ ²⁰⁶ ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (245 , )
+              , shape = (206 , )
               , dtype = np.float32
               , )
 ```
@@ -228,10 +258,10 @@ gym.spaces.Box( low   = -np.inf
 
 Registered as:
 
-| Technology | ID                  |
-|------------|---------------------|
-| XH035      | `gace:op3-xh035-vX` |
-| Sky130     | TBA                 |
+| Technology | IDs                                      |
+|------------|------------------------------------------|
+| XH035      | `gace:op3-xh035-v0`, `gace:op3-xh035-v0` |
+| Sky130     | TBA                                      |
 
 #### Action Space
 
@@ -258,12 +288,12 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Same as _op2_, continuous `ℝ ²⁴⁵ ∈ (-∞ ; ∞)`:
+Same as _op2_, continuous `ℝ ²⁴⁶ ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (245 , )
+              , shape = (246 , )
               , dtype = np.float32
               , )
 ```
@@ -274,10 +304,10 @@ gym.spaces.Box( low   = -np.inf
 
 Registered as:
 
-| Technology | ID                  |
-|------------|---------------------|
-| XH035      | `gace:op4-xh035-vX` |
-| Sky130     | TBA                 |
+| Technology | IDs                                      |
+|------------|------------------------------------------|
+| XH035      | `gace:op4-xh035-v0`, `gace:op4-xh035-v1` |
+| Sky130     | TBA                                      |
 
 #### Action Space
 
@@ -304,12 +334,12 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Continuous `ℝ ²⁸⁴ ∈ (-∞ ; ∞)`:
+Continuous `ℝ ²⁸⁵ ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (284 , )
+              , shape = (285 , )
               , dtype = np.float32
               , )
 ```
@@ -320,10 +350,10 @@ gym.spaces.Box( low   = -np.inf
 
 Registered as:
 
-| Technology | ID                  |
-|------------|---------------------|
-| XH035      | `gace:op5-xh035-vX` |
-| Sky130     | TBA                 |
+| Technology | IDs                                      |
+|------------|------------------------------------------|
+| XH035      | `gace:op5-xh035-v0`, `gace:op5-xh035-v1` |
+| Sky130     | TBA                                      |
 
 #### Action Space
 
@@ -350,12 +380,12 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Continuous `ℝ ²³³ ∈ (-∞ ; ∞)`:
+Continuous `ℝ ²⁸⁵ ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (233 , )
+              , shape = (285 , )
               , dtype = np.float32
               , )
 ```
@@ -366,10 +396,10 @@ gym.spaces.Box( low   = -np.inf
 
 Registered as:
 
-| Technology | ID                  |
-|------------|---------------------|
-| XH035      | `gace:op6-xh035-vX` |
-| Sky130     | TBA                 |
+| Technology | IDs                                      |
+|------------|------------------------------------------|
+| XH035      | `gace:op6-xh035-v0`, `gace:op6-xh035-v1` |
+| Sky130     | TBA                                      |
 
 #### Action Space
 
@@ -396,12 +426,12 @@ gym.spaces.Box( low   = -1.0
 
 #### Observation Space
 
-Same as _op1_, continuous `ℝ ¹⁵⁰ ∈ (-∞ ; ∞)`:
+Same as _op1_, continuous `ℝ ²³⁵ ∈ (-∞ ; ∞)`:
 
 ```python
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (150 , )
+              , shape = (235 , )
               , dtype = np.float32
               , )
 ```
@@ -449,9 +479,9 @@ For now, only `v1` is implemented for Inverter Environments.
 
 Registered as:
 
-| Technology | ID                    |
+| Technology | IDs                   |
 |------------|-----------------------|
-| XH035      | `gace:nand4-xh035-vX` |
+| XH035      | `gace:nand4-xh035-v1` |
 | Sky130     | TBA                   |
 
 #### Action Space
@@ -523,9 +553,9 @@ For now, only `v1` is implemented for Schmitt Trigger Environments.
 
 Registered as:
 
-| Technology | ID                  |
+| Technology | IDs                 |
 |------------|---------------------|
-| XH035      | `gace:st1-xh035-vX` |
+| XH035      | `gace:st1-xh035-v1` |
 | Sky130     | TBA                 |
 
 #### Action Space
@@ -586,3 +616,4 @@ $ pytest
 - [X] handle `NaN`s better
 - [ ] find better limit/range for obs space
 - [ ] add skywater envs
+- [ ] add installer script
