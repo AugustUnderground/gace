@@ -133,7 +133,12 @@ environments.
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
-Registered as `gace:op1-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:op1-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space 
 
@@ -175,7 +180,12 @@ gym.spaces.Box( low   = -np.inf
 
 ![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
 
-Registered as `gace:op2-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:op2-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space
 
@@ -216,7 +226,12 @@ gym.spaces.Box( low   = -np.inf
 
 ![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
 
-Registered as `gace:op3-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:op3-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space
 
@@ -257,7 +272,12 @@ gym.spaces.Box( low   = -np.inf
 
 ![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
 
-Registered as `gace:op4-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:op4-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space
 
@@ -298,7 +318,12 @@ gym.spaces.Box( low   = -np.inf
 
 ![op5](https://github.com/matthschw/ace/blob/main/figures/op5.png)
 
-Registered as `gace:op5-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:op5-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space
 
@@ -339,7 +364,12 @@ gym.spaces.Box( low   = -np.inf
 
 ![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
 
-Registered as `gace:op6-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:op6-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space
 
@@ -417,7 +447,12 @@ For now, only `v1` is implemented for Inverter Environments.
 
 ![nand4](https://github.com/matthschw/ace/blob/main/figures/nand4.png)
 
-Registered as `gace:nand4-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                    |
+|------------|-----------------------|
+| XH035      | `gace:nand4-xh035-vX` |
+| Sky130     | TBA                   |
 
 #### Action Space
 
@@ -486,7 +521,12 @@ For now, only `v1` is implemented for Schmitt Trigger Environments.
 
 ![st1](https://github.com/matthschw/ace/blob/main/figures/st1.png)
 
-Registered as `gace:st1-<tech>-<var>`.
+Registered as:
+
+| Technology | ID                  |
+|------------|---------------------|
+| XH035      | `gace:st1-xh035-vX` |
+| Sky130     | TBA                 |
 
 #### Action Space
 
@@ -545,3 +585,4 @@ $ pytest
 - [ ] demo Agent
 - [X] handle `NaN`s better
 - [ ] find better limit/range for obs space
+- [ ] add skywater envs
