@@ -33,7 +33,7 @@
                                  ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
-                                 ^dict [target None] ^str [data-log-prefix ""]]
+                                 ^dict [target None] ^str [data-log-path ""]]
     """
     Constructs a Cascode Amplifier Environment with XH035 device models and
     the corresponding netlist.
@@ -59,7 +59,7 @@
                [pdk-path] ckt-path
                nmos-path pmos-path
                max-moves
-               :data-log-prefix data-log-prefix
+               :data-log-path data-log-path
                #_/ )
 
     ;; Generate random target of None was provided.
@@ -214,12 +214,12 @@
                                  ^str [nmos-path None] ^str [pmos-path None] 
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
-                                 ^dict [target None] ^str [data-log-prefix ""]]
+                                 ^dict [target None] ^str [data-log-path ""]]
 
     (.__init__ (super OP5XH035Env self) :pdk-path pdk-path :ckt-path ckt-path
                                         :nmos-path nmos-path :pmos-path pmos-path
                                         :max-moves max-moves :random-target random-target
-                                        :target target :data-log-prefix data-log-prefix
+                                        :target target :data-log-path data-log-path
                                         #_/ ))
  
   (defn target-specification ^dict [self &optional ^bool [random False] 
@@ -271,14 +271,14 @@
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^int [max-moves 200]
                                  ^bool [random-target False]
-                                 ^dict [target None] ^str [data-log-prefix ""]]
+                                 ^dict [target None] ^str [data-log-path ""]]
 
     (.__init__ (super OP5XH035GeomEnv self) :pdk-path pdk-path 
                                             :ckt-path ckt-path
                                             :max-moves max-moves 
                                             :random-target random-target
                                             :target target 
-                                            :data-log-prefix data-log-prefix
+                                            :data-log-path data-log-path
                                             #_/ )
 
     ;; The action space consists of 22 parameters ∈ [-1;1]. 

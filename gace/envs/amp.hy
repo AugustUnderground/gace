@@ -33,7 +33,7 @@
 
   (defn __init__ [self ^(of list str) pdk-path  ^str ckt-path
                   ^str nmos-path ^str pmos-path ^int max-moves 
-                  &optional ^str [data-log-prefix ""]
+                  &optional ^str [data-log-path ""]
                   #_/ ] 
     """
     Initialzies the basics required by every amplifier implementing this
@@ -44,10 +44,10 @@
 
     ;; Logging the data means, a dataframe containing the sizing and
     ;; performance parameters will be written to an HDF5.
-    ;; If no `data-log-prefix` is provided, the data will be discarded after each
+    ;; If no `data-log-path` is provided, the data will be discarded after each
     ;; episode.
-    (setv self.data-log-prefix  data-log-prefix
-          self.data-log         (pd.DataFrame))
+    (setv self.data-log-path  data-log-path
+          self.data-log       (pd.DataFrame))
 
     ;; Initialize parameters
     (setv self.last-reward    (- np.inf)
@@ -326,12 +326,11 @@
 
       ;; If a log path is defined, a HDF5 data log is kept with all the sizing
       ;; parameters and corresponding performances.
-      ;(when self.data-log-prefix
-      ;  (setv log-file (.format "{}-{}.h5" self.data-log-prefix time-stamp))
-      ;  (with [h5-file (h5.File log-file "w")]
-      ;   (for [col self.data-log.columns]
-      ;     (setv (get h5-file (-> col (.replace ":" "-") (.replace "." "_"))) 
-      ;        (.to-numpy (get self.data-log col))))))
+      (when self.data-log-path
+        (-> self.data-log (.rename :columns (dfor c self.data-log.columns.values
+                                                [c (-> c (.replace ":" "-") 
+                                                        (.replace "." "_"))])) 
+                          (.to-hdf self.data-log-path :append True :mode "r+")))
 
       ;; 'done' when either maximum number of steps are exceeded, or the
       ;; overall loss is less than the specified target loss.

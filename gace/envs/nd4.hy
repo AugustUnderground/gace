@@ -37,7 +37,7 @@
                                  ^int [max-moves 200]
                                  ^bool [random-start True]
                                  ^float [tolerance 1e-3]
-                                 ^str [data-log-prefix ""]]
+                                 ^str [data-log-path ""]]
     """
     Constructs a Miller Amplifier Environment with XH035 device models and
     the corresponding netlist.
@@ -67,7 +67,7 @@
     (.__init__ (super NAND4Env self) 
                [pdk-path] ckt-path
                max-moves random-start tolerance
-               :data-log-prefix data-log-prefix
+               :data-log-path data-log-path
                #_/ )
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -145,13 +145,13 @@ VSS #------------------------------------------'
                                  ^int [max-moves 200]
                                  ^bool [random-start True]
                                  ^float [tolerance 1e-3]
-                                 ^str [data-log-prefix ""]]
+                                 ^str [data-log-path ""]]
 
     (.__init__ (super NAND4XH035GeomEnv self) :pdk-path pdk-path 
                                               :ckt-path ckt-path
                                               :max-moves max-moves 
                                               :random-start random-start
-                                              :data-log-prefix data-log-prefix
+                                              :data-log-path data-log-path
                                               #_/ )
 
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
