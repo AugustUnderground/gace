@@ -127,7 +127,8 @@
           "The observation returned by 'reset' must be a numpy array.")
 
   (assert (env.observation-space.contains obs) 
-    f"'reset' returned observations:\n{obs}\nnot matching the given space.")
+    f"'reset' returned observations:\n{obs}
+      not matching the given space: {obs.shape} ≠ {env.observation-space.shape}")
 
   (setv act (.sample env.action-space)
         res (.step env act))
