@@ -11,8 +11,11 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
-(import [.amp [SingleEndedOpAmpEnv]])
-(import [.util.util [*]])
+(import [.ace [ACE]])
+(import [gace.util.func [*]])
+(import [gace.util.target [*]])
+(import [gace.util.render [*]])
+(import [hace :as ac])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -25,47 +28,51 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass OP6Env [SingleEndedOpAmpEnv]
-  """
-  Derived amplifier class, implementing the Miller Amplifier in the XFAB
-  XH035 Technology. Only works in combinatoin with the right netlists.
-  """
+(defclass OP6Env [ACE]
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-target False]
-                                 ^dict [target None] ^str [data-log-path ""]]
-    """
-    Constructs a Miller Amplifier Environment with XH035 device models and
-    the corresponding netlist.
-    Arguments:
-      pdk-path:   This will be passed to the ACE backend.
-      ckt-path:   This will be passed to the ACE backend.
-      max-moves:  Maximum amount of steps the agent is allowed to take per
-                  episode, before it counts as failed. Default = 200.
-      random-target: Generate new random target for each episode.
-      target: Specific target, if given, no random targets will be generated,
-              and the agent tries to find the same one over and over again.
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    """
+    ;; ACE ID, required by parent
+    (setv self.ace-id "op6")
 
-    ;; ACE Environment ID
-    (setv self.ace-env "op6")
+    ;; Call Parent Contructor
+    (.__init__ (super OP6Env self) max-steps target random-target noisy-target 
+                                        data-log-path param-log-path)
 
-    ;; Initialize parent Environment.
-    (.__init__ (super OP6Env self) 
-               [pdk-path] ckt-path
-               max-moves
-               :data-log-path data-log-path
-               #_/ )
+    ;; ACE setup
+    (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
+                                                :ckt ckt-path :pdk [pdk-path])
+          self.ace (self.ace-constructor))
 
-    ;; Generate random target of None was provided.
-    (setv self.random-target random-target
-          self.target        (or target 
-                                 (self.target-specification :random random-target
-                                                            :noisy True)))
+    ;; The `Box` type observation space consists of perforamnces, the distance
+    ;; to the target, as well as general information about the current
+    ;; operating point.
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
+                                      :shape (, 235)  :dtype np.float32))))
+
+(defclass OP6ElecEnv [OP6Env]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^str [nmos-path None] ^str [pmos-path None]
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    ;; Parent constructor for initialization
+    (.__init__ (super OP6ElecEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)
+
+        ;; Primitive Device setup
+    (setv self.nmos (load-primitive "nmos" self.ace-backend :dev-path nmos-path)
+          self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path))
 
     ;; The action space consists of 14 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
@@ -78,24 +85,17 @@
                                            3e-6 1.5e-6])                 ; branch currents
           self.action-scale-max (np.array [17.0 17.0 17.0 17.0 17.0 17.0 ; gm/Id max
                                            1e9 5e8 1e9 1e9 1e9 1e9       ; fug max
-                                           48e-6 480e-6]))               ; branch currents
+                                           48e-6 480e-6]))  ; branch currents
+    #_/ )
 
-    ;; The `Box` type observation space consists of perforamnces, the distance
-    ;; to the target, as well as general information about the current
-    ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 235)  :dtype np.float32)))
-
-  (defn step [self action]
+  (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
     Takes an array of electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
     netlist. This is passed to the parent class where the netlist ist modified
     and then simulated, returning observations, reward, done and info.
-
     TODO: Implement sizing procedure.
     """
-
     (let [(, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1 gmid-res gmid-cap
              fug-cm1  fug-cm2  fug-cs1  fug-dp1  fug-res  fug-cap
              i1 i2 ) (unscale-value action self.action-scale-min 
@@ -110,12 +110,12 @@
           (, Mcm11 Mcm12) (, M1.numerator M1.denominator)
           Mcm13 M2.denominator
 
-          ;vx (/ self.vsup 2.7)
+          ;vx (/ self.vdd 2.7)
 
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vsup 2.0) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vsup 2.0) 0.0]])
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vsup 2.0) 0.0]])
-          cs1-in (np.array [[gmid-cs1 fug-cs1 (/ self.vsup 2.0) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2.0) 0.0]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2.0) 0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2.0) 0.0]])
+          cs1-in (np.array [[gmid-cs1 fug-cs1 (/ self.vdd 2.0) 0.0]])
           cap-in (np.array [[gmid-cap fug-cap              0.0  0.0]])
           res-in (np.array [[gmid-res fug-res              0.0  0.0]])
           
@@ -153,144 +153,21 @@
                   "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
                   #_/ }]
 
-      (.size-step (super) sizing)))
+    (self.size-circuit sizing))))
 
-  (defn render [self &optional [mode "ascii"]]
-    """
-    Prints an ASCII Schematic of the Miller Amplifier courtesy
-    https://github.com/Blokkendoos/AACircuit
-    """
-    (cond [(= mode "ascii")
-           (print f"
-   #----------------------o----------------o----------------------.     
-  VDD                     |                |                      |     
-                   MPCM21 +-||          ||-+ MPCM22               |     
-                          <-||          ||->                      |     
-                          +-||--o-------||-+                      |     
-                          |     |          |                      |     
-                          o-----'          |                      |     
-                          |                |                   ||-+ MPCS
-                          |                |                   ||->     
-                          |                o-------------------||-+     
-                          |                |                      |     
-                          |                |                      |     
-                          |                |                      |     
-                          |Y              X|                 .----o     
-                          |                |                 |MPC1|     
-                          |                |              ||-+    |     
-                          |                |       MPR1   ||------o     
-                          |                o---------+^+--||-+    |     
-                          |                |         |||     |    |     
-         B                |                |         ===     '----o     
-         #             ||-+ MND11    MND12 +-||        |          |     
-         |        INP  ||<-                ->||  INN   |          |  OUT
-         |         #---||-+                +-||---#    |          o---# 
-         o------.         |      CM        |           |          |     
-         |      |         '-------o--------'           |          |     
-         o      |                 |                    |          |     
-  MNCM11 +-||   |              ||-+ MNCM12             |MNCM13 ||-+     
-         ->||   |              ||<-                    |       ||<-     
-         +-||---o--------------||-+--------------------|-------||-+     
-         |                        |                    |          |     
-   #-----o------------------------o--------------------o----------'     
-  VSS                                                                   
-  " )]
-          [True (.render (super) mode)])))
-
-(defclass OP6XH035Env [OP6Env]
-  """
-  Miller Amplifier in XH035 Technology.
-  Additional Arguments:
-      nmos-path:  Prefix path, expects to find `nmos-path/model.pt`, 
-                  `nmos-path/scale.X` and `nmos-path/scale.Y` at this location.
-      pmos-path:  Same as 'nmos-path', but for PMOS model.
-  """
-
-  (setv metadata {"render.modes" ["human" "ascii"]})
+(defclass OP6GeomEnv [OP6Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [nmos-path None] ^str [pmos-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-target False]
-                                 ^dict [target None] ^str [data-log-path ""]]
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    (.__init__ (super OP6XH035Env self) :pdk-path pdk-path :ckt-path ckt-path
-                                        :max-moves max-moves :random-target random-target
-                                        :target target :data-log-path data-log-path
-                                        #_/ )
-
-    ;; Load the PyTorch NMOS/PMOS Models for converting paramters.
-    (when (and nmos-path pmos-path)
-      (setv self.nmos (PrimitiveDeviceTs f"{nmos-path}/model.pt" 
-                                         f"{nmos-path}/scale.X" 
-                                         f"{nmos-path}/scale.Y")
-            self.pmos (PrimitiveDeviceTs f"{pmos-path}/model.pt" 
-                                         f"{pmos-path}/scale.X" 
-                                         f"{pmos-path}/scale.Y"))))
- 
-  (defn target-specification ^dict [self &optional ^bool [random False] 
-                                                   ^bool [noisy True]]
-    """
-    Generate a noisy target specification.
-    """
-    (let [ts {"a_0"          105.0
-              "ugbw"         3500000.0
-              "pm"           110.0
-              "gm"           -45.0
-              "sr_r"         2700000.0
-              "sr_f"         -2700000.0
-              "vn_1Hz"       6.0e-06
-              "vn_10Hz"      2.0e-06
-              "vn_100Hz"     6.0e-07
-              "vn_1kHz"      1.5e-07
-              "vn_10kHz"     5.0e-08
-              "vn_100kHz"    2.6e-08
-              "psrr_n"       120.0
-              "psrr_p"       120.0
-              "cmrr"         110.0
-              "v_il"         0.7
-              "v_ih"         3.2
-              "v_ol"         0.1
-              "v_oh"         3.2
-              "i_out_min"    -7e-5
-              "i_out_max"    7e-5
-              "overshoot_r"  0.0005
-              "overshoot_f"  0.0005
-              "voff_stat"    0.003
-              "voff_sys"     -2.5e-05
-              "A"            5.0e-09
-              #_/ }
-              factor (cond [random (np.abs (np.random.normal 1 0.5))]
-                           [noisy  (np.random.normal 1 0.01)]
-                           [True   1.0])]
-      (dfor (, p v) (.items ts)
-        [ p (if noisy (* v factor) v) ]))))
-
-(defclass OP6XH035GeomEnv [OP6XH035Env]
-  """
-  Miller Amplifier in XH035 Technology.
-  """
-
-  (setv metadata {"render.modes" ["human" "ascii"]})
-
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-target False]
-                                 ^dict [target None] ^str [data-log-path ""]]
-
-    (setv self.cs   0.85e-15 ; Poly Capacitance per μm^2
-          self.rs 100     ; Sheet Resistance in Ω/□
-          self.Wres 2e-6  ; Resistor Width in m
-          self.Mcap 1e-6  ; Capacitance multiplier
-          #_/ )
-
-    (.__init__ (super OP6XH035GeomEnv self) :pdk-path pdk-path 
-                                            :ckt-path ckt-path
-                                            :max-moves max-moves 
-                                            :random-target random-target
-                                            :target target 
-                                            :data-log-path data-log-path
-                                            #_/ )
+    ;; Parent constructor for initialization
+    (.__init__ (super OP6GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)
 
     ;; The action space consists of 12 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios as well as the cap and res.
@@ -306,8 +183,9 @@
           l-min (list (repeat 0.35e-6 6)) l-max (list (repeat 15e-6 6))
           m-min [1 1 1 1 1 1]             m-max [3 40 4 4 10 40]
           self.action-scale-min (np.array (+ w-min l-min m-min))
-          self.action-scale-max (np.array (+ w-max l-max m-max))))
- 
+          self.action-scale-max (np.array (+ w-max l-max m-max)))
+    #_/ )
+
   (defn step [self action]
     """
     Takes an array of geometric parameters for each building block and mirror
@@ -332,4 +210,42 @@
                   "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
                   #_/ }]
 
-      (.size-step (super) sizing))))
+      (self.size-circuit sizing))))
+
+(defclass OP6XH035GeomEnv [OP6GeomEnv]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    (setv self.ace-backend "xh035-3V3")
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super OP6XH035GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)))
+
+(defclass OP6XH035ElecEnv [OP6ElecEnv]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^str [nmos-path None] ^str [pmos-path None]
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    (setv self.ace-backend "xh035-3V3")
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super OP6XH035ElecEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :nmos-path nmos-path :pmos-path pmos-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)))

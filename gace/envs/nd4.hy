@@ -11,8 +11,11 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
-(import [.inv [InverterEnv]])
-(import [.util.util [*]])
+(import [.ace [ACE]])
+(import [gace.util.func [*]])
+(import [gace.util.target [*]])
+(import [gace.util.render [*]])
+(import [hace :as ac])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -25,139 +28,84 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass NAND4Env [InverterEnv]
-  """
-  Derived inverter class, implementing the 4 gate inverter chain in the XFAB
-  XH035 Technology. Only works in combinatoin with the right netlists.
-  """
+(defclass NAND4Env [ACE]
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-start True]
-                                 ^float [tolerance 1e-3]
-                                 ^str [data-log-path ""]]
-    """
-    Constructs a Miller Amplifier Environment with XH035 device models and
-    the corresponding netlist.
-    Arguments:
-      pdk-path:   This will be passed to the ACE backend.
-      ckt-path:   This will be passed to the ACE backend.
-      max-moves:  Maximum amount of steps the agent is allowed to take per
-                  episode, before it counts as failed. Default = 200.
-      random-start: Generate new random starting point for each episode.
-      tolerance:  Tolerance for reaching target.
-    """
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    ;; ACE Environment ID
-    (setv self.ace-env "nand4")
+    ;; ACE ID, required by parent
+    (setv self.ace-id "nand4")
 
-    ;; Check given paths
-    (unless (or pdk-path (not (os.path.exists pdk-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                pdk-path)))
-    (unless (or ckt-path (not (os.path.exists ckt-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                ckt-path)))
+    ;; Call Parent Contructor
+    (.__init__ (super NAND4Env self) max-steps target random-target noisy-target 
+                                     data-log-path param-log-path)
 
-    ;; Initialize parent Environment.
-    (.__init__ (super NAND4Env self) 
-               [pdk-path] ckt-path
-               max-moves random-start tolerance
-               :data-log-path data-log-path
-               #_/ )
+    ;; ACE setup
+    (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
+                                                :ckt ckt-path :pdk [pdk-path])
+          self.ace (self.ace-constructor))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
     ;; to the target, as well as general information about the current
     ;; operating point.
-    (setv self.observation-space (Box :low (- self.vdd) :high self.vdd
-                                      :shape (, 12)  :dtype np.float32)))
-  
-  (defn step [self action]
-    """
-    Takes an array of geometric parameters for each building block and mirror
-    ratios This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    """
-    (let [(, Wn0 Wn1 Wn2 Wn3 Wp1) (unscale-value action 
-                                                 self.action-scale-min 
-                                                 self.action-scale-max)
-          
-          sizing {"Wn0" Wn0 "Wn1" Wn1 "Wn2" Wn2 "Wn3" Wn3 "Wp" Wp1}]
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
+                                      :shape (, 12)  :dtype np.float32))))
 
-      (.size-step (super) sizing)))
-  
-  (defn render [self &optional [mode "ascii"]]
-    """
-    Prints an ASCII Schematic of the Miller Amplifier courtesy
-    https://github.com/Blokkendoos/AACircuit
-    """
-    (cond [(= mode "ascii")
-           (print f"
-VDD #---------o----------o----------o----------.                        
-              |          |          |          |                        
-              |          |          |          |                        
-           ||-+ MP0   ||-+ MP1   ||-+ MP2   ||-+ MP3                    
-           ||->       ||->       ||->       ||->                        
-        .--||-+    .--||-+    .--||-+    .--||-+                        
-        |     |    |     |    |     |    |     |                        
-        |     '----)-----o----)-----o----)-----o----# O                 
-        |          |          |          |     |                        
-        |          |          |          |  ||-+ MN3                    
-        |          |          |          |  ||<-                        
- I3 #---)----------)----------)----------o--||-+                        
-        |          |          |                |                        
-        |          |          |                |                        
-        |          |          |                |                        
-        |          |          |             ||-+ MN2                    
-        |          |          |             ||<-                        
- I2 #---)----------)----------o-------------||-+                        
-        |          |                           |                        
-        |          |                           |                        
-        |          |                           |                        
-        |          |                        ||-+ MN1                    
-        |          |                        ||<-                        
- I1 #---)----------o------------------------||-+                        
-        |                                      |                        
-        |                                      |                        
-        |                                      |                        
-        |                                   ||-+ MN0                    
-        |                                   ||<-                        
- I0 #---o-----------------------------------||-+                        
-                                               |                        
-                                               |                        
-VSS #------------------------------------------'   
-  " )]
-          [True (.render (super) mode)])))
-
-(defclass NAND4XH035GeomEnv [NAND4Env]
-  """
-  4 NAND Gate Inverter Chain.
-  """
-
-  (setv metadata {"render.modes" ["human" "ascii"]
-                  "ace.env" "nand4"})
+(defclass NAND4GeomEnv [NAND4Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-start True]
-                                 ^float [tolerance 1e-3]
-                                 ^str [data-log-path ""]]
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    (.__init__ (super NAND4XH035GeomEnv self) :pdk-path pdk-path 
-                                              :ckt-path ckt-path
-                                              :max-moves max-moves 
-                                              :random-start random-start
-                                              :data-log-path data-log-path
-                                              #_/ )
+    ;; Parent constructor for initialization
+    (.__init__ (super NAND4GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)
 
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
     ;; inverter chain:  ['wn0', 'wp', 'wn2', 'wn1', 'wn3']
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 5) 
                                  :dtype np.float32)
-          self.action-scale-min (np.array (list (repeat 0.4e-6 5)))
-          self.action-scale-max (np.array (list (repeat 150e-6 5))))))
+          self.action-scale-min (np.array (list (repeat self.w-min 5)))
+          self.action-scale-max (np.array (list (repeat self.w-max 5))))
+    #_/ )
+
+  (defn step [self action]
+    """
+    Takes an array of geometric parameters for each building block and mirror
+    ratios This is passed to the parent class where the netlist ist modified
+    and then simulated, returning observations, reward, done and info.
+    """
+    (let [(, Wn0 Wn1 Wn2 Wn3 Wp1) (unscale-value action self.action-scale-min 
+                                                        self.action-scale-max)
+          
+          sizing {"Wn0" Wn0 "Wn1" Wn1 "Wn2" Wn2 "Wn3" Wn3 "Wp" Wp1}]
+
+      (self.size-circuit sizing))))
+
+(defclass NAND4XH035GeomEnv [NAND4GeomEnv]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    (setv self.ace-backend "xh035-3V3"
+          self.reltol reltol)
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super NAND4XH035GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)))

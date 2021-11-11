@@ -1,3 +1,12 @@
+(import gym)
+(import gace)
+
+(setv env (gym.make "gace:op4-xh035-v0" :random-target   False))
+(setv env (gym.make "gace:nand4-xh035-v1" :random-target   False))
+(setv env (gym.make "gace:st1-xh035-v1" :random-target   False))
+
+(gace.check-env env)
+
 (import os)
 (import yaml)
 (import logging)
@@ -47,32 +56,22 @@
 
 
 ;; Create Environment
-(setv env (gym.make "gace:op6-xh035-v0"
-                    :pdk-path        pdk-path
-                    :ckt-path        op6-path
-                    :nmos-path       nmos-path
-                    :pmos-path       pmos-path
-                    :data-log-path   data-path
+(setv env (gym.make "gace:op1-xh035-v0"
+                    ;:pdk-path        pdk-path
+                    ;:ckt-path        op1-path
+                    ;:nmos-path       nmos-path
+                    ;:pmos-path       pmos-path
+                    ;:data-log-path   data-path
                     :random-target   False))
 
-(gace.check-env env)
 (setx obs (.reset env))
 
 (lfor _ (range 10) (env.observation-space.contains (.reset env)))
 
 (for [o (range 6)]
-  (setv op f"op{(inc o)}"
-    ckt-path f"{ace-home}/{op}")
-  (setv env0 (gym.make f"gace:{op}-xh035-v0"
-                       :pdk-path        pdk-path
-                       :ckt-path        ckt-path
-                       :nmos-path       nmos-path
-                       :pmos-path       pmos-path
-                       :random-target   True))
-  (setv env1 (gym.make f"gace:{op}-xh035-v1"
-                       :pdk-path        pdk-path
-                       :ckt-path        ckt-path
-                       :random-target   True))
+  (setv op f"op{(inc o)}")
+  (setv env0 (gym.make f"gace:{op}-xh035-v0"))
+  (setv env1 (gym.make f"gace:{op}-xh035-v1"))
   (print f"TESTING {op} v0")
   (gace.check-env env0)
   (print f"TESTING {op} v1")

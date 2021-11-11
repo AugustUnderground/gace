@@ -1,90 +1,12 @@
 (import gym)
 (import warnings)
-(import [enum [Enum]])
-(import [itertools [product]])
-(import [collections.abc [Iterable]])
-(import [fractions [Fraction]])
-(import [decimal [Decimal]])
-(import [functools [partial]])
-(import [operator [itemgetter]])
 (import [numpy :as np])
+
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
-
-(defn scale-value ^float [^float x ^float x-min ^float x-max
-                &optional ^float [a -1.0] ^float [b 1.0]]
-  """
-  Scales a value s.t. x′∈ [a;b], where a = -1.0 and b = 1.0 by default.
-
-              (x - x_min) · (b - a)
-    x′ = a + -----------------------
-                (x_max - x_min)
-  """
-  (+ a (/ (* (- x x-min) (- b a)) (- x-max x-min))))
-
-(defn unscale-value ^float [^float x′ ^float x-min ^float x-max
-                  &optional ^float [a -1.0] ^float [b 1.0]]
-  """
-  Scales a value x′∈ [a;b] back to its original, where a = -1.0 and b = 1.0 by
-  default.
-                (x′- a)
-    x = x_min + ------- · (x_max - x_min)
-                (b - a)
-  """
-  (+ x-min (* (/ (- x′ a) (- b a)) (- x-max x-min))))
-
-(defn dec-to-frac ^tuple [^float ratio]
-  """
-  Turns a float decimal (rounded to nearest .5) into an integer fraction.
-  """
-  (as-> ratio it (* it 2) (round it) (/ it 2) (str it) 
-                 (Decimal it) (Fraction it) 
-                 (, it.numerator it.denominator)))
-
-(defn frac-to-dec ^float [^int num ^int den]
-  """
-  Turns a fraction into a float ratio.
-  """
-  (/ num den))
-
-(defn ape [t o] 
-  """
-  Absolute Percentage Error for scalar values.
-  """
-  (* 100 (/ (np.abs (- t o)) 
-            (if (!= t 0) t 1))))
-
-(defn absolute-condition [t c] 
-  """
-  Returns a function for reward calculation based on the given target `t` and a
-  conditional predicate `c`. If the target meets the conditional the reward is
-  calculated as: 
-            - ape(x)
-    r(x) = -e         + 1
-  otherwise it is:
-    r(x) = - ape(x)
-  .
-  """
-  (let [cn (partial (eval c) t)
-      er (partial ape t)]
-    (fn [x] 
-      (if (cn x) 
-         (+ (- (np.exp (- (er x)))) 1) 
-         (- (er x))))))
-
-(defn ranged-condition [l u] 
-  """
-  Returns a function for reward calculation based on the given lower `l` and
-  upper `u` bounds. See `absolute-condition` for details.
-  """
-  (let [er (partial ape (np.abs (- l u)))]
-    (fn [x] 
-      (if (and (<= l x) (>= u x)) 
-         (+ (- (np.exp (- (er x)))) 1)
-         (- (er x))))))
 
 (defn check-env [env]
   """

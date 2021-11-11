@@ -11,8 +11,11 @@
 (import gym)
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
-(import [.trg [TriggerEnv]])
-(import [.util.util [*]])
+(import [.ace [ACE]])
+(import [gace.util.func [*]])
+(import [gace.util.target [*]])
+(import [gace.util.render [*]])
+(import [hace :as ac])
 
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
@@ -25,58 +28,56 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass ST1Env [TriggerEnv]
-  """
-  Derived amplifier class, implementing the Miller Amplifier in the XFAB
-  XH035 Technology. Only works in combinatoin with the right netlists.
-  """
+(defclass ST1Env [ACE]
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-start True]
-                                 ^bool [random-target False]
-                                 ^float [tolerance 1e-3]
-                                 ^str [data-log-path ""]]
-    """
-    Constructs a Miller Amplifier Environment with XH035 device models and
-    the corresponding netlist.
-    Arguments:
-      pdk-path:   This will be passed to the ACE backend.
-      ckt-path:   This will be passed to the ACE backend.
-      max-moves:  Maximum amount of steps the agent is allowed to take per
-                  episode, before it counts as failed. Default = 200.
-      random-start: Generate new random starting point for each episode.
-      tolerance:  Tolerance for reaching target.
-    """
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    ;; ACE Environment ID
-    (setv self.ace-env "st1")
+    ;; ACE ID, required by parent
+    (setv self.ace-id "st1")
 
-    ;; Check given paths
-    (unless (or pdk-path (not (os.path.exists pdk-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                pdk-path)))
-    (unless (or ckt-path (not (os.path.exists ckt-path)))
-      (raise (FileNotFoundError errno.ENOENT 
-                                (os.strerror errno.ENOENT) 
-                                ckt-path)))
+    ;; Call Parent Contructor
+    (.__init__ (super ST1Env self) max-steps target random-target noisy-target 
+                                   data-log-path param-log-path)
 
-    ;; Initialize parent Environment.
-    (.__init__ (super ST1Env self) 
-               [pdk-path] ckt-path
-               max-moves random-start random-target tolerance
-               :data-log-path data-log-path
-               #_/ )
+    ;; ACE setup
+    (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
+                                                :ckt ckt-path :pdk [pdk-path])
+          self.ace (self.ace-constructor))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
     ;; to the target, as well as general information about the current
     ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf
-                                      :shape (, 12)   :dtype np.float32)))
-  
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
+                                      :shape (, 12)  :dtype np.float32))))
+
+(defclass ST1GeomEnv [ST1Env]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    ;; Parent constructor for initialization
+    (.__init__ (super ST1GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)
+
+    ;; The action space consists of 6 parameters ∈ [-1;1]. Each width of the
+    ;; schmitt trigger: ["Wp0" "Wn0" "Wp2" "Wp1" "Wn2" "Wn1"]
+    (setv self.action-space (Box :low -1.0 :high 1.0 
+                                 :shape (, 6) 
+                                 :dtype np.float32)
+          self.action-scale-min (np.array (list (repeat self.w-min 6)))
+          self.action-scale-max (np.array (list (repeat self.w-max 6))))
+    #_/ )
+
   (defn step [self action]
     """
     Takes an array of geometric parameters for each building block and mirror
@@ -90,91 +91,23 @@
           sizing {"Wn0" Wn0 "Wn1" Wn1 "Wn2" Wn2 
                   "Wp0" Wp0 "Wp1" Wp1 "Wp2" Wp2}]
 
-      (.size-step (super) sizing)))
-  
-  (defn render [self &optional [mode "ascii"]]
-    """
-    Prints an ASCII Schematic of the Miller Amplifier courtesy
-    https://github.com/Blokkendoos/AACircuit
-    """
-    (cond [(= mode "ascii")
-           (print f"
-  VDD #-------------o------------------.                                
-                    |                  |                                
-                 ||-+ MP0              |                                
-                 ||->                  |                                
-            .----||-+                  |                                
-            |       |                  |                                
-            |       |          MP2     |                                
-            |       o--------+^+-----. |                                
-            |       |        |||     | |                                
-            |       |        ===     | |                                
-            |    ||-+ MP1      |     | |                                
-            |    ||->          |     | |                                
-            o----||-+          |     | |                                
-            |       |          |     | |                                
-            |       |          |     | |                                
-    I #-----o       o---------o------)-)-----# O                        
-            |       |        |       | |                                
-            |       |        |       | |                                
-            |    ||-+ MN1    |       | |                                
-            |    ||<-        |       | |                                
-            o----||-+        |       | |                                
-            |       |        ===     | |                                
-            |       |        |^|     | |                                
-            |       o--------+|+-----)-'                                
-            |       |          MN2   |                                  
-            |       |                |                                  
-            |    ||-+ MN0            |                                  
-            |    ||<-                |                                  
-            '----||-+                |                                  
-                    |                |                                  
-  VSS #-------------o----------------'       
-  " )]
-          [True (.render (super) mode)])))
+      (self.size-circuit sizing))))
 
-(defclass ST1XH035GeomEnv [ST1Env]
-  """
-  Schmitt Trigger.
-  """
-
-  (setv metadata {"render.modes" ["human" "ascii"]
-                  "ace.env" "st1"})
+(defclass ST1XH035GeomEnv [ST1GeomEnv]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^int [max-moves 200]
-                                 ^bool [random-start True]
-                                 ^bool [random-target True]
-                                 ^float [tolerance 1e-3]
-                                 ^str [data-log-path ""]]
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    (.__init__ (super ST1XH035GeomEnv self) :pdk-path pdk-path 
-                                            :ckt-path ckt-path
-                                            :max-moves max-moves 
-                                            :random-start random-start
-                                            :data-log-path data-log-path
-                                            #_/ )
+    (setv self.ace-backend "xh035-3V3"
+          self.reltol reltol)
 
-    ;; The action space consists of 6 parameters ∈ [-1;1]. Each width of the
-    ;; schmitt trigger: ["Wp0" "Wn0" "Wp2" "Wp1" "Wn2" "Wn1"]
-    (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 6) 
-                                 :dtype np.float32)
-          self.action-scale-min (np.array (list (repeat 0.4e-6 6)))
-          self.action-scale-max (np.array (list (repeat 150e-6 6)))))
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
 
-(defn target-specification ^dict [self &optional ^bool [random False] 
-                                                 ^bool [noisy True]]
-    """
-    Generate a noisy target specification.
-    """
-    (let [factor (if random (np.abs (np.random.normal 1 0.5)) 1.0)
-          noise  (np.random.normal 1 0.01)
-          delta  (if random (np.random.uniform :low 0.3 :high 0.5) 0.4)
-          ts {"v_il"  (- (/ self.vdd 2.0) delta)
-              "v_ih"  (+ (/ self.vdd 2.0) delta)
-              "t_plh" (* 0.8e-9 factor)
-              "t_phl" (* 0.8e-9 factor)
-              #_/ }]
-      (dfor (, p v) (.items ts)
-        [ p (if noisy (* v noise) v) ]))))
+    (.__init__ (super ST1XH035GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)))
