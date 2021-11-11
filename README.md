@@ -19,32 +19,37 @@ $ pip install .
 
 ## Requirements
 
-Creating an environment requires trained NMOS and PMOS models and
-[HAC²E](https://github.com/AugustUnderground/hace), including all dependencies.
+After installing [AC²E](https://github.com/matthschw/ace) and
+[HAC²E](https://github.com/AugustUnderground/hace), including all dependencies,
+there are multiple ways to configure `gace` and tell it, where it can find the
+pdk, testbenches and machine learning models.
 
-## Getting Started
+### AC²E Backends
 
-After installing:
+#### Symlink
 
-```python
-import gym
+One way is to create a symlink from the `resource` directory of the AC²E
+repository, which contains all the backends as git submodules, to `~/.ace`.
+`gace` will automatically look there if `pdk_path` and `ckt_path` are not
+specified.
 
-env = gym.make(                   'gace:op2-xh035-v0'     # Symmetrical Amplifier
-              , pdk_path        = '/path/to/tech'         # path to xfab pdk
-              , ckt_path        = '/path/to/op2'          # path to testbench
-              , nmos_path       = '/path/to/models/nmos'  # path to nmos model
-              , pmos_path       = '/path/to/models/pmos'  # paht to pmos model
-              , random_target   = False                   # start close to target
-              , max_moves       = 200                     # Reset env after this many steps
-              , target          = {}                      # Dict like 'perforamnce' below
-              , debug_log       = '/path/to/data/log'     # Prefix of data log file
-              , )
+```bash
+$ ln -s /path/to/ace/resource $HOME/.ace
 ```
 
-Where `<nmos|pmos>_path` must contain a torchscript model `model.pt` and input
-and output scalers `scale.X` and `scale.Y` respectively.
+#### Environment Variables
 
-## Machine Learning Models for v0 Environments
+Alternatively you can set environment variables, telling `gace` where to find
+the pdk and testbenches.
+
+```bash
+$ export ACE_BACKEND=/path/to/ace/resource
+$ export ACE_PDK=/path/to/ace/resource/<tech>/pdk
+```
+
+Where `<tech>` has to be a valid backend such as `xh035-3V3` for example.
+
+### Machine Learning Models for v0 Environments
 
 The models used for `v0` envs are trained with
 [precept](https://github.com/electronics-and-drives/precept) and _must_ have
@@ -73,6 +78,44 @@ module adhering to the specified input and output dimensions. The scalers
 `scale.<X|Y>` _must_ be
 [MinMaxScalers](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html)
 dumped with joblib.
+
+#### Symlink
+
+Instead of passing `nmos_path` and `pmos_path` it is also possible to
+copy/symlink the above mentioned directory into the ACE home directory:
+
+```bash
+$ ln -s /path/to/model/nmos $HOME/.ace/<tech>/nmos
+$ ln -s /path/to/model/pmos $HOME/.ace/<tech>/nmos
+```
+
+Where `<tech>` has to be a valid backend such as `xh035-3V3` for example.
+
+## Getting Started
+
+```python
+import gym
+
+# Geometric design space and $HOME/.ace symlink or corresponding env vars
+env = gym.make(                   'gace:op2-xh035-v1'     # Symmetrical Amplifier
+              , random_target   = False                   # start close to target
+              , max_moves       = 200                     # Reset env after this many steps
+              , target          = {}                      # Dict like 'perforamnce' below
+              , debug_log       = '/path/to/data/log'     # Prefix of data log file
+              , )
+
+# Electrical design space and no $HOME/.ace symlink or env vars
+env = gym.make(                   'gace:op2-xh035-v0'     # Symmetrical Amplifier
+              , pdk_path        = '/path/to/tech'         # path to pdk
+              , ckt_path        = '/path/to/op2'          # path to testbench
+              , nmos_path       = '/path/to/models/nmos'  # path to nmos model
+              , pmos_path       = '/path/to/models/pmos'  # paht to pmos model
+              , random_target   = False                   # start close to target
+              , max_moves       = 200                     # Reset env after this many steps
+              , target          = {}                      # Dict like 'perforamnce' below
+              , debug_log       = '/path/to/data/log'     # Prefix of data log file
+              , )
+```
 
 ## Single Ended OpAmp Environments
 
@@ -598,6 +641,9 @@ function. Be aware, such values can cause problems on GPU.
 
 Test can be run, if [pytest](https://pytest.org) is installed, by calling
 `pytest` in the root of this repository, which takes about ~5 min.
+
+**NOTE:** The tests only work if `$HOME/.ace` exists and contains valid
+[AC²E](https://github.com/matthschw/ace) backends including the pdk.
 
 ```bash
 $ pytest
