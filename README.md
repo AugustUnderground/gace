@@ -759,3 +759,4 @@ $ pytest
 - [ ] find better limit/range for obs space
 - [ ] add skywater envs
 - [ ] add installer script
+- [ ] add reset counter, gradually increase noise/target distance
