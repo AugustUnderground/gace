@@ -97,23 +97,21 @@ Where `<tech>` has to be a valid backend such as `xh035-3V3` for example.
 import gym
 
 # Geometric design space and $HOME/.ace symlink or corresponding env vars
-env = gym.make(                   'gace:op2-xh035-v1'     # Symmetrical Amplifier
-              , random_target   = False                   # start close to target
-              , max_moves       = 200                     # Reset env after this many steps
-              , target          = {}                      # Dict like 'perforamnce' below
-              , debug_log       = '/path/to/data/log'     # Prefix of data log file
-              , )
+env = gym.make('gace:op2-xh035-v1')     # Symmetrical Amplifier
 
-# Electrical design space and no $HOME/.ace symlink or env vars
+# Electrical design space and all kwargs
 env = gym.make(                   'gace:op2-xh035-v0'     # Symmetrical Amplifier
               , pdk_path        = '/path/to/tech'         # path to pdk
               , ckt_path        = '/path/to/op2'          # path to testbench
               , nmos_path       = '/path/to/models/nmos'  # path to nmos model
               , pmos_path       = '/path/to/models/pmos'  # paht to pmos model
-              , random_target   = False                   # start close to target
-              , max_moves       = 200                     # Reset env after this many steps
+              , max_steps       = 200                     # Reset env after this many steps
               , target          = {}                      # Dict like 'perforamnce' below
-              , debug_log       = '/path/to/data/log'     # Prefix of data log file
+              , random_target   = False                   # start close to target
+              , noisy_target    = False                   # add some noise after each reset
+              , data_log_path   = '/path/to/data/log'     # Write data after each episode
+              , params_log_path = '/path/to/param/log'    # Dump circuit state if NaN
+              #, reltol          = 1e-3                    # ONLY FOR NAND4 AND ST1
               , )
 ```
 
