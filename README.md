@@ -661,7 +661,7 @@ $HOME/.ace
     ├── op9
     │   ├── input.scs
     │   └── properties.json
-    ├── pdk -> /mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos
+    ├── pdk -> /path/to/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos
     ├── nmos -> /path/to/xh035-nmos
     ├── pmos -> /path/to/xh035-pmos
     ├── README.md
