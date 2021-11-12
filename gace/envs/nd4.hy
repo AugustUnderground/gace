@@ -55,7 +55,7 @@
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
                                       :shape (, 12)  :dtype np.float32))))
 
-(defclass NAND4GeomEnv [NAND4Env]
+(defclass NAND4V1Env [NAND4Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -63,7 +63,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
-    (.__init__ (super NAND4GeomEnv self) 
+    (.__init__ (super NAND4V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
@@ -91,7 +91,7 @@
 
       (self.size-circuit sizing))))
 
-(defclass NAND4XH035GeomEnv [NAND4GeomEnv]
+(defclass NAND4XH035V1Env [NAND4V1Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -104,7 +104,7 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super NAND4XH035GeomEnv self) 
+    (.__init__ (super NAND4XH035V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 

@@ -56,7 +56,7 @@
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
                                       :shape (, obs-shape)  :dtype np.float32))))
 
-(defclass OP2ElecEnv [OP2Env]
+(defclass OP2V0Env [OP2Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
@@ -65,7 +65,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP2ElecEnv self) 
+    (.__init__ (super OP2V0Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps :obs-shape obs-shape
@@ -139,7 +139,7 @@
 
     (self.size-circuit sizing))))
 
-(defclass OP2GeomEnv [OP2Env]
+(defclass OP2V1Env [OP2Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -147,7 +147,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP2GeomEnv self) 
+    (.__init__ (super OP2V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps :obs-shape obs-shape
@@ -192,7 +192,7 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP2XH035GeomEnv [OP2GeomEnv]
+(defclass OP2XH035V1Env [OP2V1Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -204,13 +204,13 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP2XH035GeomEnv self)
+    (.__init__ (super OP2XH035V1Env self)
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)))
 
-(defclass OP2XH035ElecEnv [OP2ElecEnv]
+(defclass OP2XH035V0Env [OP2V0Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
@@ -223,7 +223,7 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP2XH035ElecEnv self) 
+    (.__init__ (super OP2XH035V0Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :nmos-path nmos-path :pmos-path pmos-path
                :random-target random-target :noisy-target noisy-target
@@ -231,7 +231,7 @@
                :data-log-path data-log-path :param-log-path param-log-path)
     #_/ ))
 
-(defclass OP2SKY130ElecEnv [OP2ElecEnv]
+(defclass OP2SKY130V0Env [OP2V0Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -243,14 +243,14 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP2SKY130GeomEnv self) 
+    (.__init__ (super OP2SKY130V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)
     #_/ ))
 
-(defclass OP2SKY130GeomEnv [OP2GeomEnv]
+(defclass OP2SKY130V1Env [OP2V1Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -262,7 +262,7 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP2SKY130GeomEnv self) 
+    (.__init__ (super OP2SKY130V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps :obs-shape obs-shape

@@ -55,7 +55,7 @@
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
                                       :shape (, 12)  :dtype np.float32))))
 
-(defclass ST1GeomEnv [ST1Env]
+(defclass ST1V1Env [ST1Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -63,7 +63,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
-    (.__init__ (super ST1GeomEnv self) 
+    (.__init__ (super ST1V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
@@ -93,7 +93,7 @@
 
       (self.size-circuit sizing))))
 
-(defclass ST1XH035GeomEnv [ST1GeomEnv]
+(defclass ST1XH035V1Env [ST1V1Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -106,7 +106,7 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super ST1XH035GeomEnv self) 
+    (.__init__ (super ST1XH035V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 

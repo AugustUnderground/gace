@@ -55,7 +55,7 @@
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
                                       :shape (, 285)  :dtype np.float32))))
 
-(defclass OP5ElecEnv [OP5Env]
+(defclass OP5V0Env [OP5Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
@@ -64,7 +64,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP5ElecEnv self) 
+    (.__init__ (super OP5V0Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
@@ -156,7 +156,7 @@
 
     (self.size-circuit sizing))))
 
-(defclass OP5GeomEnv [OP5Env]
+(defclass OP5V1Env [OP5Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -164,7 +164,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP5GeomEnv self) 
+    (.__init__ (super OP5V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
@@ -210,7 +210,7 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP5XH035GeomEnv [OP5GeomEnv]
+(defclass OP5XH035V1Env [OP5V1Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -222,13 +222,13 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP5XH035GeomEnv self) 
+    (.__init__ (super OP5XH035V1Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
                :data-log-path data-log-path :param-log-path param-log-path)))
 
-(defclass OP5XH035ElecEnv [OP5ElecEnv]
+(defclass OP5XH035V0Env [OP5V0Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
@@ -241,7 +241,7 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP5XH035ElecEnv self) 
+    (.__init__ (super OP5XH035V0Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :nmos-path nmos-path :pmos-path pmos-path
                :random-target random-target :noisy-target noisy-target
