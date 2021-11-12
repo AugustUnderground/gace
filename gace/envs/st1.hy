@@ -29,50 +29,11 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass ST1Env [ACE]
-  """
-  Base class for schmitt trigger (st1)
-  """
-  (setv metadata {"render.modes" ["human" "ascii"]})
-
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    ;; ACE ID, required by parent
-    (setv self.ace-id "st1")
-
-    ;; Call Parent Contructor
-    (.__init__ (super ST1Env self) max-steps target random-target noisy-target 
-                                   data-log-path param-log-path)
-
-    ;; ACE setup
-    (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
-                                                :ckt ckt-path :pdk [pdk-path])
-          self.ace (self.ace-constructor))
-
-    ;; The `Box` type observation space consists of perforamnces, the distance
-    ;; to the target, as well as general information about the current
-    ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 12)  :dtype np.float32))))
-
-(defclass ST1V1Env [ST1Env]
+(defclass ST1V1Env [ACE]
   """
   Base class for geometric design space (v1)
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super ST1V1Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)
+  (defn __init__ [self &kwargs kwargs]
 
     ;; The action space consists of 6 parameters ∈ [-1;1]. Each width of the
     ;; schmitt trigger: ["Wp0" "Wn0" "Wp2" "Wp1" "Wn2" "Wn1"]
@@ -81,7 +42,9 @@
                                  :dtype np.float32)
           self.action-scale-min (np.array (list (repeat self.w-min 6)))
           self.action-scale-max (np.array (list (repeat self.w-max 6))))
-    #_/ )
+
+    ;; Parent constructor for initialization
+    (.__init__ (super ST1V1Env self) #** kwargs))
 
   (defn step [self action]
     """
@@ -102,19 +65,16 @@
   """
   Implementation: xh035-3V3
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V1Env self) #**
+               (| kwargs {"ace_id" "st1" "ace_backend" "xh035-3V3" 
+                          "variant" 1 "obs_shape" (, 12)}))))
 
-    (setv self.ace-backend "xh035-3V3"
-          self.reltol reltol)
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
-    (.__init__ (super ST1XH035V1Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)))
+(defclass ST1SKY130V1Env [ST1V1Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V1Env self) #**
+               (| kwargs {"ace_id" "st1" "ace_backend" "sky130-1V8" 
+                          "variant" 1 "obs_shape" (, 12)}))))

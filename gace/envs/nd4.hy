@@ -34,9 +34,6 @@
   """
   (defn __init__ [self &kwargs kwargs]
 
-    ;; Parent constructor for initialization
-    (.__init__ (super NAND4V1Env self) #** kwargs)
-
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
     ;; inverter chain:  ['wn0', 'wp', 'wn2', 'wn1', 'wn3']
     (setv self.action-space (Box :low -1.0 :high 1.0 
@@ -44,7 +41,9 @@
                                  :dtype np.float32)
           self.action-scale-min (np.array (list (repeat self.w-min 5)))
           self.action-scale-max (np.array (list (repeat self.w-max 5))))
-    #_/ )
+    
+    ;; Parent constructor for initialization
+    (.__init__ (super NAND4V1Env self) #** kwargs))
 
   (defn step [self action]
     """
@@ -66,7 +65,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH035V1Env self) #**
                (| kwargs {"ace_id" "nand4" "ace_backend" "xh035-3V3" 
-                          "obs_shape" (, 12)}))))
+                          "variant" 1 "obs_shape" (, 12)}))))
 
 (defclass NAND4SKY130V1Env [NAND4V1Env]
   """
@@ -75,4 +74,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH035V1Env self) #**
                (| kwargs {"ace_id" "nand4" "ace_backend" "sky130-1V8" 
-                          "obs_shape" (, 12)}))))
+                          "variant" 1 "obs_shape" (, 12)}))))

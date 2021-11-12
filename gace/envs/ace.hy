@@ -58,6 +58,7 @@
                        ^int [max-steps 666]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
+                       ^str [nmos-path None] ^str [pmos-path None]
                        ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; ACE Configuration
@@ -76,8 +77,6 @@
     ;; operating point.
     (setv self.observation-space (Box :low obs-lo :high obs-hi :shape obs-shape  
                                       :dtype np.float32))
-    ;(setv self.observation-space (Box :low (- np.inf) :high np.inf 
-    ;                                  :shape (, obs-shape)  :dtype np.float32))
 
     ;; Environment Configurations
     (setv self.max-steps max-steps
@@ -95,6 +94,11 @@
                                       :noisy self.noisy-target))
           self.reltol reltol
           self.condition (reward-condition self.ace-id :tolerance self.reltol))
+
+    ;; Primitive Device setup
+    (when (= variant 0)
+      (setv self.nmos (load-primitive "nmos" self.ace-backend :dev-path nmos-path)
+            self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path)))
 
     (.__init__ (super ACE self)))
   

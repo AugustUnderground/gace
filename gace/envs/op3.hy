@@ -29,56 +29,11 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass OP3Env [ACE]
-  """
-  Base class for un-symmetrical amplifier (op3)
-  """
-
-  (setv metadata {"render.modes" ["human" "ascii"]})
-
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 0]
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    ;; ACE ID, required by parent
-    (setv self.ace-id "op3")
-
-    ;; Call Parent Contructor
-    (.__init__ (super OP3Env self) max-steps target random-target noisy-target 
-                                        data-log-path param-log-path)
-
-    ;; ACE setup
-    (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
-                                                :ckt ckt-path :pdk [pdk-path])
-          self.ace (self.ace-constructor))
-
-    ;; The `Box` type observation space consists of perforamnces, the distance
-    ;; to the target, as well as general information about the current
-    ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, obs-shape)  :dtype np.float32))))
-
-(defclass OP3V0Env [OP3Env]
+(defclass OP3V0Env [ACE]
   """
   Base class for electrical design space (v0)
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [nmos-path None] ^str [pmos-path None]
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP3V0Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)
-
-        ;; Primitive Device setup
-    (setv self.nmos (load-primitive "nmos" self.ace-backend :dev-path nmos-path)
-          self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path))
+  (defn __init__ [self &kwargs kwargs]
 
     ;; The action space consists of 10 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
@@ -92,7 +47,9 @@
           self.action-scale-max (np.array [17.0 17.0 17.0 17.0    ; gm/Id max
                                            1e9 5e8 1e9 1e9        ; fug max
                                            48e-6 480e-6 480e-6]))      ; branch currents
-    #_/ )
+
+    ;; Parent constructor for initialization
+    (.__init__ (super OP1V0Env self) #** kwargs))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -148,21 +105,11 @@
 
     (self.size-circuit sizing))))
 
-(defclass OP3V1Env [OP3Env]
+(defclass OP3V1Env [ACE]
   """
   Base class for geometric design space (v1)
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP3V1Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)
+  (defn __init__ [self &kwargs kwargs]
 
     ;; The action space consists of 14 geometrical parameters ∈ [-1;1]:
     ;;  [ 'Wd', 'Wcm1',  'Wcm2',  'Wcm3'      # ∈ [ 0.4e-6  ; 150e-6 ]
@@ -180,7 +127,9 @@
           m-max [3 16 10 10 20 20 3] ;; M11, M12, M31, M32, M212, M222, M2x1
           self.action-scale-min (np.array (+ w-min l-min m-min))
           self.action-scale-max (np.array (+ w-max l-max m-max)))
-    #_/ )
+
+    ;; Parent constructor for initialization
+    (.__init__ (super OP3V1Env self) #** kwargs))
 
   (defn step [self action]
     """
@@ -208,40 +157,16 @@
   """
   Implementation: xh035-3V3
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^str [nmos-path None] ^str [pmos-path None]
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    (setv self.ace-backend "xh035-3V3")
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
-    (.__init__ (super OP3XH035V0Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :nmos-path nmos-path :pmos-path pmos-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)))
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V1Env self) #**
+               (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
+                          "variant" 0 "obs_shape" (, 246)}))))
 
 (defclass OP3XH035V1Env [OP3V1Env]
   """
   Implementation: xh035-3V3
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    (setv self.ace-backend "xh035-3V3")
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
-    (.__init__ (super OP3XH035V1Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)))
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V1Env self) #**
+               (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
+                          "variant" 1 "obs_shape" (, 246)}))))
