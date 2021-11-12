@@ -33,10 +33,10 @@ pdk, testbenches and machine learning models.
 import gym
 
 # Geometric design space and $HOME/.ace symlink or corresponding env vars
-env = gym.make('gace:op2-xh035-v1')     # Symmetrical Amplifier
+env = gym.make('gace:op2-sky130-v1')     # Symmetrical Amplifier in SkyWater 130nm
 
 # Electrical design space and all kwargs
-env = gym.make(                   'gace:op2-xh035-v0'     # Symmetrical Amplifier
+env = gym.make(                   'gace:op2-sky130-v1'    # Symmetrical Amplifier in SkyWater 130nm
               , pdk_path        = '/path/to/tech'         # path to pdk
               , ckt_path        = '/path/to/op2'          # path to testbench
               , nmos_path       = '/path/to/models/nmos'  # path to nmos model
