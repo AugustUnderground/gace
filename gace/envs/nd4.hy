@@ -20,7 +20,6 @@
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
-(import  [typing [List Set Dict Tuple Optional Union]])
 (require [hy.contrib.sequences [defseq seq]])
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
@@ -29,41 +28,7 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass NAND4Env [ACE]
-  """
-  Base class for 4 nand gate inverter chain (nand4)
-  """
-  (setv metadata {"render.modes" ["human" "ascii"]})
-
-  (defn __init__ [self &kwonly kwargs]
-
-    (pp kwargs)
-
-    (setv self.ace-id      ace-id
-          self.ace-backend ace-backend)
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
-    ;; Call Parent Contructor
-    (.__init__ (super NAND4Env self) 
-               #** (dfor (, k a) (.items kwargs)
-                         :if (in k ["target" "random_target" "noisy_target" 
-                                   "max_steps" "data_log_path" "param_log_path"]) 
-                         [k a]))
-
-    ;; ACE setup
-    (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
-                                                :ckt ckt-path :pdk [pdk-path])
-          self.ace (self.ace-constructor))
-
-    ;; The `Box` type observation space consists of perforamnces, the distance
-    ;; to the target, as well as general information about the current
-    ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, obs-shape)  :dtype np.float32))))
-
-(defclass NAND4V1Env [NAND4Env]
+(defclass NAND4V1Env [ACE]
   """
   Base class for geometric design space (v1)
   """
@@ -98,30 +63,16 @@
   """
   Implementation: xh035-3V3
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None]  ^int [obs-shape 12]
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    (.__init__ (super NAND4XH035V1Env self) 
-               :ace-id "nand4" :ace-backend "sky130-1V8" :reltol reltol
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :target target :max-steps max-steps :obs-shape obs-shape
-               :data-log-path data-log-path :param-log-path param-log-path)))
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V1Env self) #**
+               (| kwargs {"ace_id" "nand4" "ace_backend" "xh035-3V3" 
+                          "obs_shape" (, 12)}))))
 
 (defclass NAND4SKY130V1Env [NAND4V1Env]
   """
   Implementation: sky130-1V8
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] ^int [obs-shape 12]
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    (.__init__ (super NAND4SKY130V1Env self) 
-               :ace-id "nand4" :ace-backend "sky130-1V8" :reltol reltol
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :target target :max-steps max-steps :obs-shape obs-shape
-               :data-log-path data-log-path :param-log-path param-log-path)))
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V1Env self) #**
+               (| kwargs {"ace_id" "nand4" "ace_backend" "sky130-1V8" 
+                          "obs_shape" (, 12)}))))

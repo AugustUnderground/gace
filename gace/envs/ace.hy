@@ -29,13 +29,36 @@
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
 (defclass ACE [gym.Env]
+  """
+  Base class interfacing both ACE and gym.
+  Arguments:
+    ace-id: str                         -> ACE Identifier ∈ [op#, st1, nand4]
+    ace-backend: str                    -> ACE Backend ∈ [xh035, sky130]
+  Optional:
+    ckt-path: str (None)                -> Path to ACE Testbench
+    pdk-path: str (None)                -> Path to PDK
+    obs-shape: Tuple[Int] (0 ,)         -> Shape of observations
+    obs-lo: Union[float, np.array] -Inf -> Lower bound of obs
+    obs-hi: Union[float, np.array] +Inf -> Upper bound of obs
+    max-steps: int (666)                -> Maximum number of steps before reset
+    target: Dict[str, float] ({})       -> Specific Target to reach
+    random-target: bool (False)         -> Randomize Target each episode
+    noisy-target: bool  (True)          -> Add some noise after each reset
+    reltol: float (1e-3)                -> Relative tolarnce for equaltiy
+    data-log-path: str ("")             -> Write a dataframe to HDF5 at this location
+    param-log-path: str ('.')           -> Write a json to this location
+  """
+  (setv metadata {"render.modes" ["human" "ascii"]})
 
-  (defn __init__ [self ^str ace-id ^str ace-backend
-                       ^str ckt-path ^str pdk-path
-                       ^int obs-shape ^
-                       ^int max-steps ^(of dict str float) target 
-                       ^bool random-target ^bool noisy-target 
-                       ^str data-log-path ^str param-log-path]
+  (defn __init__ [self ^str ace-id ^str ace-backend &optional
+                       ^str [ckt-path None] ^str [pdk-path None]
+                       ^(of Tuple int) [obs-shape (, 0)]
+                       ^(of Union float np.array) [obs-lo (- Inf)]
+                       ^(of Union float np.array) [obs-hi Inf]
+                       ^int [max-steps 666]
+                       ^(of dict str float) [target {}] ^float [reltol 1e-3]
+                       ^bool [random-target False] ^bool [noisy-target True]
+                       ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; ACE Configuration
     (setv self.ace-id          ace-id
@@ -51,8 +74,11 @@
     ;; The `Box` type observation space consists of perforamnces, the distance
     ;; to the target, as well as general information about the current
     ;; operating point.
-    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, obs-shape)  :dtype np.float32))
+    (setv self.observation-space (Box :low obs-lo :high obs-hi :shape obs-shape  
+                                      :dtype np.float32))
+    ;(setv self.observation-space (Box :low (- np.inf) :high np.inf 
+    ;                                  :shape (, obs-shape)  :dtype np.float32))
+
     ;; Environment Configurations
     (setv self.max-steps max-steps
           self.num-steps 0
@@ -67,9 +93,8 @@
                                  (target-specification self.ace-id self.ace-backend
                                       :random self.random-target
                                       :noisy self.noisy-target))
-          self.condition (reward-condition self.ace-id 
-                                          :tolerance (if (hasattr self "reltol")
-                                                         self.reltol 1e-3)))
+          self.reltol reltol
+          self.condition (reward-condition self.ace-id :tolerance self.reltol))
 
     (.__init__ (super ACE self)))
   
