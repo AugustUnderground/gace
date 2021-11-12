@@ -169,7 +169,7 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP5XH035V1Env [OP5V1Env]
+(defclass OP5XH035V0Env [OP5V0Env]
   """
   Implementation: xh035-3V3
   """
@@ -178,7 +178,7 @@
                (| kwargs {"ace_id" "op5" "ace_backend" "xh035-3V3" 
                           "ace_variant" 0 "obs_shape" (, 285)}))))
 
-(defclass OP5XH035V0Env [OP5V0Env]
+(defclass OP5XH035V1Env [OP5V1Env]
   """
   Implementation: xh035-3V3
   """

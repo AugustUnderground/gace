@@ -36,7 +36,7 @@
   (defn __init__ [self &kwargs kwargs]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP4V0Env self) #* kwargs)
+    (.__init__ (super OP4V0Env self) #** kwargs)
 
     ;; The action space consists of 15 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch

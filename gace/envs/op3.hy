@@ -169,6 +169,6 @@
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super OP2XH035V1Env self) #**
+    (.__init__ (super OP3XH035V1Env self) #**
                (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
                           "ace_variant" 1 "obs_shape" (, 246)}))))
