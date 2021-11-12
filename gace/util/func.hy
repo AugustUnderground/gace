@@ -265,6 +265,18 @@
           "l_min" 0.35e-6
           "l_max" 15e-6
           #_/ }]
+        [(= ace-backend "sky130-1V8")
+         {"cs"    0.85e-15 ; Poly Capacitance per μm^2
+          "rs"    100      ; Sheet Resistance in Ω/□
+          "i0"    3e-6     ; Bias Current in A
+          "vdd"   1.8      ; Supply Voltage
+          "Wres"  2e-6     ; Resistor Width in m
+          "Mcap"  1e-6     ; Capacitance multiplier
+          "w_min" 0.42
+          "w_max" 100
+          "l_min" 0.15
+          "l_max" 100
+          #_/ }]
         [True (raise (NotImplementedError errno.ENOSYS
                             (os.strerror errno.ENOSYS) 
                             (.format "{} is not a valid ACE backend."

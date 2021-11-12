@@ -40,7 +40,8 @@
                    "voff_sys"     -2.5e-05
                    "A"            5.0e-09
                    #_/ }]
-                 [(and (in ace-id ["op2" "op3"]) (= ace-backend "xh035-3V3"))
+                 ;[(and (in ace-id ["op2" "op3"]) (= ace-backend "xh035-3V3"))
+                 [(in ace-id ["op2" "op3"])
                   {"a_0"         55.0
                    "ugbw"        3750000.0
                    "pm"          65.0
@@ -101,6 +102,12 @@
                    "vs1" 1.65
                    "vs2" 1.65
                    "vs3" 1.65
+                   #_/ }]
+                 [(and (= ace-id "nand4") (= ace-backend "sky130-1V8"))
+                  {"vs0" 0.9
+                   "vs1" 0.9
+                   "vs2" 0.9
+                   "vs3" 0.9
                    #_/ }]
                  [(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
                   {"v_il"  (- 1.65 0.4) 

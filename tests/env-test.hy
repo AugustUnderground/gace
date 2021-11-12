@@ -1,12 +1,3 @@
-(import gym)
-(import gace)
-
-(setv env (gym.make "gace:op4-xh035-v0" :random-target   False))
-(setv env (gym.make "gace:nand4-xh035-v1" :random-target   False))
-(setv env (gym.make "gace:st1-xh035-v1" :random-target   False))
-
-(gace.check-env env)
-
 (import os)
 (import yaml)
 (import logging)
@@ -46,6 +37,10 @@
       nd4-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/nand4"
       st1-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1"
       #_/ )
+
+(setv env (gym.make "gace:op2-sky130-v1"))
+(gace.check-env env)
+
 
 ;; GEOM
 (setv env (gym.make "gace:st1-xh035-v1"

@@ -4,7 +4,8 @@ import hy
 from gace.envs.op1 import ( OP1XH035ElecEnv, OP1XH035GeomEnv )
 
 # Symmetrical Amplifier
-from gace.envs.op2 import ( OP2XH035ElecEnv, OP2XH035GeomEnv )
+from gace.envs.op2 import ( OP2XH035ElecEnv, OP2XH035GeomEnv 
+                                           , OP2SKY130GeomEnv )
 
 # Un-Symmetrical Amplifier
 from gace.envs.op3 import ( OP3XH035ElecEnv, OP3XH035GeomEnv )

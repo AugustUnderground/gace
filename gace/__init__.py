@@ -35,6 +35,10 @@ register( id          = 'op2-xh035-v1'
         , entry_point = 'gace.envs:OP2XH035GeomEnv'
         , )
 
+register( id          = 'op2-sky130-v1'
+        , entry_point = 'gace.envs:OP2SKY130GeomEnv'
+        , )
+
 ## AC²E: OP3
 register( id          = 'op3-xh035-v0'
         , entry_point = 'gace.envs:OP3XH035ElecEnv'

@@ -35,6 +35,7 @@
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] 
+                                 ^int [obs-shape 0]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; ACE ID, required by parent
@@ -53,21 +54,21 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 206)  :dtype np.float32))))
+                                      :shape (, obs-shape)  :dtype np.float32))))
 
 (defclass OP2ElecEnv [OP2Env]
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
     (.__init__ (super OP2ElecEnv self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
+               :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)
 
         ;; Primitive Device setup
@@ -142,14 +143,14 @@
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; Parent constructor for initialization
     (.__init__ (super OP2GeomEnv self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
+               :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)
 
     ;; The action space consists of 14 parameters ∈ [-1;1]. Ws and Ls for
@@ -195,7 +196,7 @@
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     (setv self.ace-backend "xh035-3V3")
@@ -203,10 +204,10 @@
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
-    (.__init__ (super OP2XH035GeomEnv self) 
+    (.__init__ (super OP2XH035GeomEnv self)
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
+               :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)))
 
 (defclass OP2XH035ElecEnv [OP2ElecEnv]
@@ -214,7 +215,7 @@
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     (setv self.ace-backend "xh035-3V3")
@@ -226,5 +227,45 @@
                :pdk-path pdk-path :ckt-path ckt-path
                :nmos-path nmos-path :pmos-path pmos-path
                :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)))
+               :max-steps max-steps :obs_shape 206
+               :data-log-path data-log-path :param-log-path param-log-path)
+    #_/ ))
+
+(defclass OP2SKY130ElecEnv [OP2ElecEnv]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 266]
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    (setv self.ace-backend "sky130-1V8")
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super OP2SKY130GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps :obs-shape obs-shape
+               :data-log-path data-log-path :param-log-path param-log-path)
+    #_/ ))
+
+(defclass OP2SKY130GeomEnv [OP2GeomEnv]
+
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 266]
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    (setv self.ace-backend "sky130-1V8")
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super OP2SKY130GeomEnv self) 
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps :obs-shape obs-shape
+               :data-log-path data-log-path :param-log-path param-log-path)
+    #_/ ))
+
