@@ -108,7 +108,8 @@
                                           ace-backend)]]
               [True (raise (FileNotFoundError errno.ENOENT 
                             (os.strerror errno.ENOENT) 
-                            "No ACE Testbench found."))])
+                            (.format "No PDK found for {} and {}"
+                                     ace-id ace-backend)))])
     
       ckt-path ;; Check ACE backend Testbench
         (cond [(and ckt (os.path.exists ckt)) ckt]
@@ -123,7 +124,8 @@
                                         ace-id)]
               [True (raise (FileNotFoundError errno.ENOENT 
                             (os.strerror errno.ENOENT) 
-                            f"No ACE Testbench found."))])
+                            (.format "No ACE Testbench found for {} in {}"
+                                     ace-id ace-backend)))])
 
       ace-maker (cond [(.startswith ace-id "op")    ac.single-ended-opamp]
                        [(.startswith ace-id "st")   ac.schmitt-trigger]
