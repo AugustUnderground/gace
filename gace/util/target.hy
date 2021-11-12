@@ -2,6 +2,8 @@
 (import errno)
 (import [numpy :as np])
 
+(import [.func [*]])
+
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
@@ -12,7 +14,8 @@
 (defn target-specification [^str ace-id ^str ace-backend
                   &optional ^bool [random False] 
                             ^bool [noisy True]]
-  (let [ts (cond [(and (in ace-id ["op1" "op6"]) (= ace-backend "xh035-3V3"))
+  (let [ts (cond ;[(and (in ace-id ["op1" "op6"]) (= ace-backend "xh035-3V3"))
+                 [(in ace-id ["op1" "op6"])
                   {"a_0"          105.0
                    "ugbw"         3500000.0
                    "pm"           110.0
@@ -69,7 +72,8 @@
                    "voff_sys"    -1.5e-3
                    "A"           5.5e-10
                    #_/ }]
-                 [(and (in ace-id ["op4" "op5"]) (= ace-backend "xh035-3V3"))
+                 ;[(and (in ace-id ["op4" "op5"]) (= ace-backend "xh035-3V3"))
+                 [(in ace-id ["op4" "op5"])
                   {"a_0"         55.0
                    "ugbw"        3750000.0
                    "pm"          65.0
@@ -97,21 +101,17 @@
                    "voff_sys"    -1.5e-3
                    "A"           5.5e-10
                    #_/ }]
-                 [(and (= ace-id "nand4") (= ace-backend "xh035-3V3"))
-                  {"vs0" 1.65
-                   "vs1" 1.65
-                   "vs2" 1.65
-                   "vs3" 1.65
+                 ;[(and (= ace-id "nand4") (= ace-backend "xh035-3V3"))
+                 [(= ace-id "nand4")
+                  {"vs0" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
+                   "vs1" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
+                   "vs2" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
+                   "vs3" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
                    #_/ }]
-                 [(and (= ace-id "nand4") (= ace-backend "sky130-1V8"))
-                  {"vs0" 0.9
-                   "vs1" 0.9
-                   "vs2" 0.9
-                   "vs3" 0.9
-                   #_/ }]
+                 ;[(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
                  [(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
-                  {"v_il"  (- 1.65 0.4) 
-                   "v_ih"  (+ 1.65 0.4)
+                  {"v_il"  (- (-> ace-backend (technology-data) (get "vdd")) 0.4) 
+                   "v_ih"  (+ (-> ace-backend (technology-data) (get "vdd")) 0.4)
                    "t_plh" 0.8e-9
                    "t_phl" 0.8e-9
                    #_/ }]
