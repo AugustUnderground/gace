@@ -38,7 +38,7 @@
       st1-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1"
       #_/ )
 
-(setv env (gym.make "gace:op2-sky130-v1"))
+(setv env (gym.make "gace:op2-sky130-v0"))
 (gace.check-env env)
 
 

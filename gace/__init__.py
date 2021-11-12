@@ -35,6 +35,10 @@ register( id          = 'op2-xh035-v1'
         , entry_point = 'gace.envs:OP2XH035V1Env'
         , )
 
+register( id          = 'op2-sky130-v0'
+        , entry_point = 'gace.envs:OP2SKY130V1Env'
+        , )
+
 register( id          = 'op2-sky130-v1'
         , entry_point = 'gace.envs:OP2SKY130V1Env'
         , )
