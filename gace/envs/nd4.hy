@@ -33,6 +33,9 @@
   Base class for geometric design space (v1)
   """
   (defn __init__ [self &kwargs kwargs]
+    
+    ;; Parent constructor for initialization
+    (.__init__ (super NAND4V1Env self) #** kwargs)
 
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
     ;; inverter chain:  ['wn0', 'wp', 'wn2', 'wn1', 'wn3']
@@ -41,9 +44,7 @@
                                  :dtype np.float32)
           self.action-scale-min (np.array (list (repeat self.w-min 5)))
           self.action-scale-max (np.array (list (repeat self.w-max 5))))
-    
-    ;; Parent constructor for initialization
-    (.__init__ (super NAND4V1Env self) #** kwargs))
+    #_/ )
 
   (defn step [self action]
     """
