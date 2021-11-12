@@ -42,6 +42,9 @@
     ;; ACE ID, required by parent
     (setv self.ace-id "nand4")
 
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
     ;; Call Parent Contructor
     (.__init__ (super NAND4Env self) max-steps target random-target noisy-target 
                                      data-log-path param-log-path)
@@ -105,7 +108,7 @@
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     (setv self.ace-backend "xh035-3V3"
-          self.reltol reltol)
+          self.reltol      reltol)
 
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
@@ -115,3 +118,17 @@
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
                :data-log-path data-log-path :param-log-path param-log-path)))
+
+(defclass NAND4SKY130V1Env [NAND4V1Env]
+  """
+  Implementation: sky130-1V8
+  """
+  (defn __init__ [self &kwargs]
+
+    (setv self.ace-backend "sky130-1V8"
+          self.reltol      reltol)
+
+    ;(for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+    ;  (setattr self k v))
+
+    (.__init__ (super NAND4SKY130V1Env self) #** kwargs)))
