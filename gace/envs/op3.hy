@@ -21,8 +21,9 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
-(import [hy.contrib.sequences [Sequence end-sequence]])
-(import [hy.contrib.pprint [pp pprint]])
+(import  [typing [List Set Dict Tuple Optional Union]])
+(import  [hy.contrib.sequences [Sequence end-sequence]])
+(import  [hy.contrib.pprint [pp pprint]])
 
 ;; THIS WILL BE FIXED IN HY 1.0!
 ;(import multiprocess)

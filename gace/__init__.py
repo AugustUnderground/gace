@@ -84,6 +84,10 @@ register( id          = 'nand4-xh035-v1'
         , entry_point = 'gace.envs:NAND4XH035V1Env'
         , )
 
+register( id          = 'nand4-sky130-v1'
+        , entry_point = 'gace.envs:NAND4SKY130V1Env'
+        , )
+
 ## AC²E: ST1 - Schmitt Trigger
 register( id          = 'st1-xh035-v1'
         , entry_point = 'gace.envs:ST1XH035V1Env'

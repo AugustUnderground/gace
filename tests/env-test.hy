@@ -15,6 +15,24 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+(setv env (gym.make "gace:nand4-xh035-v1"))
+(gace.check-env env)
+
+
+
+(for [o (range 6)]
+  (setv op f"op{(inc o)}")
+  (setv env0 (gym.make f"gace:{op}-xh035-v0"))
+  (setv env1 (gym.make f"gace:{op}-xh035-v1"))
+  (print f"TESTING {op} v0")
+  (gace.check-env env0)
+  (print f"TESTING {op} v1")
+  (gace.check-env env1)
+  (print f"\n\n")
+  (del env0) (del env1))
+
+
+
 (setv HOME       (os.path.expanduser "~")
       time-stamp (-> dt (.now) (.strftime "%H%M%S-%y%m%d"))
       model-path f"./models/baselines/a2c-miller-amp-xh035-{time-stamp}.mod"
@@ -38,8 +56,6 @@
       st1-path   f"{HOME}/Workspace/ACE/ace/resource/xh035-3V3/st1"
       #_/ )
 
-(setv env (gym.make "gace:op2-sky130-v0"))
-(gace.check-env env)
 
 
 ;; GEOM

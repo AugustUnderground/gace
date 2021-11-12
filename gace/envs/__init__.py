@@ -20,7 +20,7 @@ from gace.envs.op5 import ( OP5XH035V0Env, OP5XH035V1Env )
 from gace.envs.op6 import ( OP6XH035V0Env, OP6XH035V1Env )
 
 # 4 NAND Gate Inverter Chain
-from gace.envs.nd4 import NAND4XH035V1Env
+from gace.envs.nd4 import (NAND4XH035V1Env, NAND4SKY130V1Env)
 
 # Schmitt Trigger
 from gace.envs.st1 import ST1XH035V1Env

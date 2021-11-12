@@ -20,9 +20,10 @@
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
+(import  [typing [List Set Dict Tuple Optional Union]])
 (require [hy.contrib.sequences [defseq seq]])
-(import [hy.contrib.sequences [Sequence end-sequence]])
-(import [hy.contrib.pprint [pp pprint]])
+(import  [hy.contrib.sequences [Sequence end-sequence]])
+(import  [hy.contrib.pprint [pp pprint]])
 
 ;; THIS WILL BE FIXED IN HY 1.0!
 ;(import multiprocess)
@@ -34,20 +35,22 @@
   """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+  (defn __init__ [self &kwonly kwargs]
 
-    ;; ACE ID, required by parent
-    (setv self.ace-id "nand4")
+    (pp kwargs)
+
+    (setv self.ace-id      ace-id
+          self.ace-backend ace-backend)
 
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
       (setattr self k v))
 
     ;; Call Parent Contructor
-    (.__init__ (super NAND4Env self) max-steps target random-target noisy-target 
-                                     data-log-path param-log-path)
+    (.__init__ (super NAND4Env self) 
+               #** (dfor (, k a) (.items kwargs)
+                         :if (in k ["target" "random_target" "noisy_target" 
+                                   "max_steps" "data_log_path" "param_log_path"]) 
+                         [k a]))
 
     ;; ACE setup
     (setv self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
@@ -58,23 +61,16 @@
     ;; to the target, as well as general information about the current
     ;; operating point.
     (setv self.observation-space (Box :low (- np.inf) :high np.inf 
-                                      :shape (, 12)  :dtype np.float32))))
+                                      :shape (, obs-shape)  :dtype np.float32))))
 
 (defclass NAND4V1Env [NAND4Env]
   """
   Base class for geometric design space (v1)
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+  (defn __init__ [self &kwargs kwargs]
 
     ;; Parent constructor for initialization
-    (.__init__ (super NAND4V1Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)
+    (.__init__ (super NAND4V1Env self) #** kwargs)
 
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
     ;; inverter chain:  ['wn0', 'wp', 'wn2', 'wn1', 'wn3']
@@ -102,33 +98,30 @@
   """
   Implementation: xh035-3V3
   """
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None]  ^int [obs-shape 12]
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    (setv self.ace-backend "xh035-3V3"
-          self.reltol      reltol)
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
     (.__init__ (super NAND4XH035V1Env self) 
+               :ace-id "nand4" :ace-backend "sky130-1V8" :reltol reltol
                :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
+               :target target :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)))
 
 (defclass NAND4SKY130V1Env [NAND4V1Env]
   """
   Implementation: sky130-1V8
   """
-  (defn __init__ [self &kwargs]
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] ^int [obs-shape 12]
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
-    (setv self.ace-backend "sky130-1V8"
-          self.reltol      reltol)
-
-    ;(for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-    ;  (setattr self k v))
-
-    (.__init__ (super NAND4SKY130V1Env self) #** kwargs)))
+    (.__init__ (super NAND4SKY130V1Env self) 
+               :ace-id "nand4" :ace-backend "sky130-1V8" :reltol reltol
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :target target :max-steps max-steps :obs-shape obs-shape
+               :data-log-path data-log-path :param-log-path param-log-path)))

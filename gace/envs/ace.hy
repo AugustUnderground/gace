@@ -20,8 +20,9 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
-(import [hy.contrib.sequences [Sequence end-sequence]])
-(import [hy.contrib.pprint [pp pprint]])
+(import  [typing [List Set Dict Tuple Optional Union]])
+(import  [hy.contrib.sequences [Sequence end-sequence]])
+(import  [hy.contrib.pprint [pp pprint]])
 
 ;; THIS WILL BE FIXED IN HY 1.0!
 ;(import multiprocess)
@@ -29,10 +30,29 @@
 
 (defclass ACE [gym.Env]
 
-  (defn __init__ [self ^int max-steps ^(of dict str float) target 
+  (defn __init__ [self ^str ace-id ^str ace-backend
+                       ^str ckt-path ^str pdk-path
+                       ^int obs-shape ^
+                       ^int max-steps ^(of dict str float) target 
                        ^bool random-target ^bool noisy-target 
                        ^str data-log-path ^str param-log-path]
 
+    ;; ACE Configuration
+    (setv self.ace-id          ace-id
+          self.ace-backend     ace-backend
+          self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
+                                                :ckt ckt-path :pdk [pdk-path])
+          self.ace             (self.ace-constructor))
+
+    ;; Get technology constraints attached to this ACE object
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+    
+    ;; The `Box` type observation space consists of perforamnces, the distance
+    ;; to the target, as well as general information about the current
+    ;; operating point.
+    (setv self.observation-space (Box :low (- np.inf) :high np.inf 
+                                      :shape (, obs-shape)  :dtype np.float32))
     ;; Environment Configurations
     (setv self.max-steps max-steps
           self.num-steps 0
