@@ -34,13 +34,11 @@
   """
   Base class for symmetrical amplifier (op2)
   """
-
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^int [obs-shape 0]
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 0]
                                  ^str [data-log-path ""] ^str [param-log-path "."]]
 
     ;; ACE ID, required by parent

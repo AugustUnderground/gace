@@ -29,7 +29,9 @@
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
 (defclass OP4Env [ACE]
-
+  """
+  Base class for symmetrical cascode amplifier (op4)
+  """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
@@ -56,7 +58,9 @@
                                       :shape (, 285)  :dtype np.float32))))
 
 (defclass OP4V0Env [OP4Env]
-
+  """
+  Base class for electrical design space (v0)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -151,7 +155,9 @@
     (self.size-circuit sizing))))
 
 (defclass OP4V1Env [OP4Env]
-
+  """
+  Base class for geometric design space (v0)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] 
@@ -204,26 +210,10 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP4XH035V1Env [OP4V1Env]
-
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] 
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    (setv self.ace-backend "xh035-3V3")
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
-    (.__init__ (super OP4XH035V1Env self) 
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps 
-               :data-log-path data-log-path :param-log-path param-log-path)))
-
 (defclass OP4XH035V0Env [OP4V0Env]
-
+  """
+  Implementation: xh035-3V3
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -238,6 +228,26 @@
     (.__init__ (super OP4XH035V0Env self) 
                :pdk-path pdk-path :ckt-path ckt-path
                :nmos-path nmos-path :pmos-path pmos-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps 
+               :data-log-path data-log-path :param-log-path param-log-path)))
+
+(defclass OP4XH035V1Env [OP4V1Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] 
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
+
+    (setv self.ace-backend "xh035-3V3")
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super OP4XH035V1Env self) 
+               :pdk-path pdk-path :ckt-path ckt-path
                :random-target random-target :noisy-target noisy-target
                :max-steps max-steps 
                :data-log-path data-log-path :param-log-path param-log-path)))

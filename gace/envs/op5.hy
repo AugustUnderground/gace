@@ -29,7 +29,9 @@
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
 (defclass OP5Env [ACE]
-
+  """
+  Base class for un-symmetrical cascode amplifier (op5)
+  """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
@@ -56,7 +58,9 @@
                                       :shape (, 285)  :dtype np.float32))))
 
 (defclass OP5V0Env [OP5Env]
-
+  """
+  Base class for electrical design space (v0)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -157,7 +161,9 @@
     (self.size-circuit sizing))))
 
 (defclass OP5V1Env [OP5Env]
-
+  """
+  Base class for electrical design space (v1)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] 
@@ -211,7 +217,9 @@
       (self.size-circuit sizing))))
 
 (defclass OP5XH035V1Env [OP5V1Env]
-
+  """
+  Implementation: xh035-3V3
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] 
@@ -229,7 +237,9 @@
                :data-log-path data-log-path :param-log-path param-log-path)))
 
 (defclass OP5XH035V0Env [OP5V0Env]
-
+  """
+  Implementation: xh035-3V3
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]

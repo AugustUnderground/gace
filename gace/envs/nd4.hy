@@ -29,7 +29,9 @@
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
 (defclass NAND4Env [ACE]
-
+  """
+  Base class for 4 nand gate inverter chain (nand4)
+  """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
@@ -56,7 +58,9 @@
                                       :shape (, 12)  :dtype np.float32))))
 
 (defclass NAND4V1Env [NAND4Env]
-
+  """
+  Base class for geometric design space (v1)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] 
@@ -92,7 +96,9 @@
       (self.size-circuit sizing))))
 
 (defclass NAND4XH035V1Env [NAND4V1Env]
-
+  """
+  Implementation: xh035-3V3
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]

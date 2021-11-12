@@ -29,7 +29,9 @@
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
 (defclass ST1Env [ACE]
-
+  """
+  Base class for schmitt trigger (st1)
+  """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
@@ -56,7 +58,9 @@
                                       :shape (, 12)  :dtype np.float32))))
 
 (defclass ST1V1Env [ST1Env]
-
+  """
+  Base class for geometric design space (v1)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] 
@@ -94,7 +98,9 @@
       (self.size-circuit sizing))))
 
 (defclass ST1XH035V1Env [ST1V1Env]
-
+  """
+  Implementation: xh035-3V3
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] ^float [reltol 1e-3]
