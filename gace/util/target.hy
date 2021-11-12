@@ -14,34 +14,36 @@
 (defn target-specification [^str ace-id ^str ace-backend
                   &optional ^bool [random False] 
                             ^bool [noisy True]]
-  (let [ts (cond ;[(and (in ace-id ["op1" "op6"]) (= ace-backend "xh035-3V3"))
+  (let [td (technology-data ace-backend)
+        vdd (get td "vdd")
+        ts (cond ;[(and (in ace-id ["op1" "op6"]) (= ace-backend "xh035-3V3"))
                  [(in ace-id ["op1" "op6"])
-                  {"a_0"          105.0
-                   "ugbw"         3500000.0
-                   "pm"           110.0
-                   "gm"           -45.0
-                   "sr_r"         2700000.0
-                   "sr_f"         -2700000.0
-                   "vn_1Hz"       6.0e-06
-                   "vn_10Hz"      2.0e-06
-                   "vn_100Hz"     6.0e-07
-                   "vn_1kHz"      1.5e-07
-                   "vn_10kHz"     5.0e-08
-                   "vn_100kHz"    2.6e-08
-                   "psrr_n"       120.0
-                   "psrr_p"       120.0
-                   "cmrr"         110.0
-                   "v_il"         0.7
-                   "v_ih"         3.2
-                   "v_ol"         0.1
-                   "v_oh"         3.2
-                   "i_out_min"    -7e-5
-                   "i_out_max"    7e-5
-                   "overshoot_r"  0.0005
-                   "overshoot_f"  0.0005
-                   "voff_stat"    0.003
-                   "voff_sys"     -2.5e-05
-                   "A"            5.0e-09
+                  {"a_0"         105.0
+                   "ugbw"        3500000.0
+                   "pm"          110.0
+                   "gm"          -45.0
+                   "sr_r"        2700000.0
+                   "sr_f"        -2700000.0
+                   "vn_1Hz"      6.0e-06
+                   "vn_10Hz"     2.0e-06
+                   "vn_100Hz"    6.0e-07
+                   "vn_1kHz"     1.5e-07
+                   "vn_10kHz"    5.0e-08
+                   "vn_100kHz"   2.6e-08
+                   "psrr_n"      120.0
+                   "psrr_p"      120.0
+                   "cmrr"        110.0
+                   "v_il"        (* vdd 0.20) ; 0.7
+                   "v_ih"        (* vdd 0.95) ; 3.2
+                   "v_ol"        (* vdd 0.05) ; 0.1
+                   "v_oh"        (* vdd 0.95) ; 3.2
+                   "i_out_min"   -7e-5
+                   "i_out_max"   7e-5
+                   "overshoot_r" 0.0005
+                   "overshoot_f" 0.0005
+                   "voff_stat"   0.003
+                   "voff_sys"    -2.5e-05
+                   "A"           5.0e-09
                    #_/ }]
                  ;[(and (in ace-id ["op2" "op3"]) (= ace-backend "xh035-3V3"))
                  [(in ace-id ["op2" "op3"])
@@ -60,10 +62,10 @@
                    "psrr_n"      80.0
                    "psrr_p"      80.0
                    "cmrr"        80.0
-                   "v_il"        0.9
-                   "v_ih"        3.2
-                   "v_ol"        1.65
-                   "v_oh"        3.2
+                   "v_il"        (* vdd 0.25) ; 0.9
+                   "v_ih"        (* vdd 0.95) ; 3.2
+                   "v_ol"        (* vdd 0.50) ; 1.65
+                   "v_oh"        (* vdd 0.95) ; 3.2
                    "i_out_min"   -7e-5
                    "i_out_max"   7e-5
                    "overshoot_r" 2.0
@@ -89,10 +91,10 @@
                    "psrr_n"      80.0
                    "psrr_p"      80.0
                    "cmrr"        80.0
-                   "v_il"        0.9
-                   "v_ih"        3.2
-                   "v_ol"        1.65
-                   "v_oh"        3.2
+                   "v_il"        (* vdd 0.25) ; 0.9
+                   "v_ih"        (* vdd 0.95) ; 3.2
+                   "v_ol"        (* vdd 0.50) ; 1.65
+                   "v_oh"        (* vdd 0.95) ; 3.2
                    "i_out_min"   -7e-5
                    "i_out_max"   7e-5
                    "overshoot_r" 2.0
@@ -103,15 +105,15 @@
                    #_/ }]
                  ;[(and (= ace-id "nand4") (= ace-backend "xh035-3V3"))
                  [(= ace-id "nand4")
-                  {"vs0" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
-                   "vs1" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
-                   "vs2" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
-                   "vs3" (/ (-> ace-backend (technology-data) (get "vdd")) 2.0)
+                  {"vs0" (/ vdd 2.0)
+                   "vs1" (/ vdd 2.0)
+                   "vs2" (/ vdd 2.0)
+                   "vs3" (/ vdd 2.0)
                    #_/ }]
                  ;[(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
                  [(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
-                  {"v_il"  (- (-> ace-backend (technology-data) (get "vdd")) 0.4) 
-                   "v_ih"  (+ (-> ace-backend (technology-data) (get "vdd")) 0.4)
+                  {"v_il"  (- (* vdd 0.5) (* vdd 0.1))
+                   "v_ih"  (+ (* vdd 0.5) (* vdd 0.1))
                    "t_plh" 0.8e-9
                    "t_phl" 0.8e-9
                    #_/ }]
