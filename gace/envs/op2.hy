@@ -28,7 +28,12 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
+;; Symmetrical Amplifier (OP2) Base Class
+
 (defclass OP2Env [ACE]
+  """
+  Base class for symmetrical amplifier (op2)
+  """
 
   (setv metadata {"render.modes" ["human" "ascii"]})
 
@@ -57,7 +62,9 @@
                                       :shape (, obs-shape)  :dtype np.float32))))
 
 (defclass OP2V0Env [OP2Env]
-
+  """
+  Base class for electrical design space (v0)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -140,7 +147,9 @@
     (self.size-circuit sizing))))
 
 (defclass OP2V1Env [OP2Env]
-
+  """
+  Base class for geometric design space (v1)
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
@@ -192,26 +201,12 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP2XH035V1Env [OP2V1Env]
-
-  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
-                                 ^bool [random-target False] ^bool [noisy-target True]
-                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
-                                 ^str [data-log-path ""] ^str [param-log-path "."]]
-
-    (setv self.ace-backend "xh035-3V3")
-
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-
-    (.__init__ (super OP2XH035V1Env self)
-               :pdk-path pdk-path :ckt-path ckt-path
-               :random-target random-target :noisy-target noisy-target
-               :max-steps max-steps :obs-shape obs-shape
-               :data-log-path data-log-path :param-log-path param-log-path)))
+;; Technology Specific Implementations
 
 (defclass OP2XH035V0Env [OP2V0Env]
-
+  """
+  Implementation: xh035-3V3
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^str [nmos-path None] ^str [pmos-path None]
                                  ^bool [random-target False] ^bool [noisy-target True]
@@ -231,8 +226,32 @@
                :data-log-path data-log-path :param-log-path param-log-path)
     #_/ ))
 
-(defclass OP2SKY130V0Env [OP2V0Env]
+(defclass OP2XH035V1Env [OP2V1Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
+                                 ^bool [random-target False] ^bool [noisy-target True]
+                                 ^dict [target None] ^int [max-steps 200] ^int [obs-shape 206]
+                                 ^str [data-log-path ""] ^str [param-log-path "."]]
 
+    (setv self.ace-backend "xh035-3V3")
+
+    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+
+    (.__init__ (super OP2XH035V1Env self)
+               :pdk-path pdk-path :ckt-path ckt-path
+               :random-target random-target :noisy-target noisy-target
+               :max-steps max-steps :obs-shape obs-shape
+               :data-log-path data-log-path :param-log-path param-log-path)))
+
+
+
+(defclass OP2SKY130V0Env [OP2V0Env]
+  """
+  Implementation: sky130-1V8
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] ^int [obs-shape 266]
@@ -251,7 +270,9 @@
     #_/ ))
 
 (defclass OP2SKY130V1Env [OP2V1Env]
-
+  """
+  Implementation: sky130-1V8
+  """
   (defn __init__ [self &optional ^str [pdk-path None] ^str [ckt-path None] 
                                  ^bool [random-target False] ^bool [noisy-target True]
                                  ^dict [target None] ^int [max-steps 200] ^int [obs-shape 266]
@@ -268,4 +289,3 @@
                :max-steps max-steps :obs-shape obs-shape
                :data-log-path data-log-path :param-log-path param-log-path)
     #_/ ))
-
