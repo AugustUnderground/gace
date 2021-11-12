@@ -50,7 +50,7 @@
   """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
-  (defn __init__ [self ^str ace-id ^str ace-backend &optional
+  (defn __init__ [self ^str ace-id ^str ace-backend ^int ace-variant &optional 
                        ^str [ckt-path None] ^str [pdk-path None]
                        ^(of Tuple int) [obs-shape (, 0)]
                        ^(of Union float np.array) [obs-lo (- Inf)]
@@ -64,6 +64,7 @@
     ;; ACE Configuration
     (setv self.ace-id          ace-id
           self.ace-backend     ace-backend
+          self.ace-variant     ace-variant
           self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
                                                 :ckt ckt-path :pdk [pdk-path])
           self.ace             (self.ace-constructor))
@@ -96,7 +97,7 @@
           self.condition (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; Primitive Device setup
-    (when (= variant 0)
+    (when (= self.ace-variant 0)
       (setv self.nmos (load-primitive "nmos" self.ace-backend :dev-path nmos-path)
             self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path)))
 

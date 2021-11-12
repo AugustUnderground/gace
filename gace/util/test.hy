@@ -8,7 +8,7 @@
 (require [hy.contrib.sequences [defseq seq]])
 (import [hy.contrib.sequences [Sequence end-sequence]])
 
-(defn check-env [env]
+(defn check-env [^(of gym.Env) env &optional ^bool [render False]]
   """
   Partially stolen from 
   https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/env_checker.py
@@ -69,10 +69,11 @@
   (assert (isinstance d bool) f"The done signal returned by 'step' must be bool not {d}.")
   (assert (isinstance i dict) f"The info returned by 'step' must be a dict not {i}.")
 
-  (setv modes (env.metadata.get "render.modes"))
-  (if modes
-    (for [m modes] (env.render :mode m))
-    (warnings.warn "The environment declares no render modes."))
+  (when render
+    (setv modes (env.metadata.get "render.modes"))
+    (if modes
+      (for [m modes] (env.render :mode m))
+      (warnings.warn "The environment declares no render modes.")))
 
   (for [_ (range 10)]
     (let [act (.sample env.action-space)

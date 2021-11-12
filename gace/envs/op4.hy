@@ -35,6 +35,9 @@
   """
   (defn __init__ [self &kwargs kwargs]
 
+    ;; Parent constructor for initialization
+    (.__init__ (super OP4V0Env self) #* kwargs)
+
     ;; The action space consists of 15 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
     ;; currents / mirror ratios in the future.
@@ -47,9 +50,7 @@
           self.action-scale-max (np.array [17.0 17.0 17.0 17.0 17.0 17.0  ; gm/Id max
                                            1e9 5e8 1e9 1e9 1e9 1e9        ; fug max
                                            48e-6 480e-6 480e-6 ]))        ; branch currents
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP4V0Env self) #* kwargs))
+    #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -118,6 +119,9 @@
   """
   (defn __init__ [self &kwargs kwargs]
 
+    ;; Parent constructor for initialization
+    (.__init__ (super OP4V1Env self) #** kwargs)
+
     ;; The action space consists of 18 parameters ∈ [-1;1]. 
     ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcm3"  "Wc1" "Wr"
     ;;   "Ld" "Lcm1"  "Lcm2"  "Lcm3"  "Lc1" "Lr"
@@ -132,9 +136,7 @@
           m-min [1 1 1 1 1 1]                m-max [3 3 20 3 20 16]
           self.action-scale-min (np.array (+ w-min l-min m-min))
           self.action-scale-max (np.array (+ w-max l-max m-max)))
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP4V1Env self) #** kwargs))
+    #_/ )
 
   (defn step [self action]
     """
@@ -165,15 +167,15 @@
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4XH035V1Env self) #**
+    (.__init__ (super OP4XH035V0Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xh035-3V3" 
-                          "variant" 0 "obs_shape" (, 285)}))))
+                          "ace_variant" 0 "obs_shape" (, 285)}))))
 
 (defclass OP4XH035V1Env [OP4V1Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4XH035V1Env self) #**
+    (.__init__ (super OP4XH035V1Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xh035-3V3" 
-                          "variant" 1 "obs_shape" (, 285)}))))
+                          "ace_variant" 1 "obs_shape" (, 285)}))))

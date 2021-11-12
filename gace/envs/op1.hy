@@ -34,6 +34,8 @@
   Base class for electrical design space (v0)
   """
   (defn __init__ [self &kwargs kwargs]
+    ;; Parent constructor for initialization
+    (.__init__ (super OP1V0Env self) #** kwargs)
 
     ;; The action space consists of 12 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
@@ -48,9 +50,7 @@
                                            1e9 5e8 1e9 1e9      ; fug max
                                            50e3 5e-12           ; Rc and Cc
                                            48e-6 480e-6]))      ; branch currents
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP1V0Env self) #** kwargs))
+    #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -111,6 +111,9 @@
   """
   (defn __init__ [self &kwargs kwargs]
 
+    ;; Parent constructor for initialization
+    (.__init__ (super OP1V1Env self) #** kwargs)
+
     ;; The action space consists of 14 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios as well as the cap and res.
     ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
@@ -127,9 +130,7 @@
           m-min [1  1  1  1 ]                m-max [3  40 10 40]
           self.action-scale-min (np.array (+ w-min l-min m-min))
           self.action-scale-max (np.array (+ w-max l-max m-max)))
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP1V1Env self) #** kwargs))
+    #_/ )
 
   (defn step [self action]
     """
@@ -160,15 +161,15 @@
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4XH035V1Env self) #**
+    (.__init__ (super OP1XH035V0Env self) #**
                (| kwargs {"ace_id" "op1" "ace_backend" "xh035-3V3" 
-                          "variant" 0 "obs_shape" (, 211)}))))
+                          "ace_variant" 0 "obs_shape" (, 211)}))))
   
   (defclass OP1XH035V1Env [OP1V1Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4XH035V1Env self) #**
+    (.__init__ (super OP1XH035V1Env self) #**
                (| kwargs {"ace_id" "op1" "ace_backend" "xh035-3V3" 
-                          "variant" 1 "obs_shape" (, 211)}))))
+                          "ace_variant" 1 "obs_shape" (, 211)}))))

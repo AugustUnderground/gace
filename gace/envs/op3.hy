@@ -35,6 +35,9 @@
   """
   (defn __init__ [self &kwargs kwargs]
 
+    ;; Parent constructor for initialization
+    (.__init__ (super OP3V0Env self) #** kwargs)
+
     ;; The action space consists of 10 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block. This is subject to change and will include branch
     ;; currents / mirror ratios in the future.
@@ -47,9 +50,7 @@
           self.action-scale-max (np.array [17.0 17.0 17.0 17.0    ; gm/Id max
                                            1e9 5e8 1e9 1e9        ; fug max
                                            48e-6 480e-6 480e-6]))      ; branch currents
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP1V0Env self) #** kwargs))
+    #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -111,6 +112,9 @@
   """
   (defn __init__ [self &kwargs kwargs]
 
+    ;; Parent constructor for initialization
+    (.__init__ (super OP3V1Env self) #** kwargs)
+
     ;; The action space consists of 14 geometrical parameters ∈ [-1;1]:
     ;;  [ 'Wd', 'Wcm1',  'Wcm2',  'Wcm3'      # ∈ [ 0.4e-6  ; 150e-6 ]
     ;;  , 'Ld', 'Lcm1',  'Lcm2',  'Lcm3'      # ∈ [ 0.35e-6 ; 15e-6  ]
@@ -127,9 +131,7 @@
           m-max [3 16 10 10 20 20 3] ;; M11, M12, M31, M32, M212, M222, M2x1
           self.action-scale-min (np.array (+ w-min l-min m-min))
           self.action-scale-max (np.array (+ w-max l-max m-max)))
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP3V1Env self) #** kwargs))
+    #_/ )
 
   (defn step [self action]
     """
@@ -158,15 +160,15 @@
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4XH035V1Env self) #**
+    (.__init__ (super OP3XH035V0Env self) #**
                (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
-                          "variant" 0 "obs_shape" (, 246)}))))
+                          "ace_variant" 0 "obs_shape" (, 246)}))))
 
 (defclass OP3XH035V1Env [OP3V1Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4XH035V1Env self) #**
+    (.__init__ (super OP2XH035V1Env self) #**
                (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
-                          "variant" 1 "obs_shape" (, 246)}))))
+                          "ace_variant" 1 "obs_shape" (, 246)}))))

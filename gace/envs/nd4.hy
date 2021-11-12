@@ -65,7 +65,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH035V1Env self) #**
                (| kwargs {"ace_id" "nand4" "ace_backend" "xh035-3V3" 
-                          "variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1 "obs_shape" (, 12)}))))
 
 (defclass NAND4SKY130V1Env [NAND4V1Env]
   """
@@ -74,4 +74,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH035V1Env self) #**
                (| kwargs {"ace_id" "nand4" "ace_backend" "sky130-1V8" 
-                          "variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1 "obs_shape" (, 12)}))))
