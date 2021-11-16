@@ -16,8 +16,7 @@
                             ^bool [noisy True]]
   (let [td (technology-data ace-backend)
         vdd (get td "vdd")
-        ts (cond ;[(and (in ace-id ["op1" "op6"]) (= ace-backend "xh035-3V3"))
-                 [(in ace-id ["op1" "op6"])
+        ts (cond [(in ace-id ["op1" "op6"])
                   {"a_0"         105.0
                    "ugbw"        3500000.0
                    "pm"          110.0
@@ -45,7 +44,6 @@
                    "voff_sys"    -2.5e-05
                    "A"           5.0e-09
                    #_/ }]
-                 ;[(and (in ace-id ["op2" "op3"]) (= ace-backend "xh035-3V3"))
                  [(in ace-id ["op2" "op3"])
                   {"a_0"         55.0
                    "ugbw"        3750000.0
@@ -74,7 +72,6 @@
                    "voff_sys"    -1.5e-3
                    "A"           5.5e-10
                    #_/ }]
-                 ;[(and (in ace-id ["op4" "op5"]) (= ace-backend "xh035-3V3"))
                  [(in ace-id ["op4" "op5"])
                   {"a_0"         55.0
                    "ugbw"        3750000.0
@@ -103,15 +100,13 @@
                    "voff_sys"    -1.5e-3
                    "A"           5.5e-10
                    #_/ }]
-                 ;[(and (= ace-id "nand4") (= ace-backend "xh035-3V3"))
                  [(= ace-id "nand4")
                   {"vs0" (/ vdd 2.0)
                    "vs1" (/ vdd 2.0)
                    "vs2" (/ vdd 2.0)
                    "vs3" (/ vdd 2.0)
                    #_/ }]
-                 ;[(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
-                 [(and (= ace-id "st1") (= ace-backend "xh035-3V3"))
+                 [(= ace-id "st1") 
                   {"v_il"  (- (* vdd 0.5) (* vdd 0.1))
                    "v_ih"  (+ (* vdd 0.5) (* vdd 0.1))
                    "t_plh" 0.8e-9
