@@ -482,10 +482,10 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                                                                  |
-|---------|----------------------|------------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`.   |
-| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> the weird transistors plus the mirror ratios <br/> currents `M1` and `M2`. |
+| Variant | Dimensions           | Description                                                                                                                |
+|---------|----------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`. |
+| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> the weird transistors plus the mirror ratios <br/> `M1` and `M2`.        |
 
 ```python
 # v0 action space
@@ -502,6 +502,106 @@ gym.spaces.Box( low   = -1.0
               , dtype = np.float32
               , )
 ```
+
+### TBA (OP7)
+
+![op7](https://github.com/matthschw/ace/blob/main/figures/op7.png)
+
+**. . .**
+
+### WORK IN PROGRESS (OP8)
+
+![op8](https://github.com/matthschw/ace/blob/main/figures/op8.png)
+
+_Will be_ registered as `gace:op8-<tech>-<variant>`.
+
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²⁷⁷ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (277 , )
+              , dtype = np.float32
+              , )
+```
+
+#### Action Space
+
+| Variant | Dimensions           | Description                                                                                   |
+|---------|----------------------|-----------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁶ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and the branch currents `i1` and `i2`. |
+| `v1`    | `ℝ ²¹ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> plus a bunch of mirror ratios.              |
+
+```python
+# v0 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (16 , )
+              , dtype = np.float32
+              , )
+
+# v1 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (21 , )
+              , dtype = np.float32
+              , )
+```
+
+### WORK IN PROGRESS (OP9)
+
+![op9](https://github.com/matthschw/ace/blob/main/figures/op9.png)
+
+_Will be_ registered as `gace:op9-<tech>-<variant>`.
+
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ³⁷¹ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (371 , )
+              , dtype = np.float32
+              , )
+```
+
+#### Action Space
+
+| Variant | Dimensions           | Description                                                                      |
+|---------|----------------------|----------------------------------------------------------------------------------|
+| `v0`    | `ℝ ²² ∈ [-1.0; 1.0]` | 8 `gmoverid`s and `fug`s for each building <br/> block and 6 branch currents.    |
+| `v1`    | `ℝ ²⁷ ∈ [-1.0; 1.0]` | 8 `W`s and `L`s for each building block and <br/> plus a bunch of mirror ratios. |
+
+```python
+# v0 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (22 , )
+              , dtype = np.float32
+              , )
+
+# v1 action space
+gym.spaces.Box( low   = -1.0
+              , high  = 1.0
+              , shape = (27 , )
+              , dtype = np.float32
+              , )
+```
+
+### TBA (OP10)
+
+![op10](https://github.com/matthschw/ace/blob/main/figures/op10.png)
+
+**. . .**
 
 ## Inverter Environments
 
