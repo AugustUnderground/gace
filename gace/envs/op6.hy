@@ -214,7 +214,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6GPDK180V0Env self) #**
                (| kwargs {"ace_id" "op6" "ace_backend" "gpdk180-1V2" 
-                          "ace_variant" 0 "obs_shape" (, 235)}))))
+                          "ace_variant" 0 "obs_shape" (, 275)}))))
 
 (defclass OP6GPDK180V1Env [OP6V1Env]
   """
@@ -223,4 +223,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6GPDK180V1Env self) #**
                (| kwargs {"ace_id" "op6" "ace_backend" "gpdk180-1V2" 
-                          "ace_variant" 1 "obs_shape" (, 235)}))))
+                          "ace_variant" 1 "obs_shape" (, 275)}))))

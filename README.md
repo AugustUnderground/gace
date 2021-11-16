@@ -187,8 +187,8 @@ Registered as `gace:op2-<tech>-<variant>`.
 | Technology | Dimensions         |
 |------------|--------------------|
 | `xh035`    | `ℝ ²⁰⁶ ∈ (-∞ ; ∞)` |
-| `sky130`   | `ℝ ²⁰⁶ ∈ (-∞ ; ∞)` |
-| `gpdk180`  | `ℝ ²⁰⁶ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²⁶⁶ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁹⁴ ∈ (-∞ ; ∞)` |
 
 ```python
 # xh035
@@ -201,14 +201,14 @@ gym.spaces.Box( low   = -np.inf
 # sky130
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (206 , )
+              , shape = (266 , )
               , dtype = np.float32
               , )
 
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (206 , )
+              , shape = (294 , )
               , dtype = np.float32
               , )
 ```
@@ -247,8 +247,8 @@ Registered as `gace:op3-<tech>-<variant>`.
 | Technology | Dimensions         |
 |------------|--------------------|
 | `xh035`    | `ℝ ²⁴⁶ ∈ (-∞ ; ∞)` |
-| `sky130`   | `ℝ ²⁴⁶ ∈ (-∞ ; ∞)` |
-| `gpdk180`  | `ℝ ²⁴⁶ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²⁶⁶ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁹⁴ ∈ (-∞ ; ∞)` |
 
 ```python
 # xh035
@@ -261,14 +261,14 @@ gym.spaces.Box( low   = -np.inf
 # sky130
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (246 , )
+              , shape = (266 , )
               , dtype = np.float32
               , )
 
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (246 , )
+              , shape = (294 , )
               , dtype = np.float32
               , )
 ```
@@ -307,8 +307,8 @@ Registered as `gace:op4-<tech>-<variant>`.
 | Technology | Dimensions         |
 |------------|--------------------|
 | `xh035`    | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
-| `sky130`   | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
-| `gpdk180`  | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ³⁰⁵ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ³⁸³ ∈ (-∞ ; ∞)` |
 
 ```python
 # xh035
@@ -321,14 +321,14 @@ gym.spaces.Box( low   = -np.inf
 # sky130
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (285 , )
+              , shape = (305 , )
               , dtype = np.float32
               , )
 
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (285 , )
+              , shape = (383 , )
               , dtype = np.float32
               , )
 ```
@@ -367,9 +367,8 @@ Registered as `gace:op5-<tech>-<variant>`.
 | Technology | Dimensions         |
 |------------|--------------------|
 | `xh035`    | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
-| `sky130`   | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
-| `gpdk180`  | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
-
+| `sky130`   | `ℝ ³⁰⁵ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ³⁸³ ∈ (-∞ ; ∞)` |
 
 ```python
 # xh035
@@ -382,14 +381,14 @@ gym.spaces.Box( low   = -np.inf
 # sky130
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (285 , )
+              , shape = (305 , )
               , dtype = np.float32
               , )
 
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (285 , )
+              , shape = (383 , )
               , dtype = np.float32
               , )
 ```
@@ -429,7 +428,7 @@ Registered as `gace:op6-<tech>-<variant>`.
 |------------|--------------------|
 | `xh035`    | `ℝ ²³⁵ ∈ (-∞ ; ∞)` |
 | `sky130`   | `ℝ ²³⁵ ∈ (-∞ ; ∞)` |
-| `gpdk180`  | `ℝ ²³⁵ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁷⁵ ∈ (-∞ ; ∞)` |
 
 ```python
 # xh035
@@ -449,7 +448,7 @@ gym.spaces.Box( low   = -np.inf
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (235 , )
+              , shape = (275 , )
               , dtype = np.float32
               , )
 ```
