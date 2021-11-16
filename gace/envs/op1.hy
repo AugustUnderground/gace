@@ -42,15 +42,19 @@
     (setv self.action-space (Box :low -1.0 :high 1.0 :shape (, 12) 
                                  :dtype np.float32)
           self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 4)                    ; gm/Id min
-                                   (np.repeat self.fug-min  4)                    ; fug min
-                                   (np.array [self.Rc-min self.Cc-min])           ; Rc and Cc
-                                   (np.array [(/ self.i0 3.0) (/ self.i0 3.0)]))) ; branch currents
+                (np.concatenate (, (np.repeat self.gmid-min 4)          ; gm/Id min
+                                   (np.repeat self.fug-min  4)          ; fug min
+                                   (np.array [self.Rc-min self.Cc-min]) ; Rc and Cc min
+                                   (np.array [(/ self.i0 3.0)           ; i1 = M11 : M12
+                                              (/ self.i0 3.0)           ; i2 = M11 : M13
+                                              #_/ ])))
           self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 4)                    ; gm/Id min
-                                   (np.repeat self.fug-max  4)                    ; fug min
-                                   (np.array [self.Rc-max self.Cc-max])           ; Rc and Cc
-                                   (np.array [(* self.i0 10) (* self.i0 40)]))))  ; branch currents
+                (np.concatenate (, (np.repeat self.gmid-max 4)          ; gm/Id max
+                                   (np.repeat self.fug-max  4)          ; fug max
+                                   (np.array [self.Rc-max self.Cc-max]) ; Rc and Cc max
+                                   (np.array [(* self.i0 10.0)          ; i1 = M11 : M12
+                                              (* self.i0 40.0)          ; i2 = M11 : M13
+                                              #_/ ]))))
     #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -66,37 +70,39 @@
              res cap i1 i2 ) (unscale-value action self.action-scale-min 
                                                    self.action-scale-max)
           
+          i0   self.i0
           Wres self.Wres 
-          (, Mdp1 Mcm21 Mcm22) (, 2 2 2)
-          (, Mcap Mcm11)       (, 1 1)
+          
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 100))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 100))
+
+          Mcm11 M1.numerator Mcm12 M1.denominator Mcm13 M2.denominator
+          Mcm21 2            Mcm22 2
+          Mdp1  2            Mcap  2
+          Mcs1  Mcm13
 
           Lres (* (/ res self.rs) Wres)
           Wcap (* (np.sqrt (/ cap self.cs)) self.Mcap)
-          Mcm12 (* (/ self.i0 i1) Mcm11)
-          Mcm13 (* (/ i1 i2) Mcm11)
-          Mcs1 Mcm13
 
-          ;vx 1.25 
-
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2) 0.0]])
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2) 0.0]])
           cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2) 0.0]])
           cs1-in (np.array [[gmid-cs1 fug-cs1 (/ self.vdd 2) 0.0]])
 
-          cm1-out (first (self.nmos.predict cm1-in))
           dp1-out (first (self.nmos.predict dp1-in))
+          cm1-out (first (self.nmos.predict cm1-in))
           cm2-out (first (self.pmos.predict cm2-in))
           cs1-out (first (self.pmos.predict cs1-in))
 
-          Lcm1 (get cm1-out 1)
           Ldp1 (get dp1-out 1)
+          Lcm1 (get cm1-out 1)
           Lcm2 (get cm2-out 1)
           Lcs1 (get cs1-out 1)
 
-          Wcm1 (/ self.i0 (get cm1-out 0))
+          Wcm1 (/     i0     (get cm1-out 0))
           Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
           Wdp1 (/ (* 0.5 i1) (get dp1-out 0))
-          Wcs1 (/ i2 (get cs1-out 0))
+          Wcs1 (/     i2     (get cs1-out 0)  Mcs1)
 
           sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  "Ld"    Ldp1 
                   "Lres"  Lres  "Mcm11" Mcm11 "Mcm12" Mcm12 "Mcm13" Mcm13 
