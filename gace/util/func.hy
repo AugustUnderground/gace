@@ -256,40 +256,52 @@
 
 (defn technology-data [ace-backend]
   (cond [(= ace-backend "xh035-3V3")
-         {"cs"    0.85e-15 ; Poly Capacitance per μm^2
-          "rs"    100      ; Sheet Resistance in Ω/□
-          "i0"    3e-6     ; Bias Current in A
-          "vdd"   3.3      ; Supply Voltage
-          "Wres"  2e-6     ; Resistor Width in m
-          "Mcap"  1e-6     ; Capacitance multiplier
-          "w_min" 0.4e-6
-          "w_max" 150e-6
-          "l_min" 0.35e-6
-          "l_max" 15e-6
+         {"cs"       0.85e-15 ; Poly Capacitance per μm^2
+          "rs"       100      ; Sheet Resistance in Ω/□
+          "i0"       3e-6     ; Bias Current in A
+          "vdd"      3.3      ; Supply Voltage
+          "Wres"     2e-6     ; Resistor Width in m
+          "Mcap"     1e-6     ; Capacitance multiplier
+          "w_min"    0.4e-6
+          "w_max"    150e-6
+          "l_min"    0.35e-6
+          "l_max"    15e-6
+          "gmid_min" 6.0      ; Minimum device efficiency
+          "gmid_max" 26.0     ; Maximum device efficiency
+          "fug_min"  1e6      ; Minimum device speed
+          "fug_max"  1e9      ; Maximum device speed
           #_/ }]
         [(= ace-backend "sky130-1V8")
-         {"cs"    0.85e-15 ; Poly Capacitance per μm^2
-          "rs"    100      ; Sheet Resistance in Ω/□
-          "i0"    3e-6     ; Bias Current in A
-          "vdd"   1.8      ; Supply Voltage
-          "Wres"  2e-6     ; Resistor Width in m
-          "Mcap"  1e-6     ; Capacitance multiplier
-          "w_min" 0.42
-          "w_max" 100
-          "l_min" 0.15
-          "l_max" 100
+         {"cs"       0.85e-15 ; Poly Capacitance per μm^2
+          "rs"       100      ; Sheet Resistance in Ω/□
+          "i0"       3e-6     ; Bias Current in A
+          "vdd"      1.8      ; Supply Voltage
+          "Wres"     2e-6     ; Resistor Width in m
+          "Mcap"     1e-6     ; Capacitance multiplier
+          "w_min"    0.42
+          "w_max"    100
+          "l_min"    0.15
+          "l_max"    100
+          "gmid_min" 6.0      ; Minimum device efficiency
+          "gmid_max" 26.0     ; Maximum device efficiency
+          "fug_min"  1e6      ; Minimum device speed
+          "fug_max"  1e9      ; Maximum device speed
           #_/ }]
         [(= ace-backend "gpdk180-1V2")
-         {"cs"    0.85e-15 ; Poly Capacitance per μm^2
-          "rs"    100      ; Sheet Resistance in Ω/□
-          "i0"    3e-6     ; Bias Current in A
-          "vdd"   1.8      ; Supply Voltage
-          "Wres"  2e-6     ; Resistor Width in m
-          "Mcap"  1e-6     ; Capacitance multiplier
-          "w_min" 0.42
-          "w_max" 100
-          "l_min" 0.18
-          "l_max" 20
+         {"cs"       0.85e-15 ; Poly Capacitance per μm^2
+          "rs"       100      ; Sheet Resistance in Ω/□
+          "i0"       3e-6     ; Bias Current in A
+          "vdd"      1.8      ; Supply Voltage
+          "Wres"     2e-6     ; Resistor Width in m
+          "Mcap"     1e-6     ; Capacitance multiplier
+          "w_min"    0.42
+          "w_max"    100
+          "l_min"    0.18
+          "l_max"    20
+          "gmid_min" 6.0      ; Minimum device efficiency
+          "gmid_max" 26.0     ; Maximum device efficiency
+          "fug_min"  1e6      ; Minimum device speed
+          "fug_max"  1e9      ; Maximum device speed
           #_/ }]
         [True (raise (NotImplementedError errno.ENOSYS
                             (os.strerror errno.ENOSYS) 
