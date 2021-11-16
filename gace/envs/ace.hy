@@ -33,7 +33,7 @@
   Base class interfacing both ACE and gym.
   Arguments:
     ace-id: str                         -> ACE Identifier ∈ [op#, st1, nand4]
-    ace-backend: str                    -> ACE Backend ∈ [xh035, sky130]
+    ace-backend: str                    -> ACE Backend ∈ [xh035, sky130, gpdk180]
   Optional:
     ckt-path: str (None)                -> Path to ACE Testbench
     pdk-path: str (None)                -> Path to PDK
