@@ -15,7 +15,7 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op4-xh035-v0"))
+(setv env (gym.make "gace:st1-gpdk180-v1"))
 (gace.check-env env)
 
 
