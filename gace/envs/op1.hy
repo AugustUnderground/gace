@@ -165,11 +165,29 @@
                (| kwargs {"ace_id" "op1" "ace_backend" "xh035-3V3" 
                           "ace_variant" 0 "obs_shape" (, 211)}))))
   
-  (defclass OP1XH035V1Env [OP1V1Env]
+(defclass OP1XH035V1Env [OP1V1Env]
+"""
+Implementation: xh035-3V3
+"""
+(defn __init__ [self &kwargs kwargs]
+  (.__init__ (super OP1XH035V1Env self) #**
+             (| kwargs {"ace_id" "op1" "ace_backend" "xh035-3V3" 
+                        "ace_variant" 1 "obs_shape" (, 211)}))))
+
+(defclass OP1GPDK180V0Env [OP1V0Env]
   """
-  Implementation: xh035-3V3
+  Implementation: gpdk180-1V2
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super OP1XH035V1Env self) #**
-               (| kwargs {"ace_id" "op1" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1 "obs_shape" (, 211)}))))
+    (.__init__ (super OP1GPDK180V0Env self) #**
+               (| kwargs {"ace_id" "op1" "ace_backend" "gpdk180-1V2" 
+                          "ace_variant" 0 "obs_shape" (, 211)}))))
+  
+(defclass OP1GPDK180V1Env [OP1V1Env]
+"""
+Implementation: gpdk180-1V2
+"""
+(defn __init__ [self &kwargs kwargs]
+  (.__init__ (super OP1GPDK180V1Env self) #**
+             (| kwargs {"ace_id" "op1" "ace_backend" "gpdk180-1V2" 
+                        "ace_variant" 1 "obs_shape" (, 211)}))))

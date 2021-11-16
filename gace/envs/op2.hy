@@ -168,7 +168,6 @@
                (| kwargs {"ace_id" "op2" "ace_backend" "xh035-3V3" 
                           "ace_variant" 1 "obs_shape" (, 206)}))))
 
-
 (defclass OP2SKY130V0Env [OP2V0Env]
   """
   Implementation: sky130-1V8
@@ -185,4 +184,22 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2SKY130V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "sky130-1V8" 
+                          "ace_variant" 1 "obs_shape" (, 266)}))))
+
+(defclass OP2GPDK180V0Env [OP2V0Env]
+  """
+  Implementation: gpdk180-1V2
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP2GPDK180V0Env self) #**
+               (| kwargs {"ace_id" "op2" "ace_backend" "gpdk180-1V2" 
+                          "ace_variant" 0 "obs_shape" (, 266)}))))
+
+(defclass OP2GPDK180V1Env [OP2V1Env]
+  """
+  Implementation: gpdk180-1V2
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP2GPDK180V1Env self) #**
+               (| kwargs {"ace_id" "op2" "ace_backend" "gpdk180-1V2" 
                           "ace_variant" 1 "obs_shape" (, 266)}))))
