@@ -15,7 +15,13 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:st1-gpdk180-v1"))
+(setv env (gym.make "gace:op6-gpdk180-v0"))
+(setx obs (.reset env))
+(setx act (.sample env.action-space))
+(setx ob (.step env act))
+
+
+
 (gace.check-env env)
 
 
