@@ -38,8 +38,7 @@
     (.__init__ (super OP1V0Env self) #** kwargs)
 
     ;; The action space consists of 12 parameters ∈ [-1;1]. One gm/id and fug for
-    ;; each building block. This is subject to change and will include branch
-    ;; currents / mirror ratios in the future.
+    ;; each building block and 2 branch currents.
     (setv self.action-space (Box :low -1.0 :high 1.0 :shape (, 12) 
                                  :dtype np.float32)
           self.action-scale-min 

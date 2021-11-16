@@ -39,17 +39,20 @@
     (.__init__ (super OP6V0Env self) #** kwargs)
 
     ;; The action space consists of 14 parameters ∈ [-1;1]. One gm/id and fug for
-    ;; each building block. This is subject to change and will include branch
-    ;; currents / mirror ratios in the future.
+    ;; each building block and 2 branch currents.
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 14) 
                                  :dtype np.float32)
-          self.action-scale-min (np.array [7.0 7.0 7.0 7.0 7.0 7.0       ; gm/Id min
-                                           1e6 5e5 1e6 1e6 1e6 1e6       ; fug min
-                                           3e-6 1.5e-6])                 ; branch currents
-          self.action-scale-max (np.array [17.0 17.0 17.0 17.0 17.0 17.0 ; gm/Id max
-                                           1e9 5e8 1e9 1e9 1e9 1e9       ; fug max
-                                           48e-6 480e-6]))               ; branch currents
+          self.action-scale-min 
+                (np.concatenate (, (np.repeat self.gmid-min 6)    ; gm/Id min
+                                   (np.repeat self.fug-min  6)    ; fug min
+                                   (np.array [(/ self.i0 3.0) 
+                                              (/ self.i0 3.0)]))) ; branch currents
+          self.action-scale-max 
+                (np.concatenate (, (np.repeat self.gmid-max 6)    ; gm/Id min
+                                   (np.repeat self.fug-max  6)    ; fug min
+                                   (np.array [(* self.i0 10) 
+                                              (* self.i0 40)])))) ; branch currents
     #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
