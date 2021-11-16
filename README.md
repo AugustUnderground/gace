@@ -53,13 +53,11 @@ env = gym.make(                   'gace:op2-sky130-v1'    # Symmetrical Amplifie
 
 ## Single Ended OpAmp Environments
 
-### Observation Space
+### Observation Spaces and Technologies
 
 The observation space includes the current perforamnce, the specified target,
 the normalized distance between target and current performance (`| t - p | / t`) 
 and operating point characteristics for all devices in the circuit.
-
-#### OP# Environments
 
 ```json
 { "performance": { "a_0":         "DC Gain"
@@ -93,6 +91,23 @@ and operating point characteristics for all devices in the circuit.
 , "state":       { "electrical characteristics": "..." } }
 ```
 
+- [X] X-Fab XH035 350nm as `xh035`
+- [X] SkyWater 130nm as `sky130`
+- [X] GPDK 180nm
+- [ ] PTM 130nm
+
+### Action Spaces and Variants
+
+Action Spaces in `v0` and `v1` are _continuous_ and implemented with
+`gym.spaces.Box`. For further details, see the descriptions for specific
+environments.
+
+| Variant | Description                                      |
+|---------|--------------------------------------------------|
+| `v0`    | Electrical design space (`gmoverid`, `fug`, ...) |
+| `v1`    | Geometric Design Space (`W`, `L`, ...)           |
+| `v2`    | TBA                                              |
+
 ### Reward
 
 The overall reward `r` is calculated based on individual performance
@@ -115,41 +130,31 @@ and `m` is a mask showing whether the performance was reached, i.e. `p > t`, in
 which case `tanh` is applied so the reward doesn't increase infinitely.
 Otherwise the loss is squared and negated.
 
-### Action Spaces
-
-Action Spaces in `v0` and `v1` are _continuous_ and implemented with
-`gym.spaces.Box`. For further details, see the descriptions for specific
-environments.
-
-### Variants
-
-| Version | Description                                      |
-|---------|--------------------------------------------------|
-| `v0`    | Electrical design space (`gmoverid`, `fug`, ...) |
-| `v1`    | Geometric Design Space (`W`, `L`, ...)           |
-| `v2`    | TBA                                              |
-
-### Technologies
-
-- [X] X-Fab XH035 350nm as `xh035`
-- [ ] SkyWater 130nm as `sky130`
-- [ ] GPDK 180nm
-- [ ] PTM 130nm
 
 ### Miller Amplifier (OP1)
 
 ![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
 
-Registered as:
+Registered as `gace:op1-<tech>-<variant>`.
 
-| Technology | IDs                                      |
-|------------|------------------------------------------|
-| XH035      | `gace:op1-xh035-v0`, `gace:op1-xh035-v1` |
-| Sky130     | TBA                                      |
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²¹¹ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box(low   = -np.inf
+              , high  = np.inf
+              , shape = (211 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space 
 
-| Version | Domain               | Description                                                                                                                     |
+| Variant | Dimensions           | Description                                                                                                                     |
 |---------|----------------------|---------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block,<br/> 1 resistance, 1 capacitance and the branch currents <br/> `i1` and `i2`. |
 | `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block,<br/> geometric sizes for Rc and Cc as well as <br/> mirror rations `M1` and `M2`.      |
@@ -171,32 +176,46 @@ gym.spaces.Box( low   = -1.0
 
 ```
 
-#### Observation Space
-
-Continuous `ℝ ²¹¹ ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (211 , )
-              , dtype = np.float32
-              , )
-```
-
 ### Symmetrical Amplifier (OP2)
 
 ![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
 
-Registered as:
+Registered as `gace:op2-<tech>-<variant>`.
 
-| Technology | IDs                                      |
-|------------|------------------------------------------|
-| XH035      | `gace:op2-xh035-v0`, `gace:op2-xh035-v1` |
-| Sky130     | TBA                                      |
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²⁰⁶ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²⁰⁶ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁰⁶ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (206 , )
+              , dtype = np.float32
+              , )
+
+# sky130
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (206 , )
+              , dtype = np.float32
+              , )
+
+# gpdk180
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (206 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space
 
-| Version | Domain               | Description                                                                               |
+| Variant | Dimensions           | Description                                                                               |
 |---------|----------------------|-------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹⁰ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1` and `i2`. |
 | `v1`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block and <br/> mirror ratios `Mcm1` and `Mcm2`.        |
@@ -217,32 +236,46 @@ gym.spaces.Box( low   = -1.0
               , )
 ```
 
-#### Observation Space
-
-Continuous `ℝ ²⁰⁶ ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (206 , )
-              , dtype = np.float32
-              , )
-```
-
 ### Un-Symmetrical Amplifier (OP3)
 
 ![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
 
-Registered as:
+Registered as `gace:op3-<tech>-<variant>`.
 
-| Technology | IDs                                      |
-|------------|------------------------------------------|
-| XH035      | `gace:op3-xh035-v0`, `gace:op3-xh035-v0` |
-| Sky130     | TBA                                      |
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²⁴⁶ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²⁴⁶ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁴⁶ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (246 , )
+              , dtype = np.float32
+              , )
+
+# sky130
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (246 , )
+              , dtype = np.float32
+              , )
+
+# gpdk180
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (246 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                                                                            |
+| Variant | Dimensions           | Description                                                                                                                                            |
 |---------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹¹ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional branch current. <br/> 4 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`. |
 | `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional mirror ratio. <br/> 4 `W`s and `L`s for each building block and <br/> mirror ratios `M1` `M2` and `M3`.               |
@@ -263,32 +296,46 @@ gym.spaces.Box( low   = -1.0
               , )
 ```
 
-#### Observation Space
-
-Same as _op2_, continuous `ℝ ²⁴⁶ ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (246 , )
-              , dtype = np.float32
-              , )
-```
-
 ### Symmetrical Amplifier with Cascode (OP4)
 
 ![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
 
-Registered as:
+Registered as `gace:op4-<tech>-<variant>`.
 
-| Technology | IDs                                      |
-|------------|------------------------------------------|
-| XH035      | `gace:op4-xh035-v0`, `gace:op4-xh035-v1` |
-| Sky130     | TBA                                      |
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (285 , )
+              , dtype = np.float32
+              , )
+
+# sky130
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (285 , )
+              , dtype = np.float32
+              , )
+
+# gpdk180
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (285 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                                                 |
+| Variant | Dimensions           | Description                                                                                                                 |
 |---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`.                             |
 | `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> reference transistor, as well as <br/> mirror ratios `M1`, `M2` and `M3`. |
@@ -309,11 +356,37 @@ gym.spaces.Box( low   = -1.0
               , )
 ```
 
+### Un-Symmetrical Amplifier with Cascode (OP5)
+
+![op5](https://github.com/matthschw/ace/blob/main/figures/op5.png)
+
+Registered as `gace:op5-<tech>-<variant>`.
+
 #### Observation Space
 
-Continuous `ℝ ²⁸⁵ ∈ (-∞ ; ∞)`:
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²⁸⁵ ∈ (-∞ ; ∞)` |
+
 
 ```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (285 , )
+              , dtype = np.float32
+              , )
+
+# sky130
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (285 , )
+              , dtype = np.float32
+              , )
+
+# gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
               , shape = (285 , )
@@ -321,20 +394,9 @@ gym.spaces.Box( low   = -np.inf
               , )
 ```
 
-### Un-Symmetrical Amplifier with Cascode (OP5)
-
-![op5](https://github.com/matthschw/ace/blob/main/figures/op5.png)
-
-Registered as:
-
-| Technology | IDs                                      |
-|------------|------------------------------------------|
-| XH035      | `gace:op5-xh035-v0`, `gace:op5-xh035-v1` |
-| Sky130     | TBA                                      |
-
 #### Action Space
 
-| Version | Domain               | Description                                                                                                                       |
+| Variant | Dimensions           | Description                                                                                                                       |
 |---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹⁶ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2`, `i3` and `i4`.                             |
 | `v1`    | `ℝ ²² ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> reference transistor, as well as <br/> mirror ratios `M1`, `M2`, `M3` and `M4`. |
@@ -355,32 +417,46 @@ gym.spaces.Box( low   = -1.0
               , )
 ```
 
-#### Observation Space
-
-Continuous `ℝ ²⁸⁵ ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (285 , )
-              , dtype = np.float32
-              , )
-```
-
 ### Miller Amplifier without R and C (OP6)
 
 ![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
 
-Registered as:
+Registered as `gace:op6-<tech>-<variant>`.
 
-| Technology | IDs                                      |
-|------------|------------------------------------------|
-| XH035      | `gace:op6-xh035-v0`, `gace:op6-xh035-v1` |
-| Sky130     | TBA                                      |
+#### Observation Space
+
+| Technology | Dimensions         |
+|------------|--------------------|
+| `xh035`    | `ℝ ²³⁵ ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ²³⁵ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²³⁵ ∈ (-∞ ; ∞)` |
+
+```python
+# xh035
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (235 , )
+              , dtype = np.float32
+              , )
+
+# sky130
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (235 , )
+              , dtype = np.float32
+              , )
+
+# gpdk180
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (235 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space
 
-| Version | Domain               | Description                                                                                                                  |
+| Variant | Dimensions           | Description                                                                                                                  |
 |---------|----------------------|------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`.   |
 | `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> the weird transistors plus the mirror ratios <br/> currents `M1` and `M2`. |
@@ -401,21 +477,9 @@ gym.spaces.Box( low   = -1.0
               , )
 ```
 
-#### Observation Space
-
-Same as _op1_, continuous `ℝ ²³⁵ ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (235 , )
-              , dtype = np.float32
-              , )
-```
-
 ## Inverter Environments
 
-### Observation Space
+### Observation Spaces and Technologies
 
 The observation space includes the current perforamnce, the specified target,
 the normalized distance between target and current performance (`| t - p | / t`) 
@@ -431,6 +495,15 @@ and operating point characteristics for all devices in the circuit.
 , "state":       { "electrical characteristics": "..." } }
 ```
 
+Since there are only comparatively few observations, they are identical across
+technologies.
+
+### Action Spaces and Variants
+
+Action Spaces in `v1` are _continuous_ and implemented with
+`gym.spaces.Box`. For further details, see the descriptions for specific
+environments. For now, only `v1` is implemented for Inverter Environments.
+
 ### Reward
 
 The overall reward `r` is calculated based on individual performance
@@ -440,30 +513,32 @@ parameters:
 r = - ∑ ( | t - p | / t )
 ```
 
-### Action Spaces
-
-Action Spaces in `v1` are _continuous_ and implemented with
-`gym.spaces.Box`. For further details, see the descriptions for specific
-environments.
-
-### Variations
-
-For now, only `v1` is implemented for Inverter Environments.
-
 ### 4 Gate Inverter Chain (NAND4)
 
 ![nand4](https://github.com/matthschw/ace/blob/main/figures/nand4.png)
 
-Registered as:
+Registered as `gace:nand4-<tech>-<variant>`.
 
-| Technology | IDs                   |
-|------------|-----------------------|
-| XH035      | `gace:nand4-xh035-v1` |
-| Sky130     | TBA                   |
+#### Observation Space
+
+| Technology | Dimensions        |
+|------------|-------------------|
+| `xh035`    | `ℝ ¹² ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ¹² ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ¹² ∈ (-∞ ; ∞)` |
+
+```python
+# xh035, sky130, gpdk180
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (12 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space
 
-| Version | Domain              | Description                        |
+| Variant | Dimensions          | Description                        |
 |---------|---------------------|------------------------------------|
 | `v1`    | `ℝ ⁵ ∈ [-1.0; 1.0]` | 5 `W`s for each gate in the chain. |
 
@@ -476,21 +551,9 @@ gym.spaces.Box( low   = -1.0
               , )
 ```
 
-#### Observation Space
-
-Continuous `ℝ ¹² ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (12 , )
-              , dtype = np.float32
-              , )
-```
-
 ## Schmitt Trigger Environments
 
-### Observation Space
+### Observation Spaces and Technologies
 
 The observation space includes the current perforamnce, the specified target,
 the normalized distance between target and current performance (`| t - p | / t`) 
@@ -505,6 +568,16 @@ and operating point characteristics for all devices in the circuit.
 , "distance": { "Same keys as 'performance'": "..." } }
 ```
 
+Since there are only comparatively few observations, they are identical across
+technologies.
+
+### Action Spaces
+
+Action Spaces in `v1` are _continuous_ and implemented with
+`gym.spaces.Box`. For further details, see the descriptions for specific
+environments.  For now, only `v1` is implemented for Schmitt Trigger
+Environments.
+
 ### Reward
 
 The overall reward `r` is calculated based on individual performance
@@ -514,30 +587,32 @@ parameters:
 r = - ∑ ( | t - p | / t )
 ```
 
-### Action Spaces
-
-Action Spaces in `v1` are _continuous_ and implemented with
-`gym.spaces.Box`. For further details, see the descriptions for specific
-environments.
-
-### Variations
-
-For now, only `v1` is implemented for Schmitt Trigger Environments.
-
 ### Schmitt Trigger (ST1)
 
 ![st1](https://github.com/matthschw/ace/blob/main/figures/st1.png)
 
-Registered as:
+Registered as `gace:st1-<tech>-<variant>`.
 
-| Technology | IDs                 |
-|------------|---------------------|
-| XH035      | `gace:st1-xh035-v1` |
-| Sky130     | TBA                 |
+#### Observation Space
+
+| Technology | Dimensions        |
+|------------|-------------------|
+| `xh035`    | `ℝ ¹² ∈ (-∞ ; ∞)` |
+| `sky130`   | `ℝ ¹² ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ¹² ∈ (-∞ ; ∞)` |
+
+```python
+# xh035, sky130, gpdk180
+gym.spaces.Box( low   = -np.inf
+              , high  = np.inf
+              , shape = (12 , )
+              , dtype = np.float32
+              , )
+```
 
 #### Action Space
 
-| Version | Domain              | Description                               |
+| Variant | Dimensions          | Description                               |
 |---------|---------------------|-------------------------------------------|
 | `v1`    | `ℝ ⁶ ∈ [-1.0; 1.0]` | 6 `W`s for each device in schmit trigger. |
 
@@ -546,18 +621,6 @@ Registered as:
 gym.spaces.Box( low   = -1.0
               , high  = 1.0
               , shape = (6 , )
-              , dtype = np.float32
-              , )
-```
-
-#### Observation Space
-
-Continuous `ℝ ¹² ∈ (-∞ ; ∞)`:
-
-```python
-gym.spaces.Box( low   = -np.inf
-              , high  = np.inf
-              , shape = (12 , )
               , dtype = np.float32
               , )
 ```
@@ -757,6 +820,7 @@ $ pytest
 - [ ] demo Agent
 - [X] handle `NaN`s better
 - [ ] find better limit/range for obs space
-- [ ] add skywater envs
+- [X] add skywater envs
+- [X] add gpdk envs
 - [ ] add installer script
 - [ ] add reset counter, gradually increase noise/target distance
