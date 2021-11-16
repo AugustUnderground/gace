@@ -95,10 +95,10 @@
           Lcm2 (get cm2-out 1)
           Lcm3 (get cm3-out 1)
 
-          Wdp1 (/ (* 0.5 i1) (get dp1-out 0)) 
-          Wcm1 (/ self.i0 (get cm1-out 0))
-          Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
-          Wcm3 (/ i2 (get cm3-out 0))
+          Wdp1 (/ i1 2.0 (get dp1-out 0)) 
+          Wcm1 (/ i0     (get cm1-out 0))
+          Wcm2 (/ i1 2.0 (get cm2-out 0))
+          Wcm3 (/ i2     (get cm3-out 0))
 
           sizing { "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  "Ld" Ldp1
                    "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1
