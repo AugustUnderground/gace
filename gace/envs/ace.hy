@@ -55,7 +55,7 @@
                        ^(of Tuple int) [obs-shape (, 0)]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
-                       ^int [max-steps 666]
+                       ^int [max-steps 666] ^(of dict str float) [design-constraints {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^str [nmos-path None] ^str [pmos-path None]
@@ -71,6 +71,10 @@
 
     ;; Get technology constraints attached to this ACE object
     (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
+      (setattr self k v))
+    
+    ;; Use given `design-constraints` to override technology-data.
+    (for [(, k v) (.items design-constraints)]
       (setattr self k v))
     
     ;; The `Box` type observation space consists of perforamnces, the distance
