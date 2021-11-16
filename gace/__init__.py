@@ -5,14 +5,14 @@ from gace.util import check_env
 # 
 # | Variant | Description                                |
 # |---------+--------------------------------------------|
-# | v0      | V0trical Action Space (gmoverid and fug)   |
-# | v1      | V1etrical Action Space (W, L and M)        |
+# | v0      | Electrical Action Space (gmoverid and fug) |
+# | v1      | Geometric Action Space (W, L and M)        |
 # | v2      | TBA                                        |
 #
 # Technolgies:
 #   - X-Fab 350nm: xh035-3V3
 #   - SkyWater 130nm: sky130-1V8
-#   - TODO GPDK 180nm: gpdk180-1V2
+#   - GPDK 180nm: gpdk180-1V2
 #   - TODO PTM 130nm: ptm130-1V2
 
 from gym.envs.registration import register
@@ -25,6 +25,15 @@ register( id          = 'op1-xh035-v0'
 register( id          = 'op1-xh035-v1'
         , entry_point = 'gace.envs:OP1XH035V1Env'
         , )
+
+register( id          = 'op1-gpdk180-v0'
+        , entry_point = 'gace.envs:OP1GPDK180V0Env'
+        , )
+
+register( id          = 'op1-gpdk180-v1'
+        , entry_point = 'gace.envs:OP1GPDK180V1Env'
+        , )
+
 
 ## AC²E: OP2 - Symmetrical Amplifier
 register( id          = 'op2-xh035-v0'
@@ -43,6 +52,14 @@ register( id          = 'op2-sky130-v1'
         , entry_point = 'gace.envs:OP2SKY130V1Env'
         , )
 
+register( id          = 'op2-gpdk180-v0'
+        , entry_point = 'gace.envs:OP2GPDK180V0Env'
+        , )
+
+register( id          = 'op2-gpdk180-v1'
+        , entry_point = 'gace.envs:OP2GPDK180V1Env'
+        , )
+
 ## AC²E: OP3 - Un-Symmetrical Amplifier
 register( id          = 'op3-xh035-v0'
         , entry_point = 'gace.envs:OP3XH035V0Env'
@@ -50,6 +67,22 @@ register( id          = 'op3-xh035-v0'
 
 register( id          = 'op3-xh035-v1'
         , entry_point = 'gace.envs:OP3XH035V1Env'
+        , )
+
+register( id          = 'op3-sky130-v0'
+        , entry_point = 'gace.envs:OP3SKY130V0Env'
+        , )
+
+register( id          = 'op3-sky130-v1'
+        , entry_point = 'gace.envs:OP3SKY130V1Env'
+        , )
+
+register( id          = 'op3-gpdk180-v0'
+        , entry_point = 'gace.envs:OP3GPDK180V0Env'
+        , )
+
+register( id          = 'op3-gpdk180-v1'
+        , entry_point = 'gace.envs:OP3GPDK180V1Env'
         , )
 
 ## AC²E: OP4 - Symmetrical Cascode Amplifier
@@ -61,6 +94,22 @@ register( id          = 'op4-xh035-v1'
         , entry_point = 'gace.envs:OP4XH035V1Env'
         , )
 
+register( id          = 'op4-sky130-v0'
+        , entry_point = 'gace.envs:OP4SKY130V0Env'
+        , )
+
+register( id          = 'op4-sky130-v1'
+        , entry_point = 'gace.envs:OP4SKY130V1Env'
+        , )
+
+register( id          = 'op4-gpdk180-v0'
+        , entry_point = 'gace.envs:OP4GPDK180V0Env'
+        , )
+
+register( id          = 'op4-gpdk180-v1'
+        , entry_point = 'gace.envs:OP4GPDK180V1Env'
+        , )
+
 ## AC²E: OP5 - Un-Symmetrical Cascode Amplifier
 register( id          = 'op5-xh035-v0'
         , entry_point = 'gace.envs:OP5XH035V0Env'
@@ -70,6 +119,22 @@ register( id          = 'op5-xh035-v1'
         , entry_point = 'gace.envs:OP5XH035V1Env'
         , )
 
+register( id          = 'op5-sky130-v0'
+        , entry_point = 'gace.envs:OP5SKY130V0Env'
+        , )
+
+register( id          = 'op5-sky130-v1'
+        , entry_point = 'gace.envs:OP5SKY130V1Env'
+        , )
+
+register( id          = 'op5-gpdk180-v0'
+        , entry_point = 'gace.envs:OP5GPDK180V0Env'
+        , )
+
+register( id          = 'op5-gpdk180-v1'
+        , entry_point = 'gace.envs:OP5GPDK180V1Env'
+        , )
+
 ## AC²E: OP6 - Miller Amplifier w/o passives
 register( id          = 'op6-xh035-v0'
         , entry_point = 'gace.envs:OP6XH035V0Env'
@@ -77,6 +142,22 @@ register( id          = 'op6-xh035-v0'
 
 register( id          = 'op6-xh035-v1'
         , entry_point = 'gace.envs:OP6XH035V1Env'
+        , )
+
+register( id          = 'op6-sky130-v0'
+        , entry_point = 'gace.envs:OP6SKY130V0Env'
+        , )
+
+register( id          = 'op6-sky130-v1'
+        , entry_point = 'gace.envs:OP6SKY130V1Env'
+        , )
+
+register( id          = 'op6-gpdk180-v0'
+        , entry_point = 'gace.envs:OP6GPDK180V0Env'
+        , )
+
+register( id          = 'op6-gpdk180-v1'
+        , entry_point = 'gace.envs:OP6GPDK180V1Env'
         , )
 
 ## AC²E: NAND4 - 4 NAND Gate Inverter Chain
