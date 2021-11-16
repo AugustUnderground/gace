@@ -42,14 +42,16 @@
     ;; currents / mirror ratios in the future.
     (setv self.action-space (Box :low -1.0 :high 1.0 :shape (, 12) 
                                  :dtype np.float32)
-          self.action-scale-min (np.array [7.0 7.0 7.0 7.0      ; gm/Id min
-                                           1e6 1e6 1e6 1e6      ; fug min
-                                           0.5e3 0.5e-12        ; Rc and Cc
-                                           3e-6 1.5e-6])        ; branch currents
-          self.action-scale-max (np.array [17.0 17.0 17.0 17.0  ; gm/Id max
-                                           1e9 5e8 1e9 1e9      ; fug max
-                                           50e3 5e-12           ; Rc and Cc
-                                           48e-6 480e-6]))      ; branch currents
+          self.action-scale-min 
+                (np.concatenate (, (np.repeat self.gmid-min 4)                    ; gm/Id min
+                                   (np.repeat self.fug-min  4)                    ; fug min
+                                   (np.array [self.Rc-min self.Cc-min])           ; Rc and Cc
+                                   (np.array [(/ self.i0 3.0) (/ self.i0 3.0)]))) ; branch currents
+          self.action-scale-max 
+                (np.concatenate (, (np.repeat self.gmid-max 4)                    ; gm/Id min
+                                   (np.repeat self.fug-max  4)                    ; fug min
+                                   (np.array [self.Rc-max self.Cc-max])           ; Rc and Cc
+                                   (np.array [(* self.i0 10) (* self.i0 40)]))))  ; branch currents
     #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]

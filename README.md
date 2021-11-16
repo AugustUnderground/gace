@@ -27,7 +27,7 @@ After installing [AC²E](https://github.com/matthschw/ace) and
 there are multiple ways to configure `gace` and tell it, where it can find the
 pdk, testbenches and machine learning models.
 
-## Getting Started
+## Usage
 
 ```python
 import gym
@@ -40,7 +40,7 @@ env = gym.make(                      'gace:op2-sky130-v1'    # Symmetrical Ampli
               , pdk_path           = '/path/to/tech'         # path to pdk
               , ckt_path           = '/path/to/op2'          # path to testbench
               , nmos_path          = '/path/to/models/nmos'  # path to nmos model
-              , pmos_path          = '/path/to/models/pmos'  # paht to pmos model
+              , pmos_path          = '/path/to/models/pmos'  # path to pmos model
               , max_steps          = 200                     # Reset env after this many steps
               , target             = {}                      # Dict like 'perforamnce' below
               , design-constraints = {}                      # Override default technology constraints
@@ -51,6 +51,32 @@ env = gym.make(                      'gace:op2-sky130-v1'    # Symmetrical Ampli
               #, reltol             = 1e-3                    # ONLY FOR NAND4 AND ST1
               , )
 ```
+
+The `design-constraints` dict supports the following fields:
+
+```json
+{ "cs":       "Poly Capacitance per μm^2"
+, "rs":       "Sheet Resistance in Ω/□ "
+, "i0":       "Bias Current in A"
+, "vdd":      "Supply Voltage"
+, "Wres":     "Resistor Width in m"
+, "Mcap":     "Capacitance multiplier"
+, "Rc_min":   "Minimum Compensation Resistor = 500Ω"
+, "Rc_max":   "Minimum Compensation Resistor = 50000Ω"
+, "Cc_min":   "Minimum Compensation Capacitor = 0.5pF"
+, "Cc_max":   "Minimum Compensation Capacitor = 5pF"
+, "w_min":    "Minimum width either in m or scaled to μm"
+, "w_max":    "Maximum width either in m or scaled to μm"
+, "l_min":    "Minimum length either in m or scaled to μm"
+, "l_max":    "Maximum length either in m or scaled to μm"
+, "gmid_min": "Minimum device efficiency"
+, "gmid_max": "Maximum device efficiency"
+, "fug_min":  "Minimum device speed"
+, "fug_max":  "Maximum device speed"
+}
+```
+
+Other fields should have no effect.
 
 ## Single Ended OpAmp Environments
 

@@ -262,6 +262,10 @@
           "vdd"      3.3      ; Supply Voltage
           "Wres"     2e-6     ; Resistor Width in m
           "Mcap"     1e-6     ; Capacitance multiplier
+          "Rc_min"   0.5e3    ; Minimum Compensation Resistor = 500Ω
+          "Rc_max"   50e3     ; Minimum Compensation Resistor = 50000Ω
+          "Cc_min"   0.5e-12  ; Minimum Compensation Capacitor = 0.5pF
+          "Cc_max"   5e-12    ; Minimum Compensation Capacitor = 5pF
           "w_min"    0.4e-6
           "w_max"    150e-6
           "l_min"    0.35e-6
@@ -278,6 +282,10 @@
           "vdd"      1.8      ; Supply Voltage
           "Wres"     2e-6     ; Resistor Width in m
           "Mcap"     1e-6     ; Capacitance multiplier
+          "Rc_min"   0.5e3    ; Minimum Compensation Resistor = 500Ω
+          "Rc_max"   50e3     ; Minimum Compensation Resistor = 50000Ω
+          "Cc_min"   0.5e-12  ; Minimum Compensation Capacitor = 0.5pF
+          "Cc_max"   5e-12    ; Minimum Compensation Capacitor = 5pF
           "w_min"    0.42
           "w_max"    100
           "l_min"    0.15
@@ -294,6 +302,10 @@
           "vdd"      1.8      ; Supply Voltage
           "Wres"     2e-6     ; Resistor Width in m
           "Mcap"     1e-6     ; Capacitance multiplier
+          "Rc_min"   0.5e3    ; Minimum Compensation Resistor = 500Ω
+          "Rc_max"   50e3     ; Minimum Compensation Resistor = 50000Ω
+          "Cc_min"   0.5e-12  ; Minimum Compensation Capacitor = 0.5pF
+          "Cc_max"   5e-12    ; Minimum Compensation Capacitor = 5pF
           "w_min"    0.42
           "w_max"    100
           "l_min"    0.18
