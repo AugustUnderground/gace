@@ -59,7 +59,11 @@
                                               (* self.i0 3.0 20.0)            ; i3 = M41 : M42
                                               (* self.i0 3.0 20.0)            ; i4 = M41 : M43
                                               #_/ ]))))
-    #_/ )
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-cm5" 
+                       "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-cm5" 
+                       "i1" "i2" "i3" "i4" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -70,7 +74,7 @@
     TODO: Implement sizing procedure.
     """
     (let [(, gmid-dp1 gmid-cm1 gmid-cm2 gmid-cm3 gmid-cm4 gmid-cm5
-             gmid-dp1 fug-cm1  fug-cm2  fug-cm3  fug-cm4  fug-cm5
+             fug-dp1  fug-cm1  fug-cm2  fug-cm3  fug-cm4  fug-cm5
              i1 i2 i3 i4 ) (unscale-value action self.action-scale-min 
                                                  self.action-scale-max)
 
@@ -131,23 +135,23 @@
     ;; Parent constructor for initialization
     (.__init__ (super OP8V1Env self) #** kwargs)
 
-    ;; The action space consists of 22 parameters ∈ [-1;1]. Ws and Ls for
+    ;; The action space consists of 21 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios as well as the cap and res.
-    ;;  [ 'Ld1' 'Lcm1' 'Lcm2' 'Lcm3' 'Lcm4'  'Lcm5' 
-    ;;    'Wd1' 'Wcm1' 'Wcm2' 'Wcm3' 'Wcm4'  'Wcm5' 
-    ;;          'Mcm1' 'Mcm2' 'Mcm3' 'Mcm41' 'Mcm51' 
-    ;;                               'Mcm42' 'Mcm52' 
-    ;;                               'Mcm43' 'Mcm53' ]
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 21) 
                                  :dtype np.float32)
-          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
           l-min (list (repeat self.l-min 6)) l-max (list (repeat self.l-max 6))
-          m-min [2  2  2  1 1 2  1 2  1]             
-          m-max [20 20 20 3 3 20 3 20 15]
-          self.action-scale-min (np.array (+ w-min l-min m-min))
-          self.action-scale-max (np.array (+ w-max l-max m-max)))
-    #_/ )
+          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
+          m-min [2  2  2  1 1 2  1 2  1]     m-max [20 20 20 3 3 20 3 20 15]
+          self.action-scale-min (np.array (+ l-min w-min m-min))
+          self.action-scale-max (np.array (+ l-max w-max m-max)))
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "Ldp1" "Lcm1" "Lcm2" "Lcm3" "Lcm4"  "Lcm5"
+                       "Wdp1" "Wcm1" "Wcm2" "Wcm3" "Wcm4"  "Wcm5"
+                              "Mcm1" "Mcm2" "Mcm3" "Mcm41" "Mcm51" 
+                                                   "Mcm42" "Mcm52" 
+                                                   "Mcm43" "Mcm53" ]))
 
   (defn step [self action]
     """
@@ -157,7 +161,7 @@
     """
     (let [ (,  Ldp1 Lcm1 Lcm2 Lcm3 Lcm4  Lcm5 
                Wdp1 Wcm1 Wcm2 Wcm3 Wcm4  Wcm5 
-               Mdp1 Mcm1 Mcm2 Mcm3 Mcm41 Mcm51 
+                    Mcm1 Mcm2 Mcm3 Mcm41 Mcm51 
                                    Mcm42 Mcm52 
                                    Mcm43 Mcm53 ) (unscale-value action 
                                                                 self.action-scale-min 

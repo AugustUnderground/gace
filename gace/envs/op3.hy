@@ -57,7 +57,11 @@
                                               (* self.i0 8.0 20.0)  ; i2 = M211 : M212
                                               (* self.i0 8.0 20.0)  ; i3 = M221 : M222
                                               #_/ ]))))
-    #_/ )
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
+                       "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
+                       "i1" "i2" "i3" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -132,13 +136,14 @@
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 15) 
                                  :dtype np.float32)
-          w-min (list (repeat self.w-min 4)) w-max (list (repeat self.w-max 4))
           l-min (list (repeat self.l-min 4)) l-max (list (repeat self.l-max 4))
-          m-min (list (repeat 1.0 7))     
-          m-max [3 16 10 10 20 20 3] ;; M11, M12, M31, M32, M212, M222, M2x1
-          self.action-scale-min (np.array (+ w-min l-min m-min))
-          self.action-scale-max (np.array (+ w-max l-max m-max)))
-    #_/ )
+          w-min (list (repeat self.w-min 4)) w-max (list (repeat self.w-max 4))
+          m-min [1 1  1  1  1  1  1]         m-max [3 20 10 16 20 10 3]
+          self.action-scale-min (np.array (+ l-min w-min m-min))
+          self.action-scale-max (np.array (+ l-max w-max m-max)))
+
+    ;; Specify Input Parameternames
+    (setv self.input ))
 
   (defn step [self action]
     """
@@ -146,11 +151,12 @@
     ratios This is passed to the parent class where the netlist ist modified
     and then simulated, returning observations, reward, done and info.
     """
-    (let [(, Wdp1 Wcm1  Wcm2   Wcm3 
-             Ldp1 Lcm1  Lcm2   Lcm3  
-             Mcm11 Mcm12 Mcm31 Mcm32
-             Mcm212 Mcm222 Mcm2x1 ) (unscale-value action self.action-scale-min 
-                                                          self.action-scale-max)
+    (let [(, Ldp1 Lcm1  Lcm2   Lcm3  
+             Wdp1 Wcm1  Wcm2   Wcm3 
+                  Mcm11 Mcm212 Mcm31 
+                  Mcm12 Mcm222 Mcm32
+                        Mcm2x1 ) (unscale-value action self.action-scale-min 
+                                                       self.action-scale-max)
 
           Mdp1 2 
 
@@ -200,18 +206,18 @@
 
 (defclass OP3GPDK180V0Env [OP3V0Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V0Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "op3" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 0 "obs_shape" (, 294)}))))
 
 (defclass OP3GPDK180V1Env [OP3V1Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "op3" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 1 "obs_shape" (, 294)}))))

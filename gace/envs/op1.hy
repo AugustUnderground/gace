@@ -55,7 +55,11 @@
                                    (np.array [(* self.i0 10.0)          ; i1 = M11 : M12
                                               (* self.i0 40.0)          ; i2 = M11 : M13
                                               #_/ ]))))
-    #_/ )
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
+                       "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
+                       "res" "cap" "i1" "i2" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -124,21 +128,23 @@
 
     ;; The action space consists of 14 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios as well as the cap and res.
-    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
-    ;;   "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
-    ;;        "Mcm11"         "Mcs"
-    ;;        "Mcm12" 
-    ;;        "Mcm13"                             ]
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 15) 
                                  :dtype np.float32)
 
-          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
           l-min (list (repeat self.l-min 5)) l-max (list (repeat self.l-max 5))
-          m-min [1  1  1  1 ]                m-max [3  40 10 40]
-          self.action-scale-min (np.array (+ w-min l-min m-min))
-          self.action-scale-max (np.array (+ w-max l-max m-max)))
-    #_/ )
+          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
+          m-min [1  1  1  1 ]                m-max [3 40 10 40]
+
+          self.action-scale-min (np.array (+ l-min w-min m-min))
+          self.action-scale-max (np.array (+ l-max w-max m-max)))
+    
+    ;; Specify Input Parameternames
+    (setv self.input [ "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
+                       "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
+                            "Mcm11"         "Mcs"
+                            "Mcm12" 
+                            "Mcm13"                             ]))
 
   (defn step [self action]
     """
@@ -187,18 +193,18 @@ Implementation: xh035-3V3
 
 (defclass OP1GPDK180V0Env [OP1V0Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP1GPDK180V0Env self) #**
-               (| kwargs {"ace_id" "op1" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "op1" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 0 "obs_shape" (, 211)}))))
   
 (defclass OP1GPDK180V1Env [OP1V1Env]
 """
-Implementation: gpdk180-1V2
+Implementation: gpdk180-1V8
 """
 (defn __init__ [self &kwargs kwargs]
   (.__init__ (super OP1GPDK180V1Env self) #**
-             (| kwargs {"ace_id" "op1" "ace_backend" "gpdk180-1V2" 
+             (| kwargs {"ace_id" "op1" "ace_backend" "gpdk180-1V8" 
                         "ace_variant" 1 "obs_shape" (, 211)}))))

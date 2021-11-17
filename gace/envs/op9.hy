@@ -63,7 +63,12 @@
                                               (* self.i0 3.0 20.0)  ; i5 = M31 : M33
                                               (* self.i0 3.0 20.0)  ; i6 = M31 : M34
                                               #_/ ]))))
-    #_/ )
+
+    ;; Specify Input Parameternames
+    (setv self.input 
+      [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-ls1" "gmid-re1" "gmid-re2"
+        "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-ls1"  "fug-re1"  "fug-re2"
+        "i1" "i2" "i3" "i4" "i5" "i6" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -74,7 +79,7 @@
     TODO: Implement sizing procedure.
     """
     (let [(, gmid-dp1 gmid-cm1 gmid-cm2 gmid-cm3 gmid-cm4 gmid-ls1 gmid-re1 gmid-re2
-             gmid-dp1 fug-cm1  fug-cm2  fug-cm3  fug-cm4  fug-ls1  fug-re1  fug-re2
+             fug-dp1  fug-cm1  fug-cm2  fug-cm3  fug-cm4  fug-ls1  fug-re1  fug-re2
              i1 i2 i3 i4 i5 i6) (unscale-value action self.action-scale-min 
                                                       self.action-scale-max)
 
@@ -148,23 +153,22 @@
 
     ;; The action space consists of 27 parameters ∈ [-1;1]. Ws and Ls for
     ;; each building block and mirror ratios.
-    ;; [ 'Ld1' 'Lcm1' 'Lcm2' 'Lcm3'  'Lcm4'  'Lls1' 'Lr1' 'Lr2'
-    ;;   'Wd1' 'Wcm1' 'Wcm2' 'Wcm3'  'Wcm4'  'Wls1' 'Wr2' 'Wr1'
-    ;;         'Mcm1' 'Mcm2' 'Mcm31' 'Mcm41' 'Mls1'
-    ;;                       'Mcm32' 'Mcm42'
-    ;;                       'Mcm33' 'Mcm43'
-    ;;                       'Mcm34' 'Mcm44' ]
-
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 27) 
                                  :dtype np.float32)
-          w-min (list (repeat self.w-min 8)) w-max (list (repeat self.w-max 8))
           l-min (list (repeat self.l-min 8)) l-max (list (repeat self.l-max 8))
-          m-min [2  2  1 1 2  1 1 2  1  2  1]             
-          m-max [20 20 3 3 20 3 3 20 25 20 15]
-          self.action-scale-min (np.array (+ w-min l-min m-min))
-          self.action-scale-max (np.array (+ w-max l-max m-max)))
-    #_/ )
+          w-min (list (repeat self.w-min 8)) w-max (list (repeat self.w-max 8))
+          m-min [2 2 1 1 2 1 1 2 1 2 1]      m-max [20 20 3 3 20 3 3 20 25 20 15]
+          self.action-scale-min (np.array (+ l-min w-min m-min))
+          self.action-scale-max (np.array (+ l-max w-max m-max)))
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "Ldp1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lr1" "Lr2"
+                       "Wdp1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wr2" "Wr1"
+                              "Mcm1" "Mcm2" "Mcm31" "Mcm41" "Mls1"
+                                            "Mcm32" "Mcm42"
+                                            "Mcm33" "Mcm43"
+                                            "Mcm34" "Mcm44" ]))
 
   (defn step [self action]
     """
@@ -173,12 +177,12 @@
     and then simulated, returning observations, reward, done and info.
     """
     (let [ (, Ldp1 Lcm1 Lcm2 Lcm3  Lcm4  Lls1 Lr1 Lr2 
-            Wdp1 Wcm1 Wcm2 Wcm3  Wcm4  Wls1 Wr2 Wr1 
-            Mcm1 Mcm2 Mcm31 Mcm41 Mls1 
-                      Mcm32 Mcm42 
-                      Mcm33 Mcm43 
-                      Mcm34 Mcm44 ) (unscale-value action self.action-scale-min 
-                                                          self.action-scale-max)
+              Wdp1 Wcm1 Wcm2 Wcm3  Wcm4  Wls1 Wr2 Wr1 
+              Mcm1 Mcm2 Mcm31 Mcm41 Mls1 
+                        Mcm32 Mcm42 
+                        Mcm33 Mcm43 
+                        Mcm34 Mcm44 ) (unscale-value action self.action-scale-min 
+                                                            self.action-scale-max)
 
           Mdp1 2
 

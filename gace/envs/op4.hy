@@ -57,7 +57,11 @@
                                               (* self.i0 8.0 20.0)  ; i2 = M21 : M22
                                               (* self.i0 3.0)       ; i3 = M11 : M12
                                               #_/ ]))))
-    #_/ )
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref" 
+                       "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref" 
+                       "i1" "i2" "i3" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -134,20 +138,21 @@
     (.__init__ (super OP4V1Env self) #** kwargs)
 
     ;; The action space consists of 18 parameters ∈ [-1;1]. 
-    ;; [ "Wd" "Wcm1"  "Wcm2"  "Wcm3"  "Wc1" "Wr"
-    ;;   "Ld" "Lcm1"  "Lcm2"  "Lcm3"  "Lc1" "Lr"
-    ;;        "Mcm11" "Mcm21"         "Mc1"
-    ;;        "Mcm12" "Mcm22"
-    ;;        "Mcm13"                           ]
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 18) 
                                  :dtype np.float32)
-          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
           l-min (list (repeat self.l-min 6)) l-max (list (repeat self.l-max 6))
+          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
           m-min [1 1 1 1 1 1]                m-max [3 3 20 3 20 16]
-          self.action-scale-min (np.array (+ w-min l-min m-min))
-          self.action-scale-max (np.array (+ w-max l-max m-max)))
-    #_/ )
+          self.action-scale-min (np.array (+ l-min w-min m-min))
+          self.action-scale-max (np.array (+ l-max w-max m-max)))
+
+    ;; Specify Input Parameternames
+    (setv self.input [ "Ldp1" "Lcm1"  "Lcm2"  "Lcm3"  "Lls1" "Lref" 
+                       "Wdp1" "Wcm1"  "Wcm2"  "Wcm3"  "Wls1" "Wref"
+                              "Mcm11" "Mcm21"         "Mls1" 
+                              "Mcm12" "Mcm22" 
+                              "Mcm13" ]))
 
   (defn step [self action]
     """
@@ -155,8 +160,8 @@
     ratios This is passed to the parent class where the netlist ist modified
     and then simulated, returning observations, reward, done and info.
     """
-    (let [(, Wdp1 Wcm1  Wcm2  Wcm3  Wls1 Wref 
-             Ldp1 Lcm1  Lcm2  Lcm3  Lls1 Lref 
+    (let [(, Ldp1 Lcm1  Lcm2  Lcm3  Lls1 Lref 
+             Wdp1 Wcm1  Wcm2  Wcm3  Wls1 Wref 
                   Mcm11 Mcm21       Mls1 
                   Mcm12 Mcm22 
                   Mcm13 )           (unscale-value action self.action-scale-min 
@@ -211,18 +216,18 @@
 
 (defclass OP4GPDK180V0Env [OP4V0Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4GPDK180V0Env self) #**
-               (| kwargs {"ace_id" "op4" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "op4" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 0 "obs_shape" (, 383)}))))
 
 (defclass OP4GPDK180V1Env [OP4V1Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "op4" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "op4" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 1 "obs_shape" (, 383)}))))
