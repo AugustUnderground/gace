@@ -61,9 +61,10 @@
                                               #_/ ]))))
 
     ;; Specify Input Parameternames
-    (setv self.input-parameters [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
-                                  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
-                                  "i1" "i2" "i3" "i4" ]))
+    (setv self.input-parameters 
+          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
+            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
+            "i1" "i2" "i3" "i4" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
