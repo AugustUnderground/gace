@@ -182,10 +182,10 @@ gym.spaces.Box(low   = -np.inf
 #### Action Space 
 
 <table>
-    <tr><th>Variant</th><th>Dimensions</th> <th>Description</th></tr>
-    <tr> 
-        <td> `v0` </td> <td> `ℝ ¹² ∈ [-1.0; 1.0]` </td>
-        <td>
+<tr><th>Variant</th><th>Dimensions</th> <th>Description</th></tr>
+<tr> 
+<td> `v0` </td> <td> `ℝ ¹² ∈ [-1.0; 1.0]` </td>
+<td>
 
 ```python
 [ "gmid-cm1", "gmid-cm2", "gmid-cs1", "gmid-dp1"
@@ -193,11 +193,11 @@ gym.spaces.Box(low   = -np.inf
 , "res", "cap", "i1", "i2" ]
 ```
 
-        </td>
-    </tr>
-    <tr> 
-        <td> `v1` </td> <td> `ℝ ¹⁵ ∈ [-1.0; 1.0]` </td>
-        <td>
+</td>
+</tr>
+<tr> 
+<td> `v1` </td> <td> `ℝ ¹⁵ ∈ [-1.0; 1.0]` </td>
+<td>
 
 ```python
 [ "Ld", "Lcm1",  "Lcm2",  "Lcs",          "Lres"
@@ -207,8 +207,8 @@ gym.spaces.Box(low   = -np.inf
       , "Mcm13"                                 ]
 ```
 
-        </td>
-    </tr>
+</td>
+</tr>
 </table>
 
 | Variant | Dimensions           | Description                                                                                                                     |
