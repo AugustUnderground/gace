@@ -227,20 +227,23 @@
 
        (-> cost (np.nan-to-num) (np.sum))))
 
-(defn info ^(of dict) [^(of dict str float) performance ^(of dict str float) target]
+(defn info ^(of dict) [^(of dict str float) performance 
+                       ^(of dict str float) target 
+                       ^(of list str) inputs]
   """
   Returns very useful information about the current state of the circuit,
   simulator and live in general.
   """
-  {"observation-key" (+ (list (sum (zip #* (lfor pp (.keys target)
-                                                   (, f"performance_{pp}"
-                                                      f"target_{pp}"
-                                                      f"distance_{pp}"))) 
-                                   (,)))
-                        (lfor sp (.keys performance) 
-                                 :if (not-in sp (.keys target)) 
-                              sp))
-     #_/ })
+  {"output-parameters" (+ (list (sum (zip #* (lfor pp (.keys target)
+                                                      (, f"performance_{pp}"
+                                                         f"target_{pp}"
+                                                         f"distance_{pp}"))) 
+                                     (,)))
+                          (lfor sp (.keys performance) 
+                                   :if (not-in sp (.keys target)) 
+                                sp))
+   "input-parameters" inputs
+   #_/ })
 
 (defn save-state [ace ^str ace-id ^str log-path]
   (ac.dump-state ace :file-name (.format "{}/{}-parameters-{}.json" log-path ace-id
@@ -295,7 +298,7 @@
           "fug_min"  1e6      ; Minimum device speed
           "fug_max"  1e9      ; Maximum device speed
           #_/ }]
-        [(= ace-backend "gpdk180-1V2")
+        [(= ace-backend "gpdk180-1V8")
          {"cs"       0.85e-15 ; Poly Capacitance per μm^2
           "rs"       100      ; Sheet Resistance in Ω/□
           "i0"       3e-6     ; Bias Current in A

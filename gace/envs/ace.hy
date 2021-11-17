@@ -151,7 +151,7 @@
                     (all (second (target-distance performance 
                                                   self.target 
                                                   self.condition))))
-            inf (info performance self.target) ]
+            inf (info performance self.target self.input-parameters) ]
 
         (when (bool self.data-log-path)
           (setv self.data-log (.append self.data-log (| sizing performance)
