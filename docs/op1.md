@@ -1,6 +1,7 @@
 ### Miller Amplifier (OP1)
 
-![op1](https://github.com/matthschw/ace/blob/main/figures/op1.png)
+![op1](https://raw.githubusercontent.com/matthschw/ace/main/figures/op1.png)
+
 
 Registered as `gace:op1-<tech>-<variant>`.
 

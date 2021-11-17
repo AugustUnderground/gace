@@ -36,7 +36,7 @@ r = - ∑ ( | t - p | / t )
 
 ### 4 Gate Inverter Chain (NAND4)
 
-![nand4](https://github.com/matthschw/ace/blob/main/figures/nand4.png)
+![nand4](https://raw.githubusercontent.com/matthschw/ace/main/figures/nand4.png)
 
 Registered as `gace:nand4-<tech>-<variant>`.
 

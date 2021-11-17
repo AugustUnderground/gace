@@ -1,6 +1,6 @@
 ### WORK IN PROGRESS (OP9)
 
-![op9](https://github.com/matthschw/ace/blob/main/figures/op9.png)
+![op9](https://raw.githubusercontent.com/matthschw/ace/main/figures/op9.png)
 
 _Will be_ registered as `gace:op9-<tech>-<variant>`.
 

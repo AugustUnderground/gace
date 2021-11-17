@@ -1,6 +1,6 @@
 ### WORK IN PROGRESS (OP8)
 
-![op8](https://github.com/matthschw/ace/blob/main/figures/op8.png)
+![op8](https://raw.githubusercontent.com/matthschw/ace/main/figures/op8.png)
 
 _Will be_ registered as `gace:op8-<tech>-<variant>`.
 

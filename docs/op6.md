@@ -1,6 +1,6 @@
 ### Miller Amplifier without R and C (OP6)
 
-![op6](https://github.com/matthschw/ace/blob/main/figures/op6.png)
+![op6](https://raw.githubusercontent.com/matthschw/ace/main/figures/op6.png)
 
 Registered as `gace:op6-<tech>-<variant>`.
 

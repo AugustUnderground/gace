@@ -1,6 +1,6 @@
 ### Symmetrical Amplifier with Cascode (OP4)
 
-![op4](https://github.com/matthschw/ace/blob/main/figures/op4.png)
+![op4](https://raw.githubusercontent.com/matthschw/ace/main/figures/op4.png)
 
 Registered as `gace:op4-<tech>-<variant>`.
 

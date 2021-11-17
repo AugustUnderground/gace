@@ -1,6 +1,6 @@
 ### Un-Symmetrical Amplifier (OP3)
 
-![op3](https://github.com/matthschw/ace/blob/main/figures/op3.png)
+![op3](https://raw.githubusercontent.com/matthschw/ace/main/figures/op3.png)
 
 Registered as `gace:op3-<tech>-<variant>`.
 

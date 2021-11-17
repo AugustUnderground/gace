@@ -36,7 +36,7 @@ r = - ∑ ( | t - p | / t )
 
 ### Schmitt Trigger (ST1)
 
-![st1](https://github.com/matthschw/ace/blob/main/figures/st1.png)
+![st1](https://raw.githubusercontent.com/matthschw/ace/main/figures/st1.png)
 
 Registered as `gace:st1-<tech>-<variant>`.
 

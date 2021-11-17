@@ -1,6 +1,6 @@
 ### Symmetrical Amplifier (OP2)
 
-![op2](https://github.com/matthschw/ace/blob/main/figures/op2.png)
+![op2](https://raw.githubusercontent.com/matthschw/ace/main/figures/op2.png)
 
 Registered as `gace:op2-<tech>-<variant>`.
 

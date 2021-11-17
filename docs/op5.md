@@ -1,6 +1,6 @@
 ### Un-Symmetrical Amplifier with Cascode (OP5)
 
-![op5](https://github.com/matthschw/ace/blob/main/figures/op5.png)
+![op5](https://raw.githubusercontent.com/matthschw/ace/main/figures/op5.png)
 
 Registered as `gace:op5-<tech>-<variant>`.
 
