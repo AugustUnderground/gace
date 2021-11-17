@@ -44,24 +44,24 @@
                                  :shape (, 22) 
                                  :dtype np.float32)
           self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 8)    ; gm/Id min
-                                   (np.repeat self.fug-min  8)    ; fug min
-                                   (np.array [(/ self.i0 3.0)     ; i1 = M41 : M43
-                                              (/ self.i0 3.0)     ; i2 = M41 : M44
-                                              (/ self.i0 3.0)     ; i3 = M41 : M42
-                                              (/ self.i0 3.0 3.0) ; i4 = M31 : M32
-                                              (/ self.i0 3.0 2.0) ; i5 = M31 : M33
-                                              (/ self.i0 3.0 2.0) ; i6 = M31 : M34
+                (np.concatenate (, (np.repeat self.gmid-min 8)      ; gm/Id min
+                                   (np.repeat self.fug-min  8)      ; fug min
+                                   (np.array [(/ self.i0 3.0)       ; i1 = M41 : M43
+                                              (/ self.i0 3.0)       ; i2 = M41 : M44
+                                              (/ self.i0 3.0)       ; i3 = M41 : M42
+                                              (/ self.i0 3.0 3.0)   ; i4 = M31 : M32
+                                              (/ self.i0 3.0 2.0)   ; i5 = M31 : M33
+                                              (/ self.i0 3.0 2.0)   ; i6 = M31 : M34
                                               #_/ ])))
           self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 8)    ; gm/Id min
-                                   (np.repeat self.fug-max  8)    ; fug min
-                                   (np.array [(* self.i0 25)      ; i1 = M41 : M43
-                                              (* self.i0 15)      ; i2 = M41 : M44
-                                              (* self.i0 3)       ; i3 = M41 : M42
-                                              (* self.i0 3 3)     ; i4 = M31 : M32
-                                              (* self.i0 3 20)    ; i5 = M31 : M33
-                                              (* self.i0 3 20)    ; i6 = M31 : M34
+                (np.concatenate (, (np.repeat self.gmid-max 8)      ; gm/Id min
+                                   (np.repeat self.fug-max  8)      ; fug min
+                                   (np.array [(* self.i0 25.0)      ; i1 = M41 : M43
+                                              (* self.i0 15.0)      ; i2 = M41 : M44
+                                              (* self.i0 3.0)       ; i3 = M41 : M42
+                                              (* self.i0 3.0 3.0)   ; i4 = M31 : M32
+                                              (* self.i0 3.0 20.0)  ; i5 = M31 : M33
+                                              (* self.i0 3.0 20.0)  ; i6 = M31 : M34
                                               #_/ ]))))
     #_/ )
 
