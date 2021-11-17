@@ -42,11 +42,11 @@ Registered as `gace:nand4-<tech>-<variant>`.
 
 #### Observation Space
 
-| Technology | Dimensions        |
-|------------|-------------------|
-| `xh035`    | `ℝ ¹² ∈ (-∞ ; ∞)` |
-| `sky130`   | `ℝ ¹² ∈ (-∞ ; ∞)` |
-| `gpdk180`  | `ℝ ¹² ∈ (-∞ ; ∞)` |
+| Technology | Dimensions    |
+|------------|---------------|
+| `xh035`    | `ℝ¹²∈(-∞ ;∞)` |
+| `sky130`   | `ℝ¹²∈(-∞ ;∞)` |
+| `gpdk180`  | `ℝ¹²∈(-∞ ;∞)` |
 
 ```python
 # xh035, sky130, gpdk180
@@ -59,9 +59,9 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions          | Parameters                           |
-|---------|---------------------|--------------------------------------|
-| `v1`    | `ℝ ⁵ ∈ [-1.0; 1.0]` | `["Wn0", "Wp", "Wn2", "Wn1", "Wn3"]` |
+| Variant | Dimensions      | Parameters                           |
+|---------|-----------------|--------------------------------------|
+| `v1`    | `ℝ⁵∈[-1.0;1.0]` | `["Wn0", "Wp", "Wn2", "Wn1", "Wn3"]` |
 
 ```python
 # v1 action space

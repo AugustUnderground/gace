@@ -6,9 +6,9 @@ _Will be_ registered as `gace:op7-<tech>-<variant>`.
 
 #### Observation Space
 
-| Technology | Dimensions      |
-|------------|-----------------|
-| `...`      | `ℝ  ∈ (-∞ ; ∞)` |
+| Technology | Dimensions   |
+|------------|--------------|
+| `...`      | `ℝ ∈(-∞ ;∞)` |
 
 ```python
 # <tech>
@@ -18,10 +18,10 @@ gym.spaces.Box( ... )
 #### Action Space
 
 
-| Variant | Dimensions         | Parameters |
-|---------|--------------------|------------|
-| `v0`    | `ℝ  ∈ [-1.0; 1.0]` | `[]`       |
-| `v1`    | `ℝ  ∈ [-1.0; 1.0]` | `[]`       |
+| Variant | Dimensions      | Parameters |
+|---------|-----------------|------------|
+| `v0`    | `ℝ ∈[-1.0;1.0]` | `[]`       |
+| `v1`    | `ℝ ∈[-1.0;1.0]` | `[]`       |
 
 ```python
 # v0 action space
