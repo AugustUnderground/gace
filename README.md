@@ -197,9 +197,9 @@ gym.spaces.Box(low   = -np.inf
 <td>
 
 ```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cs1", "gmid-dp1"
-, "fug-cm1", "fug-cm2", "fug-cs1", "fug-dp1" 
-, "res", "cap", "i1", "i2" ]
+[ "gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d"
+, "fug-cm1", "fug-cm2", "fug-cs", "fug-d" 
+, "rc", "cc", "i1", "i2" ]
 ```
 
 </td>
@@ -218,11 +218,11 @@ gym.spaces.Box(low   = -np.inf
 <td>
 
 ```python
-[ "Ld", "Lcm1",  "Lcm2",  "Lcs",          "Lres"
-, "Wd", "Wcm1",  "Wcm2",  "Wcs", "Wcap",  "Wres"
+[ "Ld", "Lcm1",  "Lcm2",  "Lcs",        "Lrc"
+, "Wd", "Wcm1",  "Wcm2",  "Wcs", "Wcc", "Wrc"
       , "Mcm11",          "Mcs"
       , "Mcm12" 
-      , "Mcm13"                                 ]
+      , "Mcm13" ]
 ```
 
 </td>
@@ -301,8 +301,8 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1"
-, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1" 
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d"
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-d" 
 , "i1" "i2" ]
 ```
 
@@ -322,10 +322,10 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1",  "Lcm2", "Lcm3"  
-, "Wdp1", "Wcm1",  "Wcm2", "Wcm3" 
-        , "Mcm11", "Mcm21"  
-        , "Mcm12", "Mcm22"           ]
+[ "Ld", "Lcm1",  "Lcm2", "Lcm3"  
+, "Wd", "Wcm1",  "Wcm2", "Wcm3" 
+      , "Mcm11", "Mcm21"  
+      , "Mcm12", "Mcm22"           ]
 ```
 
 </td>
@@ -403,8 +403,8 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1"
-, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1"
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d"
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-d"
 , "i1", "i2", "i3" ]
 ```
 
@@ -424,11 +424,11 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1",  "Lcm2",   "Lcm3" 
-, "Wdp1", "Wcm1",  "Wcm2",   "Wcm3"
-        , "Mcm11", "Mcm212", "Mcm31" 
-        , "Mcm12", "Mcm222", "Mcm32" 
-        , "Mcm2x1"                  ]
+[ "Ld", "Lcm1",  "Lcm2",   "Lcm3" 
+, "Wd", "Wcm1",  "Wcm2",   "Wcm3"
+      , "Mcm11", "Mcm212", "Mcm31" 
+      , "Mcm12", "Mcm222", "Mcm32" 
+      , "Mcm2x1"                  ]
 ```
 
 </td>
@@ -506,8 +506,8 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1", "gmid-ls1", "gmid-ref" 
-, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1",  "fug-ls1",  "fug-ref"
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "gmid-c1", "gmid-r" 
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-d",  "fug-c1",  "fug-r"
 , "i1", "i2", "i3" ]
 ```
 
@@ -527,11 +527,11 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1",  "Lcm2",  "Lcm3",  "Lls1", "Lref" 
-, "Wdp1", "Wcm1",  "Wcm2",  "Wcm3",  "Wls1", "Wref"
-        , "Mcm11", "Mcm21", "Mls1" 
-        , "Mcm12", "Mcm22" 
-        , "Mcm13"                                   ]
+[ "Ld", "Lcm1",  "Lcm2",  "Lcm3",  "Lc1", "Lr" 
+, "Wd", "Wcm1",  "Wcm2",  "Wcm3",  "Wc1", "Wr"
+      , "Mcm11", "Mcm21"        ,  "Mc1" 
+      , "Mcm12", "Mcm22" 
+      , "Mcm13"                                   ]
 ```
 
 </td>
@@ -609,9 +609,9 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1", "gmid-ls1", "gmid-ref"
-, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1",  "fug-ls1",  "fug-ref"
-, i1", "i2", "i3", "i4" ]
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "gmid-c1", "gmid-r"
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-d",  "fug-c1",  "fug-r"
+, "i1", "i2", "i3", "i4" ]
 ```
 
 </td>
@@ -630,11 +630,11 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1",  "Lcm2",   "Lcm3",  "Lls1",  "Lref"
-, "Wdp1", "Wcm1",  "Wcm2",   "Wcm3",  "Wls1",  "Wref"
-        , "Mcm11", "Mcm212", "Mcm31", "Mls11" 
-        , "Mcm12", "Mcm222", "Mcm32", "Mls12" 
-        , "Mcm13", "Mcm2x1"                          ]
+[ "Ld", "Lcm1",  "Lcm2",   "Lcm3",  "Lc1",  "Lr"
+, "Wd", "Wcm1",  "Wcm2",   "Wcm3",  "Wc1",  "Wr"
+      , "Mcm11", "Mcm212", "Mcm31", "Mc11" 
+      , "Mcm12", "Mcm222", "Mcm32", "Mc12" 
+      , "Mcm13", "Mcm2x1"                          ]
 ```
 
 </td>
@@ -712,8 +712,8 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cs1", "gmid-dp1", "gmid-res", "gmid-cap"
-, fug-cm1",  "fug-cm2",  "fug-cs1",  "fug-dp1",  "fug-res",  "fug-cap"
+[ "gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1"
+, "fug-cm1",  "fug-cm2",  "fug-cs",  "fug-d",  "fug-r1",  "fug-c1"
 , "i1", "i2" ]
 ```
 
@@ -733,11 +733,11 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1",  "Lcm2",  "Lcs1", "Lcap", "Lres"
-, "Wdp1", "Wcm1",  "Wcm2",  "Wcs1", "Wcap", "Wres"
-        , "Mcm11",          "Mcs1", "Mcap", "Mres" 
-        , "Mcm12"
-        , "Mcm13" ]
+[ "Ld", "Lcm1",  "Lcm2",  "Lcs", "Lc1", "Lr1"
+, "Wd", "Wcm1",  "Wcm2",  "Wcs", "Wc1", "Wr1"
+      , "Mcm11",          "Mcs", "Mc1", "Mr1" 
+      , "Mcm12"
+      , "Mcm13" ]
 ```
 
 </td>
@@ -805,8 +805,8 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-dp1", "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-cm4", "gmid-cm5" 
-, fug-dp1",  "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-cm4",  "fug-cm5" 
+[ "gmid-d1", "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-cm4", "gmid-cm5" 
+, "fug-d1",  "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-cm4",  "fug-cm5" 
 , "i1", "i2", "i3", "i4" ]
 ```
 
@@ -826,11 +826,11 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1", "Lcm2", "Lcm3", "Lcm4",  "Lcm5"
-, "Wdp1", "Wcm1", "Wcm2", "Wcm3", "Wcm4",  "Wcm5"
-        , "Mcm1", "Mcm2", "Mcm3", "Mcm41", "Mcm51" 
-                                , "Mcm42", "Mcm52"
-                                , "Mcm43", "Mcm53" ]
+[ "Ld1", "Lcm1", "Lcm2", "Lcm3", "Lcm4",  "Lcm5"
+, "Wd1", "Wcm1", "Wcm2", "Wcm3", "Wcm4",  "Wcm5"
+       , "Mcm1", "Mcm2", "Mcm3", "Mcm41", "Mcm51" 
+                               , "Mcm42", "Mcm52"
+                               , "Mcm43", "Mcm53" ]
 ```
 
 </td>
@@ -892,8 +892,8 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "gmid-dp1", "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-cm4", "gmid-ls1", "gmid-re1", "gmid-re2"
-, "fug-dp1",  "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-cm4",  "fug-ls1",  "fug-re1",  "fug-re2"
+[ "gmid-d1", "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-cm4", "gmid-ls1", "gmid-r1", "gmid-r2"
+, "fug-d1",  "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-cm4",  "fug-ls1",  "fug-r1",  "fug-r2"
 , "i1", "i2", "i3", "i4", "i5", "i6" ]
 ```
 
@@ -913,12 +913,12 @@ gym.spaces.Box( low   = -np.inf
 <td>
 
 ```python
-[ "Ldp1", "Lcm1", "Lcm2", "Lcm3",  "Lcm4",  "Lls1", "Lr1", "Lr2"
-, "Wdp1", "Wcm1", "Wcm2", "Wcm3",  "Wcm4",  "Wls1", "Wr2", "Wr1"
-        , "Mcm1", "Mcm2", "Mcm31", "Mcm41", "Mls1"
-                        , "Mcm32", "Mcm42"
-                        , "Mcm33", "Mcm43"
-                        , "Mcm34", "Mcm44" ]
+[ "Ld1", "Lcm1", "Lcm2", "Lcm3",  "Lcm4",  "Lls1", "Lr1", "Lr2"
+, "Wd1", "Wcm1", "Wcm2", "Wcm3",  "Wcm4",  "Wls1", "Wr2", "Wr1"
+       , "Mcm1", "Mcm2", "Mcm31", "Mcm41", "Mls1"
+                       , "Mcm32", "Mcm42"
+                       , "Mcm33", "Mcm43"
+                       , "Mcm34", "Mcm44" ]
 ```
 
 </td>
