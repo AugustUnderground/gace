@@ -81,9 +81,9 @@
 
 (defclass NAND4GPDK180V1Env [NAND4V1Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "nand4" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "nand4" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 1 "obs_shape" (, 12)}))))

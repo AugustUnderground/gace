@@ -150,7 +150,7 @@
                   Mcm12 Mcm22 ) (unscale-value action self.action-scale-min 
                                                       self.action-scale-max)
 
-          (, Mcm31 Mcm32 Mdp1) (, 2 2 2)
+          Mcm31 2 Mcm32 2 Mdp1 2
 
           sizing { "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  "Ld" Ldp1
                    "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1

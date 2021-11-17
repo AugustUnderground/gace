@@ -84,9 +84,9 @@
 
 (defclass ST1GPDK180V1Env [ST1V1Env]
   """
-  Implementation: gpdk180-1V2
+  Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "st1" "ace_backend" "gpdk180-1V2" 
+               (| kwargs {"ace_id" "st1" "ace_backend" "gpdk180-1V8" 
                           "ace_variant" 1 "obs_shape" (, 12)}))))

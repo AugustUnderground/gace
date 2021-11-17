@@ -110,37 +110,44 @@ def _test_amp_v1(env_id):
     _test_env(env)
     env.close()
 
-def _test_amp_xh035(a):
-    _test_amp_v0(f'gace:{a}-xh035-v0')
-    _test_amp_v1(f'gace:{a}-xh035-v1')
-
-def test_amp():
-    amps = [f'op{(op+1)}' for op in range(6)]
+def test_amps_xh035():
+    amps = [f'op{op}' for op in [1,2,3,4,5,6]]
     for a in amps:
-        _test_amp_xh035(a)
+        _test_amp_v0(f'gace:{a}-xh035-v0')
+        _test_amp_v1(f'gace:{a}-xh035-v1')
+
+def test_amps_sky130():
+    amps = [f'op{op}' for op in [2,3,4,5]]
+    for a in amps:
+        _test_amp_v0(f'gace:{a}-sky130-v0')
+        _test_amp_v1(f'gace:{a}-sky130-v1')
+
+#def test_amps_gpdk180():
+#    amps = [f'op{op}' for op in [1,2,3,4,5,6]]
+#    for a in amps:
+#        _test_amp_v0(f'gace:{a}-gpdk180-v0')
+#        _test_amp_v1(f'gace:{a}-gpdk180-v1')
 
 def _test_inv_v1(env_id):
     env = gym.make(env_id, data_log_path = "")
     _test_env(env)
     env.close()
 
-def _test_inv_xh035(i):
-    _test_inv_v1(f'gace:{i}-xh035-v1')
-
-def test_inv():
+def test_invs():
     invs = ['nand4']
     for i in invs:
-        _test_inv_xh035(i)
+        _test_inv_v1(f'gace:{i}-xh035-v1')
+        _test_inv_v1(f'gace:{i}-sky130-v1')
+        _test_inv_v1(f'gace:{i}-gpdk180-v1')
 
 def _test_trg_v1(env_id):
     env = gym.make(env_id, data_log_path = "")
     _test_env(env)
     env.close()
 
-def _test_trg_xh035(t):
-    _test_trg_v1(f'gace:{t}-xh035-v1')
-
-def test_trg():
-    trgs = [f'st{(st+1)}' for st in range(1)]
+def test_trgs():
+    trgs = [f'st{st}' for st in [1]]
     for t in trgs:
-        _test_trg_xh035(t)
+        _test_trg_v1(f'gace:{t}-xh035-v1')
+        _test_trg_v1(f'gace:{t}-sky130-v1')
+        _test_trg_v1(f'gace:{t}-gpdk180-v1')

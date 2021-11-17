@@ -87,7 +87,7 @@
           Mdp1  2
           Mcm11 M1.numerator Mcm12 M3.denominator Mcm13 M1.denominator
           Mcm21 M2.numerator Mcm22 M2.denominator
-          Mcm31 2            Mcm31 2
+          Mcm31 2            Mcm32 2
           Mls1  Mcm22
 
           ;vx (/ self.vdd 2.7)
