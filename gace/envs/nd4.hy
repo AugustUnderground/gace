@@ -38,13 +38,15 @@
     (.__init__ (super NAND4V1Env self) #** kwargs)
 
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
-    ;; inverter chain:  ['wn0', 'wp', 'wn2', 'wn1', 'wn3']
+    ;; inverter chain.
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 5) 
                                  :dtype np.float32)
           self.action-scale-min (np.array (list (repeat self.w-min 5)))
           self.action-scale-max (np.array (list (repeat self.w-max 5))))
-    #_/ )
+
+    ;; Specify Input Parameternames
+    (setv self.input-parameters ["Wn0" "Wp" "Wn2" "Wn1" "Wn3"]))
 
   (defn step [self action]
     """
