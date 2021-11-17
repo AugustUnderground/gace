@@ -65,7 +65,7 @@
                                               #_/ ]))))
 
     ;; Specify Input Parameternames
-    (setv self.input 
+    (setv self.input-parameters 
       [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-ls1" "gmid-re1" "gmid-re2"
         "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-ls1"  "fug-re1"  "fug-re2"
         "i1" "i2" "i3" "i4" "i5" "i6" ]))
@@ -163,12 +163,13 @@
           self.action-scale-max (np.array (+ l-max w-max m-max)))
 
     ;; Specify Input Parameternames
-    (setv self.input [ "Ldp1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lr1" "Lr2"
-                       "Wdp1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wr2" "Wr1"
-                              "Mcm1" "Mcm2" "Mcm31" "Mcm41" "Mls1"
-                                            "Mcm32" "Mcm42"
-                                            "Mcm33" "Mcm43"
-                                            "Mcm34" "Mcm44" ]))
+    (setv self.input-parameters 
+          [ "Ldp1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lr1" "Lr2"
+            "Wdp1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wr2" "Wr1"
+                   "Mcm1" "Mcm2" "Mcm31" "Mcm41" "Mls1"
+                                 "Mcm32" "Mcm42"
+                                 "Mcm33" "Mcm43"
+                                 "Mcm34" "Mcm44" ]))
 
   (defn step [self action]
     """

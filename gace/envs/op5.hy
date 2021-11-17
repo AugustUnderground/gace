@@ -61,9 +61,9 @@
                                               #_/ ]))))
 
     ;; Specify Input Parameternames
-    (setv self.input [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
-                       "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
-                       "i1" "i2" "i3" "i4" ]))
+    (setv self.input-parameters [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
+                                  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
+                                  "i1" "i2" "i3" "i4" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -149,11 +149,11 @@
           self.action-scale-max (np.array (+ l-max w-max m-max)))
 
     ;; Specify Input Parameternames
-    (setv self.input [ "Ldp1" "Lcm1"  "Lcm2"   "Lcm3"  "Lls1"  "Lref"
-                       "Wdp1" "Wcm1"  "Wcm2"   "Wcm3"  "Wls1"  "Wref"
-                              "Mcm11" "Mcm212" "Mcm31" "Mls11" 
-                              "Mcm12" "Mcm222" "Mcm32" "Mls12" 
-                              "Mcm13" "Mcm2x1" ]))
+    (setv self.input-parameters [ "Ldp1" "Lcm1"  "Lcm2"   "Lcm3"  "Lls1"  "Lref"
+                                  "Wdp1" "Wcm1"  "Wcm2"   "Wcm3"  "Wls1"  "Wref"
+                                         "Mcm11" "Mcm212" "Mcm31" "Mls11" 
+                                         "Mcm12" "Mcm222" "Mcm32" "Mls12" 
+                                         "Mcm13" "Mcm2x1" ]))
 
   (defn step [self action]
     """

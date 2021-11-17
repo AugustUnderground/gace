@@ -59,9 +59,9 @@
                                               #_/ ]))))
 
     ;; Specify Input Parameternames
-    (setv self.input [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
-                       "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
-                       "i1" "i2" "i3" ]))
+    (setv self.input-parameters [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
+                                  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
+                                  "i1" "i2" "i3" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -127,12 +127,6 @@
     (.__init__ (super OP3V1Env self) #** kwargs)
 
     ;; The action space consists of 14 geometrical parameters ∈ [-1;1]:
-    ;;  [ 'Wd', 'Wcm1',  'Wcm2',  'Wcm3'      # ∈ [ 0.4e-6  ; 150e-6 ]
-    ;;  , 'Ld', 'Lcm1',  'Lcm2',  'Lcm3'      # ∈ [ 0.35e-6 ; 15e-6  ]
-    ;;        , 'Mcm11', 'Mcm212', 'Mcm31'
-    ;;        , 'Mcm12', 'Mcm222', 'Mcm32'
-    ;;                 , 'Mcm2x1'
-    ;;]
     (setv self.action-space (Box :low -1.0 :high 1.0 
                                  :shape (, 15) 
                                  :dtype np.float32)
@@ -143,7 +137,11 @@
           self.action-scale-max (np.array (+ l-max w-max m-max)))
 
     ;; Specify Input Parameternames
-    (setv self.input ))
+    (setv self.input-parameters [ "Ldp1" "Lcm1"  "Lcm2"   "Lcm3" 
+                                  "Wdp1" "Wcm1"  "Wcm2"   "Wcm3"
+                                         "Mcm11" "Mcm212" "Mcm31" 
+                                         "Mcm12" "Mcm222" "Mcm32" 
+                                         "Mcm2x1" ]))
 
   (defn step [self action]
     """

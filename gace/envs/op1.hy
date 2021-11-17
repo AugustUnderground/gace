@@ -57,9 +57,9 @@
                                               #_/ ]))))
 
     ;; Specify Input Parameternames
-    (setv self.input [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
-                       "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
-                       "res" "cap" "i1" "i2" ]))
+    (setv self.input-parameters [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
+                                  "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
+                                  "res" "cap" "i1" "i2" ]))
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
     """
@@ -140,11 +140,11 @@
           self.action-scale-max (np.array (+ l-max w-max m-max)))
     
     ;; Specify Input Parameternames
-    (setv self.input [ "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
-                       "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
-                            "Mcm11"         "Mcs"
-                            "Mcm12" 
-                            "Mcm13"                             ]))
+    (setv self.input-parameters [ "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
+                                  "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
+                                       "Mcm11"         "Mcs"
+                                       "Mcm12" 
+                                       "Mcm13"                             ]))
 
   (defn step [self action]
     """
