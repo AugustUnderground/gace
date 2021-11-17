@@ -44,18 +44,18 @@
                                  :shape (, 11) 
                                  :dtype np.float32)
           self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 4)        ; gm/Id min
-                                   (np.repeat self.fug-min  4)        ; fug min
-                                   (np.array [(/ self.i0 3.0)         ; i1 = M11 : M12
-                                              (/ self.i0 3.0 2.0 3.0) ; i2 = M211 : M212
-                                              (/ self.i0 3.0 2.0 3.0) ; i3 = M221 : M222
+                (np.concatenate (, (np.repeat self.gmid-min 4)      ; gm/Id min
+                                   (np.repeat self.fug-min  4)      ; fug min
+                                   (np.array [(/ self.i0 3.0)       ; i1 = M11 : M12
+                                              (/ self.i0 2.0 3.0)   ; i2 = M211 : M212
+                                              (/ self.i0 2.0 3.0)   ; i3 = M221 : M222
                                               #_/ ])))
           self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 4)     ; gm/Id min
-                                   (np.repeat self.fug-max  4)     ; fug min
-                                   (np.array [(* self.i0 16.0)     ; i1 = M11 : M12
-                                              (* self.i0 8.0 20.0) ; i2 = M211 : M212
-                                              (* self.i0 8.0 20.0) ; i3 = M221 : M222
+                (np.concatenate (, (np.repeat self.gmid-max 4)      ; gm/Id min
+                                   (np.repeat self.fug-max  4)      ; fug min
+                                   (np.array [(* self.i0 16.0)      ; i1 = M11 : M12
+                                              (* self.i0 8.0 20.0)  ; i2 = M211 : M212
+                                              (* self.i0 8.0 20.0)  ; i3 = M221 : M222
                                               #_/ ]))))
     #_/ )
 
@@ -104,11 +104,11 @@
           Wcm2 (/ i1 2.0 (get cm2-out 0))
           Wcm3 (/ i2     (get cm3-out 0))
 
-          sizing { "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Ld" Ldp1
-                   "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wd" Wdp1
-                   "Mcm11" Mcm11 "Mcm2x1" Mcm2x1 "Mcm31" Mcm31 "Md" Mdp1 
-                   "Mcm12" Mcm12 "Mcm212" Mcm212 "Mcm32" Mcm32 
-                                 "Mcm222" Mcm222 
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3 
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3 
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm2x1" Mcm2x1 "Mcm31" Mcm31 
+                             "Mcm12" Mcm12 "Mcm212" Mcm212 "Mcm32" Mcm32 
+                                           "Mcm222" Mcm222 
                   #_/ }]
 
     (self.size-circuit sizing))))

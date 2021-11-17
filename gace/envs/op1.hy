@@ -99,16 +99,17 @@
           Lcm2 (get cm2-out 1)
           Lcs1 (get cs1-out 1)
 
-          Wcm1 (/     i0     (get cm1-out 0))
-          Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
-          Wdp1 (/ (* 0.5 i1) (get dp1-out 0))
-          Wcs1 (/     i2     (get cs1-out 0)  Mcs1)
+          Wcm1 (/ i0     (get cm1-out 0))
+          Wcm2 (/ i1 2.0 (get cm2-out 0))
+          Wdp1 (/ i1 2.0 (get dp1-out 0))
+          Wcs1 (/ i2     (get cs1-out 0)  Mcs1)
 
-          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  "Ld"    Ldp1 
-                  "Lres"  Lres  "Mcm11" Mcm11 "Mcm12" Mcm12 "Mcm13" Mcm13 
-                  "Mcm21" Mcm21 "Mcm22" Mcm22 "Mcs"   Mcs1  "Md"    Mdp1  
-                  "Mcap"  Mcap  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1 
-                  "Wd"    Wdp1  "Wres"  Wres  "Wcap"  Wcap} ]
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs" Lcs1 "Lres" Lres  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wres" Wres "Wcap" Wcap
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1             "Mcap" Mcap  
+                             "Mcm12" Mcm12 "Mcm22" Mcm22
+                             "Mcm13" Mcm13 
+                   #_/ } ]
 
     (self.size-circuit sizing))))
 
@@ -145,21 +146,24 @@
     ratios This is passed to the parent class where the netlist ist modified
     and then simulated, returning observations, reward, done and info.
     """
-    (let [ (, Wdp1 Wcm1 Wcm2 Wcs1 Wcap Wres
-              Ldp1 Lcm1 Lcm2 Lcs1      Lres 
-                   Mcm11     Mcs1 
-                   Mcm12 
-                   Mcm13 ) (unscale-value action self.action-scale-min 
-                                                 self.action-scale-max)
+    (let [ (, Ldp1 Lcm1  Lcm2  Lcs1 Lres  
+              Wdp1 Wcm1  Wcm2  Wcs1 Wres Wcap
+                   Mcm11       Mcs1
+                   Mcm12      
+                   Mcm13 )          (unscale-value action self.action-scale-min 
+                                                          self.action-scale-max)
           
-          (, Mdp1 Mcm21 Mcm22) (, 2 2 2)
-          Mcap 1 
+          Mdp1  2
+          Mcm21 2 
+          Mcm22 2
+          Mcap  1 
 
-          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  "Ld"    Ldp1 
-                  "Lres"  Lres  "Mcm11" Mcm11 "Mcm12" Mcm12 "Mcm13" Mcm13 
-                  "Mcm21" Mcm21 "Mcm22" Mcm22 "Mcs"   Mcs1  "Md"    Mdp1  
-                  "Mcap"  Mcap  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1 
-                  "Wd"    Wdp1  "Wres"  Wres  "Wcap"  Wcap}]
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs" Lcs1 "Lres" Lres  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wres" Wres "Wcap" Wcap
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1             "Mcap" Mcap  
+                             "Mcm12" Mcm12 "Mcm22" Mcm22
+                             "Mcm13" Mcm13 
+                   #_/ }]
 
       (self.size-circuit sizing))))
 

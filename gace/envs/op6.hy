@@ -44,15 +44,17 @@
                                  :shape (, 14) 
                                  :dtype np.float32)
           self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 6)    ; gm/Id min
-                                   (np.repeat self.fug-min  6)    ; fug min
-                                   (np.array [(/ self.i0 3.0) 
-                                              (/ self.i0 3.0)]))) ; branch currents
+                (np.concatenate (, (np.repeat self.gmid-min 6)  ; gm/Id min
+                                   (np.repeat self.fug-min  6)  ; fug min
+                                   (np.array [(/ self.i0 3.0)   ; i1 = M11 : M12
+                                              (/ self.i0 3.0)   ; i2 = M11 : M13
+                                              #_/ ])))
           self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 6)    ; gm/Id min
-                                   (np.repeat self.fug-max  6)    ; fug min
-                                   (np.array [(* self.i0 10) 
-                                              (* self.i0 40)])))) ; branch currents
+                (np.concatenate (, (np.repeat self.gmid-max 6)  ; gm/Id min
+                                   (np.repeat self.fug-max  6)  ; fug min
+                                   (np.array [(* self.i0 10.0)  ; i1 = M11 : M12
+                                              (* self.i0 40.0)  ; i2 = M11 : M13
+                                              #_/ ]))))
     #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -68,56 +70,51 @@
              i1 i2 ) (unscale-value action self.action-scale-min 
                                            self.action-scale-max)
 
-          (, Mcm2 Mcs1 Mres Mcap Mdp1) (, 2 2 2 2 2)
+          i0 self.i0
+          
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 100))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 100))
+          
+          Mcm11 M1.numerator Mcm12 M1.denominator Mcm13 M2.denominator
+          Mcm2 2
+          Mcs1 2
+          Mres 2
+          Mcap 2
+          Mdp1 2
 
-          M1 (-> (/ self.i0 i1) (Fraction) (.limit-denominator 100))
-
-          M2 (-> (/ (/ i1 2) i2) (Fraction) (.limit-denominator 100))
-
-          (, Mcm11 Mcm12) (, M1.numerator M1.denominator)
-          Mcm13 M2.denominator
-
-          ;vx (/ self.vdd 2.7)
-
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2.0) 0.0]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2.0) 0.0]])
           cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2.0) 0.0]])
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2.0) 0.0]])
           cs1-in (np.array [[gmid-cs1 fug-cs1 (/ self.vdd 2.0) 0.0]])
-          cap-in (np.array [[gmid-cap fug-cap              0.0  0.0]])
-          res-in (np.array [[gmid-res fug-res              0.0  0.0]])
+          cap-in (np.array [[gmid-cap fug-cap             0.0  0.0]])
+          res-in (np.array [[gmid-res fug-res             0.0  0.0]])
           
+          dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
           cm2-out (first (self.pmos.predict cm2-in))
           cs1-out (first (self.pmos.predict cs1-in))
-          dp1-out (first (self.nmos.predict dp1-in))
           cap-out (first (self.pmos.predict cap-in))
           res-out (first (self.pmos.predict res-in))
 
+          Ldp1 (get dp1-out 1)
           Lcm1 (get cm1-out 1)
           Lcm2 (get cm2-out 1)
           Lcs1 (get cs1-out 1)
-          Ldp1 (get dp1-out 1)
           Lcap (get cap-out 1)
           Lres (get res-out 1)
 
-          Wcm1 (/ self.i0 (get cm1-out 0))
-          Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
-          Wcs1 (/ i2 (get cs1-out 0))
-          Wdp1 (/ (* 0.5 i1) (get dp1-out 0)) 
-          Wcap (/ i2 (get cap-out 0)) 
-          Wres (/ i2 (get res-out 0)) 
+          Wdp1 (/ i1 2.0 (get dp1-out 0)) 
+          Wcm1 (/ i0     (get cm1-out 0))
+          Wcm2 (/ i1 2.0 (get cm2-out 0))
+          Wcs1 (/ i2     (get cs1-out 0))
+          Wcap (/ i2     (get cap-out 0)) 
+          Wres (/ i2     (get res-out 0)) 
           
-          ;Vgs-cap (get cap-out 3)
-          ;Vds-res (abs (- (/ self.vsup 2.0) Vgs-cap))
-          ;Vbs-res (abs (- self.vsup 0.0))
-
-          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  
-                  "Ld"    Ldp1  "Lr1"   Lres  "Lc1"   Lcap
-                  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1  
-                  "Wd"    Wdp1  "Wr1"   Wres  "Wc1"   Wcap
-                  "Mcm11" Mcm11 "Mcm21" Mcm2  "Mcs"   Mcs1  
-                  "Md"    Mdp1  "Mr1"   Mres  "Mc1"   Mcap
-                  "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2 "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2 "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm2 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
+                             "Mcm12" Mcm12 "Mcm22" Mcm2
+                             "Mcm13" Mcm13 
                   #_/ }]
 
     (self.size-circuit sizing))))
@@ -160,16 +157,15 @@
                    Mcm12        
                    Mcm13  ) (unscale-value action self.action-scale-min 
                                                   self.action-scale-max)
-          
-          (, Mdp1 Mcm2) (, 2 2)
 
-          sizing {"Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs"   Lcs1  
-                  "Ld"    Ldp1  "Lr1"   Lres  "Lc1"   Lcap
-                  "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs"   Wcs1  
-                  "Wd"    Wdp1  "Wr1"   Wres  "Wc1"   Wcap
-                  "Mcm11" Mcm11 "Mcm21" Mcm2  "Mcs"   Mcs1  
-                  "Md"    Mdp1  "Mr1"   Mres  "Mc1"   Mcap
-                  "Mcm12" Mcm12 "Mcm13" Mcm13 "Mcm22" Mcm2
+          Mdp1 2
+          Mcm2 2
+
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2 "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2 "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm2 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
+                             "Mcm12" Mcm12 "Mcm22" Mcm2
+                             "Mcm13" Mcm13 
                   #_/ }]
 
       (self.size-circuit sizing))))

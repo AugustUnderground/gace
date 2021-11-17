@@ -44,17 +44,19 @@
                                  :shape (, 15) 
                                  :dtype np.float32)
           self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 6)    ; gm/Id min
-                                   (np.repeat self.fug-min  6)    ; fug min
-                                   (np.array [(/ self.i0 3.0) 
-                                              (/ self.i0 3.0) 
-                                              (/ self.i0 3.0)]))) ; branch currents
+                (np.concatenate (, (np.repeat self.gmid-min 6)      ; gm/Id min
+                                   (np.repeat self.fug-min  6)      ; fug min
+                                   (np.array [(/ self.i0 3.0)       ; i1 = M11 : M13
+                                              (/ self.i0 2.0 3.0)   ; i2 = M21 : M22
+                                              (/ self.i0 3.0)       ; i3 = M11 : M12
+                                              #_/ ])))
           self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 6)    ; gm/Id min
-                                   (np.repeat self.fug-max  6)    ; fug min
-                                   (np.array [(* self.i0 16) 
-                                              (* self.i0 20)
-                                              (* self.i0 3)]))))  ; branch currents
+                (np.concatenate (, (np.repeat self.gmid-max 6)      ; gm/Id min
+                                   (np.repeat self.fug-max  6)      ; fug min
+                                   (np.array [(* self.i0 16.0)      ; i1 = M11 : M13
+                                              (* self.i0 8.0 20.0)  ; i2 = M21 : M22
+                                              (* self.i0 3.0)       ; i3 = M11 : M12
+                                              #_/ ]))))
     #_/ )
 
   (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -70,50 +72,54 @@
              i1 i2 i3 ) (unscale-value action self.action-scale-min 
                                               self.action-scale-max)
 
-          (, Mcm31 Mcm32 Mdp1 Mls1) (, 2 2 2 4)
+          i0 self.i0
 
-          M1 (-> (/ self.i0 i1) (Fraction) (.limit-denominator 100))
-          M2 (-> (/ (/ i1 2) i2) (Fraction) (.limit-denominator 100))
 
-          (, Mcm11 Mcm13) (, M1.numerator M1.denominator)
-          Mcm12 (* (/ i1 self.i0) Mcm11)
-          (, Mcm21 Mcm22) (, M2.numerator M2.denominator)
+          M1 (-> (/ i0 i1)     (Fraction) (.limit-denominator 100))
+          M2 (-> (/ i1 2.0 i2) (Fraction) (.limit-denominator 100))
+          M3 (-> (/ i0 i3)     (Fraction) (.limit-denominator 100))
+
+          Mdp1  2
+          Mcm11 M1.numerator Mcm12 M3.denominator Mcm13 M1.denominator
+          Mcm21 M2.numerator Mcm22 M2.denominator
+          Mcm31 2            Mcm31 2
+          Mls1  Mcm22
 
           ;vx (/ self.vdd 2.7)
 
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2) 0.0]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2) 0.0]])
           cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2) 0.0]])
           cm3-in (np.array [[gmid-cm3 fug-cm3 (/ self.vdd 2) 0.0]])
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2) 0.0]])
           ls1-in (np.array [[gmid-ls1 fug-ls1 (/ self.vdd 2) 0.0]])
           ref-in (np.array [[gmid-ref fug-ref (/ self.vdd 2) 0.0]])
 
+          dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
           cm2-out (first (self.pmos.predict cm2-in))
           cm3-out (first (self.nmos.predict cm3-in))
-          dp1-out (first (self.nmos.predict dp1-in))
           ls1-out (first (self.pmos.predict ls1-in))
           ref-out (first (self.pmos.predict ref-in))
 
+          Ldp1 (get dp1-out 1)
           Lcm1 (get cm1-out 1)
           Lcm2 (get cm2-out 1)
           Lcm3 (get cm3-out 1)
-          Ldp1 (get dp1-out 1)
           Lls1 (get ls1-out 1)
           Lref (get ref-out 1)
 
-          Wcm1 (/ self.i0 (get cm1-out 0))
-          Wcm2 (/ (* 0.5 i1) (get cm2-out 0))
-          Wcm3 (/ i2 (get cm3-out 0))
-          Wdp1 (/ (* 0.5 i1) (get dp1-out 0)) 
-          Wls1 (/ i2 (get ls1-out 0)) 
-          Wref (/ i3 (get ref-out 0)) 
+          Wdp1 (/ i1 2.0 (get dp1-out 0)) 
+          Wcm1 (/ i0     (get cm1-out 0))
+          Wcm2 (/ i1 2.0 (get cm2-out 0))
+          Wcm3 (/ i2     (get cm3-out 0))
+          Wls1 (/ i2     (get ls1-out 0)  Mls1) 
+          Wref (/ i3     (get ref-out 0)) 
 
-          sizing { "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  "Ld" Ldp1 "Lc1" Lls1 "Lr" Lref
-                   "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1 "Wc1" Wls1 "Wr" Wref
-                   "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 "Md" Mdp1 "Mc1" Mls1 
-                   "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32  
-                   "Mcm13" Mcm13 
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3 "Lc1" Lls1 "Lr" Lref
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 "Wc1" Wls1 "Wr" Wref
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31"Mc1" Mls1 
+                             "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32  
+                             "Mcm13" Mcm13 
                   #_/ }]
 
     (self.size-circuit sizing))))
@@ -153,16 +159,16 @@
              Ldp1 Lcm1  Lcm2  Lcm3  Lls1 Lref 
                   Mcm11 Mcm21       Mls1 
                   Mcm12 Mcm22 
-                  Mcm13) (unscale-value action self.action-scale-min 
-                                               self.action-scale-max)
+                  Mcm13 )           (unscale-value action self.action-scale-min 
+                                                          self.action-scale-max)
 
-          (, Mcm31 Mcm32 Mdp1) (, 2 2 2)
+          Mcm31 2 Mcm32 2 Mdp1 2
 
-          sizing { "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Ld" Ldp1 "Lc1" Lls1 "Lr" Lref
-                   "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wd" Wdp1 "Wc1" Wls1 "Wr" Wref
-                   "Mcm11" Mcm11 "Mcm21" Mcm21   "Mcm31" Mcm31 "Md" Mdp1 "Mc1" Mls1 
-                   "Mcm12" Mcm12 "Mcm22" Mcm22   "Mcm32" Mcm32  
-                   "Mcm13" Mcm13 
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3 "Lc1" Lls1 "Lr" Lref
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 "Wc1" Wls1 "Wr" Wref
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31"Mc1" Mls1 
+                             "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32  
+                             "Mcm13" Mcm13 
                   #_/ }]
 
       (self.size-circuit sizing))))
