@@ -36,14 +36,14 @@ import gym
 env = gym.make('gace:op2-sky130-v1')     # Symmetrical Amplifier in SkyWater 130nm
 
 # Electrical design space and all kwargs
-env = gym.make(                      'gace:op2-sky130-v1'    # Symmetrical Amplifier in SkyWater 130nm
+env = gym.make(                      'gace:op2-sky130-v1'    # OP2 in sky130-1V8
               , pdk_path           = '/path/to/tech'         # path to pdk
               , ckt_path           = '/path/to/op2'          # path to testbench
               , nmos_path          = '/path/to/models/nmos'  # path to nmos model
               , pmos_path          = '/path/to/models/pmos'  # path to pmos model
               , max_steps          = 200                     # Reset env after this many steps
               , target             = {}                      # Dict like 'perforamnce' below
-              , design-constraints = {}                      # Override default technology constraints
+              , design-constraints = {}                      # Override default constraints
               , random_target      = False                   # start close to target
               , noisy_target       = False                   # add some noise after each reset
               , data_log_path      = '/path/to/data/log'     # Write data after each episode
