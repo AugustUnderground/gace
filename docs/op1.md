@@ -10,7 +10,8 @@ Registered as `gace:op1-<tech>-<variant>`.
 | Technology | Dimensions     |
 |------------|----------------|
 | `xh035`    | `ℝ²¹¹∈(-∞ ;∞)` |
-| `gpdk180`  | `ℝ²¹¹∈(-∞ ;∞)` |
+| `sky130`   | `ℝ²²⁹∈(-∞ ;∞)` |
+| `gpdk180`  | `ℝ²⁶¹∈(-∞ ;∞)` |
 
 ```python
 # xh035
@@ -20,10 +21,17 @@ gym.spaces.Box(low   = -np.inf
               , dtype = np.float32
               , )
 
+# sky130
+gym.spaces.Box(low   = -np.inf
+              , high  = np.inf
+              , shape = (229 , )
+              , dtype = np.float32
+              , )
+
 # gpdk180
 gym.spaces.Box(low   = -np.inf
               , high  = np.inf
-              , shape = (211 , )
+              , shape = (261 , )
               , dtype = np.float32
               , )
 ```

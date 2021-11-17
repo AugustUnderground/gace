@@ -6,11 +6,11 @@ Registered as `gace:op2-<tech>-<variant>`.
 
 #### Observation Space
 
-| Technology | Dimensions         |
-|------------|--------------------|
+| Technology | Dimensions     |
+|------------|----------------|
 | `xh035`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
-| `sky130`   | `ℝ²⁶⁶∈(-∞ ;∞)`     |
-| `gpdk180`  | `ℝ²⁹⁴∈(-∞ ;∞)`     |
+| `sky130`   | `ℝ²⁶⁶∈(-∞ ;∞)` |
+| `gpdk180`  | `ℝ³⁰⁶∈(-∞ ;∞)` |
 
 ```python
 # xh035
@@ -30,7 +30,7 @@ gym.spaces.Box( low   = -np.inf
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (294 , )
+              , shape = (306 , )
               , dtype = np.float32
               , )
 ```

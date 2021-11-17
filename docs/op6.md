@@ -10,7 +10,7 @@ Registered as `gace:op6-<tech>-<variant>`.
 |------------|----------------|
 | `xh035`    | `ℝ²³⁵∈(-∞ ;∞)` |
 | `sky130`   | `ℝ²³⁵∈(-∞ ;∞)` |
-| `gpdk180`  | `ℝ²⁷⁵∈(-∞ ;∞)` |
+| `gpdk180`  | `ℝ³⁰⁵∈(-∞ ;∞)` |
 
 ```python
 # xh035
@@ -23,14 +23,14 @@ gym.spaces.Box( low   = -np.inf
 # sky130
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (235 , )
+              , shape = (253 , )
               , dtype = np.float32
               , )
 
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (275 , )
+              , shape = (305 , )
               , dtype = np.float32
               , )
 ```
