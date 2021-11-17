@@ -37,52 +37,10 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-<table>
-<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
-<tr> 
-<td> 
-
-`v0` 
-
-</td> 
-<td> 
-
-`ℝ ¹⁰ ∈ [-1.0; 1.0]`
-
-</td>
-<td>
-
-```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d"
-, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-d" 
-, "i1" "i2" ]
-```
-
-</td>
-</tr>
-<tr> 
-<td> 
-
-`v1` 
-
-</td> 
-<td> 
-
-`ℝ ¹² ∈ [-1.0; 1.0]`
-
-</td>
-<td>
-
-```python
-[ "Ld", "Lcm1",  "Lcm2", "Lcm3"  
-, "Wd", "Wcm1",  "Wcm2", "Wcm3" 
-      , "Mcm11", "Mcm21"  
-      , "Mcm12", "Mcm22"           ]
-```
-
-</td>
-</tr>
-</table>
+| Variant | Dimensions           | Parameters                                                                                            |
+|---------|----------------------|-------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁰ ∈ [-1.0; 1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1" "i2"]` |
+| `v1`    | `ℝ ¹² ∈ [-1.0; 1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
 
 ```python
 # v0 action space

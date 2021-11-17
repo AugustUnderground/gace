@@ -37,53 +37,11 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-<table>
-<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
-<tr> 
-<td> 
 
-`v0` 
-
-</td> 
-<td> 
-
-`ℝ ¹⁴ ∈ [-1.0; 1.0]`
-
-</td>
-<td>
-
-```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1"
-, "fug-cm1",  "fug-cm2",  "fug-cs",  "fug-d",  "fug-r1",  "fug-c1"
-, "i1", "i2" ]
-```
-
-</td>
-</tr>
-<tr> 
-<td> 
-
-`v1` 
-
-</td> 
-<td> 
-
-`ℝ ¹⁸ ∈ [-1.0; 1.0]`
-
-</td>
-<td>
-
-```python
-[ "Ld", "Lcm1",  "Lcm2",  "Lcs", "Lc1", "Lr1"
-, "Wd", "Wcm1",  "Wcm2",  "Wcs", "Wc1", "Wr1"
-      , "Mcm11",          "Mcs", "Mc1", "Mr1" 
-      , "Mcm12"
-      , "Mcm13" ]
-```
-
-</td>
-</tr>
-</table>
+| Variant | Dimensions           | Parameters                                                                                                                                     |
+|---------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1", "fug-cm1", "fug-cm2", "fug-cs", "fug-d", "fug-r1", "fug-c1", "i1", "i2"]` |
+| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lc1", "Lr1", "Wd", "Wcm1", "Wcm2", "Wcs", "Wc1", "Wr1", "Mcm11", "Mcs", "Mc1", "Mr1", "Mcm12", "Mcm13"]`       |
 
 ```python
 # v0 action space
@@ -100,5 +58,4 @@ gym.spaces.Box( low   = -1.0
               , dtype = np.float32
               , )
 ```
-
 

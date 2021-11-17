@@ -10,9 +10,17 @@ Registered as `gace:op1-<tech>-<variant>`.
 | Technology | Dimensions         |
 |------------|--------------------|
 | `xh035`    | `ℝ ²¹¹ ∈ (-∞ ; ∞)` |
+| `gpdk180`  | `ℝ ²¹¹ ∈ (-∞ ; ∞)` |
 
 ```python
 # xh035
+gym.spaces.Box(low   = -np.inf
+              , high  = np.inf
+              , shape = (211 , )
+              , dtype = np.float32
+              , )
+
+# gpdk180
 gym.spaces.Box(low   = -np.inf
               , high  = np.inf
               , shape = (211 , )
@@ -22,53 +30,11 @@ gym.spaces.Box(low   = -np.inf
 
 #### Action Space 
 
-<table>
-<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
-<tr> 
-<td> 
+| Variant | Dimensions           | Parameters                                                                                                          |
+|---------|----------------------|---------------------------------------------------------------------------------------------------------------------|
+| `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "fug-cm1", "fug-cm2", "fug-cs", "fug-d" , "rc", "cc", "i1", "i2"]`   |
+| `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lrc", "Wd", "Wcm1", "Wcm2", "Wcs", "Wcc", "Wrc", "Mcm11", "Mcs", "Mcm12", "Mcm13"]` |
 
-`v0` 
-
-</td> 
-<td> 
-
-`ℝ ¹² ∈ [-1.0; 1.0]` 
-
-</td>
-<td>
-
-```python
-[ "gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d"
-, "fug-cm1", "fug-cm2", "fug-cs", "fug-d" 
-, "rc", "cc", "i1", "i2" ]
-```
-
-</td>
-</tr>
-<tr> 
-<td> 
-
-`v1` 
-
-</td> 
-<td> 
-
-`ℝ ¹⁵ ∈ [-1.0; 1.0]` 
-
-</td>
-<td>
-
-```python
-[ "Ld", "Lcm1",  "Lcm2",  "Lcs",        "Lrc"
-, "Wd", "Wcm1",  "Wcm2",  "Wcs", "Wcc", "Wrc"
-      , "Mcm11",          "Mcs"
-      , "Mcm12" 
-      , "Mcm13" ]
-```
-
-</td>
-</tr>
-</table>
 
 ```python
 # v0 action space
@@ -86,5 +52,4 @@ gym.spaces.Box( low   = -1.0
               , )
 
 ```
-
 

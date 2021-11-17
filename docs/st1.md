@@ -59,28 +59,9 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-<table>
-<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
-<tr> 
-<td> 
-
-`v1` 
-
-</td> 
-<td> 
-
-`ℝ ⁶ ∈ [-1.0; 1.0]`
-
-</td>
-<td>
-
-```python
-["Wp0", "Wn0", "Wp2", "Wp1", "Wn2", "Wn1"]
-```
-
-</td>
-</tr>
-</table>
+| Variant | Dimensions          | Parameters                                   |
+|---------|---------------------|----------------------------------------------|
+| `v1`    | `ℝ ⁶ ∈ [-1.0; 1.0]` | `["Wp0", "Wn0", "Wp2", "Wp1", "Wn2", "Wn1"]` |
 
 ```python
 # v1 action space
@@ -90,5 +71,4 @@ gym.spaces.Box( low   = -1.0
               , dtype = np.float32
               , )
 ```
-
 
