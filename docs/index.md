@@ -2,6 +2,19 @@ A collection of [gym](https://gym.openai.com/) environments for analog
 integrated circuit design, based on [AC²E](https://github.com/matthschw/ace) /
 [HAC²E](https://github.com/AugustUnderground/hace).
 
+### AC²E Backends
+
+It is planned to support _all_ AC²E backends in the future. For now the
+following are (partially) implemented.
+
+- [X] X-Fab XH035 350nm as `xh035`
+- [ ] X-Fab XH018 180nm as `xh018`
+- [ ] X-Fab XT018 180nm as `xt035`
+- [X] SkyWater 130nm as `sky130`
+- [X] GPDK 180nm as `gpdk180`
+- [ ] GPDK 90nm as `gpdk90`
+- [ ] PTM 130nm
+
 ## Table of Content
 
 - [Installation](./install.md)

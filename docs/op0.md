@@ -38,11 +38,6 @@ and operating point characteristics for all devices in the circuit.
 , "state":       { "electrical characteristics": "..." } }
 ```
 
-- [X] X-Fab XH035 350nm as `xh035`
-- [X] SkyWater 130nm as `sky130`
-- [X] GPDK 180nm
-- [ ] PTM 130nm
-
 ### Action Spaces and Variants
 
 Action Spaces in `v0` and `v1` are _continuous_ and implemented with
