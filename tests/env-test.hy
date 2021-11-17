@@ -2,6 +2,7 @@
 (import yaml)
 (import logging)
 (import [functools [partial]])
+(import [fractions [Fraction]])
 (import [datetime [datetime :as dt]])
 (import [numpy :as np])
 (import [h5py :as h5])
@@ -15,7 +16,7 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op6-gpdk180-v0"))
+(setv env (gym.make "gace:op8-gpdk180-v0"))
 (setx obs (.reset env))
 (setx act (.sample env.action-space))
 (setx ob (.step env act))

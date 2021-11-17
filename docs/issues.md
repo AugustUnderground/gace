@@ -35,3 +35,5 @@ $ pytest
 - [X] add gpdk envs
 - [ ] add installer script
 - [ ] add reset counter, gradually increase noise/target distance
+- [ ] document which branch current is which
+- [ ] fix `v0` issues with `gpdk180` (probably ML models borked)

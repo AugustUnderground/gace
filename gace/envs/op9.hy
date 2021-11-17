@@ -132,8 +132,8 @@
           Wre1 (/    i2      (get re1-out 0))
           Wre2 (/    i4      (get re2-out 0))
 
-          sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3"  Lcm3  "Lcm4"  Lcm4  "Lls1" Lls1 "Lr1" Lr1 "Lr2" Lr2
-                   "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wr1 "Wr1" Wr2
+          sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3"  Lcm3  "Lcm4"  Lcm4  "Lls1" Lls1 "Lr1" Lre1 "Lr2" Lre2
+                   "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wre1 "Wr1" Wre2
                    "Md1" Mdp1 "Mcm1" Mcm1 "Mcm2" Mcm2 "Mcm31" Mcm31 "Mcm41" Mcm41 "Mls1" Mls1  
                                                       "Mcm32" Mcm32 "Mcm42" Mcm42
                                                       "Mcm33" Mcm33 "Mcm43" Mcm43
