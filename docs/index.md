@@ -15,7 +15,7 @@ following are (partially) implemented.
 - [ ] GPDK 90nm as `gpdk90`
 - [ ] PTM 130nm
 
-## Table of Content
+## Table of Contents
 
 - [Installation](./install.md)
 - [Basic Usage](./usage.md)
