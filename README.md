@@ -184,7 +184,12 @@ gym.spaces.Box(low   = -np.inf
 <table>
 <tr><th>Variant</th><th>Dimensions</th> <th>Description</th></tr>
 <tr> 
-<td> `v0` </td> <td> `ℝ ¹² ∈ [-1.0; 1.0]` </td>
+<td> 
+`v0` 
+</td> 
+<td> 
+`ℝ ¹² ∈ [-1.0; 1.0]` 
+</td>
 <td>
 
 ```python
@@ -196,7 +201,12 @@ gym.spaces.Box(low   = -np.inf
 </td>
 </tr>
 <tr> 
-<td> `v1` </td> <td> `ℝ ¹⁵ ∈ [-1.0; 1.0]` </td>
+<td> 
+`v1` 
+</td> 
+<td> 
+`ℝ ¹⁵ ∈ [-1.0; 1.0]` 
+</td>
 <td>
 
 ```python
