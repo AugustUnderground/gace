@@ -140,11 +140,11 @@
           self.action-scale-max (np.array (+ l-max w-max m-max)))
     
     ;; Specify Input Parameternames
-    (setv self.input-parameters [ "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
-                                  "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
-                                       "Mcm11"         "Mcs"
-                                       "Mcm12" 
-                                       "Mcm13"                             ]))
+    (setv self.input-parameters [ "Ldp1" "Lcm1"  "Lcm2"  "Lcs1"         "Lres"
+                                  "Wdp1" "Wcm1"  "Wcm2"  "Wcs1" "Wcap"  "Wres"
+                                         "Mcm11"         "Mcs1"
+                                         "Mcm12" 
+                                         "Mcm13"                             ]))
 
   (defn step [self action]
     """

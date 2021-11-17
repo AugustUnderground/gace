@@ -164,8 +164,8 @@
 
     ;; Specify Input Parameternames
     (setv self.input-parameters 
-          [ "Ldp1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lr1" "Lr2"
-            "Wdp1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wr2" "Wr1"
+          [ "Ldp1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lre1" "Lre2"
+            "Wdp1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wre2" "Wre1"
                    "Mcm1" "Mcm2" "Mcm31" "Mcm41" "Mls1"
                                  "Mcm32" "Mcm42"
                                  "Mcm33" "Mcm43"
