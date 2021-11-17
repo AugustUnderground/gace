@@ -27,8 +27,8 @@ following are (partially) implemented.
     + [X] [Un-Symmetrical Cascode Amplifier (OP5)](./op5.md)
     + [X] [Miller Amplifier w/o Passives (OP6)](./op6.md)
     + [ ] [TBA (OP7)](./op7.md)
-    + [X] [WIP (OP8)](./op8.md)
-    + [X] [WIP (OP9)](./op9.md)
+    + [X] [Amplifier with Wideswing Current Mirror (OP8)](./op8.md)
+    + [X] [Amplifier with Cascode Wideswing Current Mirror (OP9)](./op9.md)
     + [ ] [TBA (OP10)](./op10.md)
 - Other Environments
     + [X] [NAND4](./nand4.md)

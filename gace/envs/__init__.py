@@ -2,7 +2,7 @@ import hy
 
 # Miller Operational Amplifier
 from gace.envs.op1 import ( OP1XH035V0Env, OP1XH035V1Env 
-                          # , OP1SKY130V0Env, OP1SKY130V1Env # Passives not ready
+                           , OP1SKY130V0Env, OP1SKY130V1Env # Passives not ready
                           , OP1GPDK180V0Env, OP1GPDK180V1Env 
                           , )
 
@@ -34,6 +34,18 @@ from gace.envs.op5 import ( OP5XH035V0Env, OP5XH035V1Env
 from gace.envs.op6 import ( OP6XH035V0Env, OP6XH035V1Env 
                           , OP6SKY130V0Env, OP6SKY130V1Env 
                           , OP6GPDK180V0Env, OP6GPDK180V1Env 
+                          , )
+
+# Wideswing
+from gace.envs.op8 import ( OP8XH035V0Env, OP8XH035V1Env 
+                          # , OP8SKY130V0Env, OP8SKY130V1Env 
+                          , OP8GPDK180V0Env, OP8GPDK180V1Env 
+                          , )
+
+# Cascode Wideswing
+from gace.envs.op9 import ( OP9XH035V0Env, OP9XH035V1Env 
+                          # , OP9SKY130V0Env, OP9SKY130V1Env 
+                          , OP9GPDK180V0Env, OP9GPDK180V1Env 
                           , )
 
 # 4 NAND Gate Inverter Chain

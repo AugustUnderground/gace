@@ -26,6 +26,14 @@ register( id          = 'op1-xh035-v1'
         , entry_point = 'gace.envs:OP1XH035V1Env'
         , )
 
+register( id          = 'op1-sky130-v0'
+        , entry_point = 'gace.envs:OP1SKY130V0Env'
+        , )
+
+register( id          = 'op1-sky130-v1'
+        , entry_point = 'gace.envs:OP1SKY130V1Env'
+        , )
+
 register( id          = 'op1-gpdk180-v0'
         , entry_point = 'gace.envs:OP1GPDK180V0Env'
         , )
@@ -33,7 +41,6 @@ register( id          = 'op1-gpdk180-v0'
 register( id          = 'op1-gpdk180-v1'
         , entry_point = 'gace.envs:OP1GPDK180V1Env'
         , )
-
 
 ## AC²E: OP2 - Symmetrical Amplifier
 register( id          = 'op2-xh035-v0'
@@ -159,6 +166,46 @@ register( id          = 'op6-gpdk180-v0'
 register( id          = 'op6-gpdk180-v1'
         , entry_point = 'gace.envs:OP6GPDK180V1Env'
         , )
+
+## AC²E: OP7
+# ... 
+
+## AC²E: OP8 - Wideswing Current Mirror
+register( id          = 'op8-xh035-v0'
+        , entry_point = 'gace.envs:OP8XH035V0Env'
+        , )
+
+register( id          = 'op8-xh035-v1'
+        , entry_point = 'gace.envs:OP8XH035V1Env'
+        , )
+
+register( id          = 'op8-gpdk180-v0'
+        , entry_point = 'gace.envs:OP8GPDK180V0Env'
+        , )
+
+register( id          = 'op8-gpdk180-v1'
+        , entry_point = 'gace.envs:OP8GPDK180V1Env'
+        , )
+
+## AC²E: OP9 - Cascode Wideswing Current Mirror
+register( id          = 'op9-xh035-v0'
+        , entry_point = 'gace.envs:OP9XH035V0Env'
+        , )
+
+register( id          = 'op9-xh035-v1'
+        , entry_point = 'gace.envs:OP9XH035V1Env'
+        , )
+
+register( id          = 'op9-gpdk180-v0'
+        , entry_point = 'gace.envs:OP9GPDK180V0Env'
+        , )
+
+register( id          = 'op9-gpdk180-v1'
+        , entry_point = 'gace.envs:OP9GPDK180V1Env'
+        , )
+
+## AC²E: OP10
+# ... 
 
 ## AC²E: NAND4 - 4 NAND Gate Inverter Chain
 register( id          = 'nand4-xh035-v1'

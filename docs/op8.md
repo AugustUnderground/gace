@@ -1,4 +1,4 @@
-### WORK IN PROGRESS (OP8)
+### Amplifier with Wideswing Current Mirror (OP8)
 
 ![op8](https://raw.githubusercontent.com/matthschw/ace/main/figures/op8.png)
 

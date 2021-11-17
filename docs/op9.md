@@ -1,4 +1,4 @@
-### WORK IN PROGRESS (OP9)
+### Amplifier with Cascode Wideswing Current Mirror (OP9)
 
 ![op9](https://raw.githubusercontent.com/matthschw/ace/main/figures/op9.png)
 
