@@ -182,7 +182,7 @@ gym.spaces.Box(low   = -np.inf
 #### Action Space 
 
 <table>
-<tr><th>Variant</th><th>Dimensions</th> <th>Description</th></tr>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
 <tr> 
 <td> 
 
@@ -228,11 +228,6 @@ gym.spaces.Box(low   = -np.inf
 </td>
 </tr>
 </table>
-
-| Variant | Dimensions           | Description                                                                                                                     |
-|---------|----------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building block,<br/> 1 resistance, 1 capacitance and the branch currents <br/> `i1` and `i2`. |
-| `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block,<br/> geometric sizes for Rc and Cc as well as <br/> mirror rations `M1` and `M2`.      |
 
 ```python
 # v0 action space
@@ -290,10 +285,52 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                               |
-|---------|----------------------|-------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁰ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1` and `i2`. |
-| `v1`    | `ℝ ¹² ∈ [-1.0; 1.0]` | 4 `W`s and `L`s for each building block and <br/> mirror ratios `Mcm1` and `Mcm2`.        |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁰ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1"
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1" 
+, "i1" "i2" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ¹² ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1",  "Lcm2", "Lcm3"  
+, "Wdp1", "Wcm1",  "Wcm2", "Wcm3" 
+        , "Mcm11", "Mcm21"  
+        , "Mcm12", "Mcm22"           ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -350,10 +387,53 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                                                                                            |
-|---------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹¹ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional branch current. <br/> 4 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`. |
-| `v1`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | Same as _op2_ with an additional mirror ratio. <br/> 4 `W`s and `L`s for each building block and <br/> mirror ratios `M1` `M2` and `M3`.               |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ¹¹ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1"
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1"
+, "i1", "i2", "i3" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁵ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1",  "Lcm2",   "Lcm3" 
+, "Wdp1", "Wcm1",  "Wcm2",   "Wcm3"
+        , "Mcm11", "Mcm212", "Mcm31" 
+        , "Mcm12", "Mcm222", "Mcm32" 
+        , "Mcm2x1"                  ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -410,10 +490,53 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                                                                 |
-|---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁵ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2` and `i3`.                             |
-| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> reference transistor, as well as <br/> mirror ratios `M1`, `M2` and `M3`. |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁵ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1", "gmid-ls1", "gmid-ref" 
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1",  "fug-ls1",  "fug-ref"
+, "i1", "i2", "i3" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁸ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1",  "Lcm2",  "Lcm3",  "Lls1", "Lref" 
+, "Wdp1", "Wcm1",  "Wcm2",  "Wcm3",  "Wls1", "Wref"
+        , "Mcm11", "Mcm21", "Mls1" 
+        , "Mcm12", "Mcm22" 
+        , "Mcm13"                                   ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -470,10 +593,53 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                                                                       |
-|---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁶ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and branch currents `i1`, `i2`, `i3` and `i4`.                             |
-| `v1`    | `ℝ ²² ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> reference transistor, as well as <br/> mirror ratios `M1`, `M2`, `M3` and `M4`. |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁶ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-dp1", "gmid-ls1", "gmid-ref"
+, "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-dp1",  "fug-ls1",  "fug-ref"
+, i1", "i2", "i3", "i4" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ²² ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1",  "Lcm2",   "Lcm3",  "Lls1",  "Lref"
+, "Wdp1", "Wcm1",  "Wcm2",   "Wcm3",  "Wls1",  "Wref"
+        , "Mcm11", "Mcm212", "Mcm31", "Mls11" 
+        , "Mcm12", "Mcm222", "Mcm32", "Mls12" 
+        , "Mcm13", "Mcm2x1"                          ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -530,10 +696,53 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                                                                |
-|---------|----------------------|----------------------------------------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁴ ∈ [-1.0; 1.0]` | 4 `gmoverid`s and `fug`s for each building <br/> block, the weird transistors and the branch <br/> currents `i1` and `i2`. |
-| `v1`    | `ℝ ¹⁸ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> the weird transistors plus the mirror ratios <br/> `M1` and `M2`.        |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁴ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-cm1", "gmid-cm2", "gmid-cs1", "gmid-dp1", "gmid-res", "gmid-cap"
+, fug-cm1",  "fug-cm2",  "fug-cs1",  "fug-dp1",  "fug-res",  "fug-cap"
+, "i1", "i2" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁸ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1",  "Lcm2",  "Lcs1", "Lcap", "Lres"
+, "Wdp1", "Wcm1",  "Wcm2",  "Wcs1", "Wcap", "Wres"
+        , "Mcm11",          "Mcs1", "Mcap", "Mres" 
+        , "Mcm12"
+        , "Mcm13" ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -580,10 +789,53 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                                   |
-|---------|----------------------|-----------------------------------------------------------------------------------------------|
-| `v0`    | `ℝ ¹⁶ ∈ [-1.0; 1.0]` | 6 `gmoverid`s and `fug`s for each building <br/> block and the branch currents `i1` and `i2`. |
-| `v1`    | `ℝ ²¹ ∈ [-1.0; 1.0]` | 6 `W`s and `L`s for each building block and <br/> plus a bunch of mirror ratios.              |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ¹⁶ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-dp1", "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-cm4", "gmid-cm5" 
+, fug-dp1",  "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-cm4",  "fug-cm5" 
+, "i1", "i2", "i3", "i4" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ²¹ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1", "Lcm2", "Lcm3", "Lcm4",  "Lcm5"
+, "Wdp1", "Wcm1", "Wcm2", "Wcm3", "Wcm4",  "Wcm5"
+        , "Mcm1", "Mcm2", "Mcm3", "Mcm41", "Mcm51" 
+                                , "Mcm42", "Mcm52"
+                                , "Mcm43", "Mcm53" ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -624,10 +876,54 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions           | Description                                                                      |
-|---------|----------------------|----------------------------------------------------------------------------------|
-| `v0`    | `ℝ ²² ∈ [-1.0; 1.0]` | 8 `gmoverid`s and `fug`s for each building <br/> block and 6 branch currents.    |
-| `v1`    | `ℝ ²⁷ ∈ [-1.0; 1.0]` | 8 `W`s and `L`s for each building block and <br/> plus a bunch of mirror ratios. |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v0` 
+
+</td> 
+<td> 
+
+`ℝ ²² ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "gmid-dp1", "gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-cm4", "gmid-ls1", "gmid-re1", "gmid-re2"
+, "fug-dp1",  "fug-cm1",  "fug-cm2",  "fug-cm3",  "fug-cm4",  "fug-ls1",  "fug-re1",  "fug-re2"
+, "i1", "i2", "i3", "i4", "i5", "i6" ]
+```
+
+</td>
+</tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ²⁷ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+[ "Ldp1", "Lcm1", "Lcm2", "Lcm3",  "Lcm4",  "Lls1", "Lr1", "Lr2"
+, "Wdp1", "Wcm1", "Wcm2", "Wcm3",  "Wcm4",  "Wls1", "Wr2", "Wr1"
+        , "Mcm1", "Mcm2", "Mcm31", "Mcm41", "Mls1"
+                        , "Mcm32", "Mcm42"
+                        , "Mcm33", "Mcm43"
+                        , "Mcm34", "Mcm44" ]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v0 action space
@@ -712,9 +1008,28 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions          | Description                        |
-|---------|---------------------|------------------------------------|
-| `v1`    | `ℝ ⁵ ∈ [-1.0; 1.0]` | 5 `W`s for each gate in the chain. |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ⁵ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+["Wn0", "Wp", "Wn2", "Wn1", "Wn3"]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v1 action space
@@ -786,9 +1101,28 @@ gym.spaces.Box( low   = -np.inf
 
 #### Action Space
 
-| Variant | Dimensions          | Description                               |
-|---------|---------------------|-------------------------------------------|
-| `v1`    | `ℝ ⁶ ∈ [-1.0; 1.0]` | 6 `W`s for each device in schmit trigger. |
+<table>
+<tr><th>Variant</th><th>Dimensions</th> <th>Parameters</th></tr>
+<tr> 
+<td> 
+
+`v1` 
+
+</td> 
+<td> 
+
+`ℝ ⁶ ∈ [-1.0; 1.0]`
+
+</td>
+<td>
+
+```python
+["Wp0", "Wn0", "Wp2", "Wp1", "Wn2", "Wn1"]
+```
+
+</td>
+</tr>
+</table>
 
 ```python
 # v1 action space
