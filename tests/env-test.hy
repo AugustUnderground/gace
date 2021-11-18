@@ -19,11 +19,6 @@
 (setv env (gym.make "gace:op2-gpdk180-v0"))
 (setv obs (.reset env))
 
-
-(setv act (np.array [ 0.18955506 -0.6754353  -0.15983637  0.02873111 -0.5350398 
-                  -0.7151296   0.40567723  0.1685969  -0.232339   -0.22847906]))
-
-
 (setv act (.sample env.action-space))
 (setv ob (.step env act))
 
@@ -33,15 +28,19 @@
 
 
 
-(for [o (range 6)]
-  (setv op f"op{(inc o)}")
-  (setv env0 (gym.make f"gace:{op}-xh035-v0"))
-  (setv env1 (gym.make f"gace:{op}-xh035-v1"))
+(for [o [1 2 3 4 5 6 8 9]]
+  (setv op f"op{o}")
+  (setv env0 (gym.make f"gace:{op}-gpdk180-v0"))
+  ;(setv env1 (gym.make f"gace:{op}-gpdk180-v1"))
   (print f"TESTING {op} v0")
   (gace.check-env env0)
-  (print f"TESTING {op} v1")
-  (gace.check-env env1)
-  (del env0) (del env1))
+  ;(print f"TESTING {op} v1")
+  ;(gace.check-env env1)
+  (.close env0) 
+  ;(.close env1)
+  (del env0) 
+  ;(del env1)
+  #_/ )
 
 (check-env env :warn True)
 

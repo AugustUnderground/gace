@@ -101,6 +101,7 @@ def _test_amp_v0(env_id):
                   , )
     _test_env(env)
     env.close()
+    del env
 
 def _test_amp_v1(env_id):
     env = gym.make( env_id
@@ -109,16 +110,19 @@ def _test_amp_v1(env_id):
                   , )
     _test_env(env)
     env.close()
+    del env
 
 def _test_inv_v1(env_id):
     env = gym.make(env_id, data_log_path = "")
     _test_env(env)
     env.close()
+    del env
 
 def _test_trg_v1(env_id):
     env = gym.make(env_id, data_log_path = "")
     _test_env(env)
     env.close()
+    del env
 
 def test_xh035_op_v0():
     amps = [f'op{op}' for op in [1,2,3,4,5,6,8,9]]
@@ -131,12 +135,12 @@ def test_xh035_op_v1():
         _test_amp_v1(f'gace:{a}-xh035-v1')
 
 def test_sky130_op_v0():
-    amps = [f'op{op}' for op in [2,3,4,5]]
+    amps = [f'op{op}' for op in [1,2,3,4,5]]
     for a in amps:
         _test_amp_v0(f'gace:{a}-sky130-v0')
 
 def test_sky130_op_v1():
-    amps = [f'op{op}' for op in [2,3,4,5]]
+    amps = [f'op{op}' for op in [1,2,3,4,5]]
     for a in amps:
         _test_amp_v1(f'gace:{a}-sky130-v1')
 
