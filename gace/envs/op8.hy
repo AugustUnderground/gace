@@ -124,8 +124,10 @@
                                                                   "Mcm42" Mcm42 "Mcm52" Mcm52
                                                                   "Mcm43" Mcm42 "Mcm53" Mcm53 
                    #_/ }]
-
-    (self.size-circuit sizing))))
+    (pp sizing)
+    ;(self.size-circuit sizing)
+    (self.size-circuit (ac.random-sizing self.ace))
+    #_/ )))
 
 (defclass OP8V1Env [ACE]
   """
