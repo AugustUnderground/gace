@@ -335,7 +335,7 @@
         clip (fn [a b v] (-> v (max a) (min b)))
         cw (partial clip w-min w-max)
         cl (partial clip l-min l-max)]
-    (dfor (, k v)
-      [k (cond [(.startswith v "W") (cw v)]
-               [(.startswith v "L") (cl v)]
+    (dfor (, k v) (.items sizing)
+      [k (cond [(.startswith k "W") (cw v)]
+               [(.startswith k "L") (cl v)]
                [True v])])))
