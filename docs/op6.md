@@ -12,6 +12,9 @@ Registered as `gace:op6-<tech>-<variant>`.
 | `sky130`   | `ℝ²³⁵∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ³⁰⁵∈(-∞ ;∞)` |
 
+For details see the `output-parameters` field of the `info` dictionary
+returned by `step()`.
+
 ```python
 # xh035
 gym.spaces.Box( low   = -np.inf
@@ -42,6 +45,9 @@ gym.spaces.Box( low   = -np.inf
 |---------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹⁴∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1", "fug-cm1", "fug-cm2", "fug-cs", "fug-d", "fug-r1", "fug-c1", "i1", "i2"]` |
 | `v1`    | `ℝ¹⁸∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lc1", "Lr1", "Wd", "Wcm1", "Wcm2", "Wcs", "Wc1", "Wr1", "Mcm11", "Mcs", "Mc1", "Mr1", "Mcm12", "Mcm13"]`       |
+
+Where `i1` is the drian current through `MNCM12` and `i2` is the drain current
+through `MNCM13`.
 
 ```python
 # v0 action space

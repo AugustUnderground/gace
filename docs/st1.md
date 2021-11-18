@@ -48,6 +48,9 @@ Registered as `gace:st1-<tech>-<variant>`.
 | `sky130`   | `ℝ¹²∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ¹²∈(-∞ ;∞)` |
 
+For details see the `output-parameters` field of the `info` dictionary
+returned by `step()`.
+
 ```python
 # xh035, sky130, gpdk180
 gym.spaces.Box( low   = -np.inf

@@ -12,8 +12,7 @@ and operating point characteristics for all devices in the circuit.
                  , "vs1": "Switching Voltage 2"
                  , "vs3": "Switching Voltage 3" }
 , "target":      { "Same keys as 'performance'": "..." }
-, "distance":    { "Same keys as 'performance'": "..." }
-, "state":       { "electrical characteristics": "..." } }
+, "distance":    { "Same keys as 'performance'": "..." } }
 ```
 
 Since there are only comparatively few observations, they are identical across
@@ -47,6 +46,9 @@ Registered as `gace:nand4-<tech>-<variant>`.
 | `xh035`    | `ℝ¹²∈(-∞ ;∞)` |
 | `sky130`   | `ℝ¹²∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ¹²∈(-∞ ;∞)` |
+
+For details see the `output-parameters` field of the `info` dictionary
+returned by `step()`.
 
 ```python
 # xh035, sky130, gpdk180
