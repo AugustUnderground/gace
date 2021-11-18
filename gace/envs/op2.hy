@@ -46,14 +46,14 @@
           self.action-scale-min 
                 (np.concatenate (, (np.repeat self.gmid-min 4)      ; gm/Id min
                                    (np.repeat self.fug-min  4)      ; fug min
-                                   (np.array [(/ self.i0 3.0)       ; i1 = M11 : M12
-                                              (/ self.i0 2.0 3.0)   ; i2 = M21 : M22
+                                   (np.array [(/ self.i0 3.0)       ; i1 = M11 : M12 = 3:1
+                                              (/ self.i0 2.0 3.0)   ; i2 = M21 : M22 = 3:1
                                               #_/ ])))
           self.action-scale-max 
                 (np.concatenate (, (np.repeat self.gmid-max 4)      ; gm/Id max
                                    (np.repeat self.fug-max  4)      ; fug max
-                                   (np.array [(* self.i0 16.0)      ; i1 = M11 : M12
-                                              (* self.i0 8.0 20.0)  ; i2 = M21 : M22
+                                   (np.array [(* self.i0 16.0)      ; i1 = M11 : M12 = 1:16
+                                              (* self.i0 4.0 20.0)  ; i2 = M21 : M22 = 1:20
                                               #_/ ]))))
 
     ;; Specify Input Parameternames
@@ -76,18 +76,18 @@
 
           i0 self.i0
 
-          M1 (->    (/ i0 i1)      (Fraction) (.limit-denominator 100))
-          M2 (-> (/ (/ i1 2.0) i2) (Fraction) (.limit-denominator 100))
- 
-          Mdp1  2
-          Mcm31 2            Mcm32 2
+          M1 (->    (/ i0 i1)      (Fraction) (.limit-denominator 16))
+          M2 (-> (/ (/ i1 2.0) i2) (Fraction) (.limit-denominator 20))
           Mcm11 M1.numerator Mcm12 M1.denominator
           Mcm21 M2.numerator Mcm22 M2.denominator
+          
+          Mdp1  2
+          Mcm31 2 Mcm32 2
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2) 0.0]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ self.vdd 2) 0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2.0) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2.0) 0.0]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2.0) 0.0]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ self.vdd 2.0) 0.0]])
 
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -108,7 +108,7 @@
                    "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 
                    "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
                              "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }]
-
+    (pp sizing)
     (self.size-circuit sizing))))
 
 (defclass OP2V1Env [ACE]
