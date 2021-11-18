@@ -110,46 +110,60 @@ def _test_amp_v1(env_id):
     _test_env(env)
     env.close()
 
-#def _test_inv_v1(env_id):
-#    env = gym.make(env_id, data_log_path = "")
-#    _test_env(env)
-#    env.close()
+def _test_inv_v1(env_id):
+    env = gym.make(env_id, data_log_path = "")
+    _test_env(env)
+    env.close()
 
-#def _test_trg_v1(env_id):
-#    env = gym.make(env_id, data_log_path = "")
-#    _test_env(env)
-#    env.close()
+def _test_trg_v1(env_id):
+    env = gym.make(env_id, data_log_path = "")
+    _test_env(env)
+    env.close()
 
-def test_xh035():
-    amps = [f'op{op}' for op in [1,2]] #,3,4,5,6,8,9]]
+def test_xh035_op_v0():
+    amps = [f'op{op}' for op in [1,2,3,4,5,6,8,9]]
     for a in amps:
         _test_amp_v0(f'gace:{a}-xh035-v0')
+
+def test_xh035_op_v1():
+    amps = [f'op{op}' for op in [1,2,3,4,5,6,8,9]]
+    for a in amps:
         _test_amp_v1(f'gace:{a}-xh035-v1')
 
-#def test_sky130():
-#    amps = [f'op{op}' for op in [2,3,4,5]]
-#    for a in amps:
-#        _test_amp_v0(f'gace:{a}-sky130-v0')
-#        _test_amp_v1(f'gace:{a}-sky130-v1')
+def test_sky130_op_v0():
+    amps = [f'op{op}' for op in [2,3,4,5]]
+    for a in amps:
+        _test_amp_v0(f'gace:{a}-sky130-v0')
 
-#def test_gpdk180():
-#    amps = [f'op{op}' for op in [1,2]] #,3,4,5,6,8,9]]
-#    for a in amps:
-#        _test_amp_v0(f'gace:{a}-gpdk180-v0')
-#        _test_amp_v1(f'gace:{a}-gpdk180-v1')
-#
+def test_sky130_op_v1():
+    amps = [f'op{op}' for op in [2,3,4,5]]
+    for a in amps:
+        _test_amp_v1(f'gace:{a}-sky130-v1')
 
-#def test_invs():
-#    invs = ['nand4']
-#    for i in invs:
-#        _test_inv_v1(f'gace:{i}-xh035-v1')
-#        _test_inv_v1(f'gace:{i}-sky130-v1')
-#        _test_inv_v1(f'gace:{i}-gpdk180-v1')
-#
+def test_gpdk180_op_v0():
+    amps = [f'op{op}' for op in [1,2,3,4,5,6,8,9]]
+    for a in amps:
+        _test_amp_v0(f'gace:{a}-gpdk180-v0')
 
-#def test_trgs():
-#    trgs = [f'st{st}' for st in [1]]
-#    for t in trgs:
-#        _test_trg_v1(f'gace:{t}-xh035-v1')
-#        _test_trg_v1(f'gace:{t}-sky130-v1')
-#        _test_trg_v1(f'gace:{t}-gpdk180-v1')
+def test_gpdk180_op_v1():
+    amps = [f'op{op}' for op in [1,2,3,4,5,6,8,9]]
+    for a in amps:
+        _test_amp_v1(f'gace:{a}-gpdk180-v1')
+
+def test_xh035_nand_v1():
+    _test_inv_v1(f'gace:nand4-xh035-v1')
+
+def test_sky130_nand_v1():
+    _test_inv_v1(f'gace:nand4-sky130-v1')
+
+def test_gpdk180_nand_v1():
+    _test_inv_v1(f'gace:nand4-gpdk180-v1')
+
+def test_xh035_st_v1():
+    _test_inv_v1(f'gace:st1-xh035-v1')
+
+def test_sky130_st_v1():
+    _test_inv_v1(f'gace:st1-sky130-v1')
+
+def test_gpdk180_st_v1():
+    _test_inv_v1(f'gace:st1-gpdk180-v1')
