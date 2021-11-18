@@ -77,8 +77,8 @@
           i0   self.i0
           Wres self.Wres 
           
-          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 100))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 100))
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 10))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 40))
 
           Mcm11 M1.numerator Mcm12 M1.denominator Mcm13 M2.denominator
           Mcm21 2            Mcm22 2

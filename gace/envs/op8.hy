@@ -81,10 +81,10 @@
 
           i0   self.i0
 
-          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 100))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 100))
-          M3 (-> (/ i2 i3) (Fraction) (.limit-denominator 100))
-          M4 (-> (/ i2 i4) (Fraction) (.limit-denominator 100))
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 15))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 3))
+          M3 (-> (/ i2 i3) (Fraction) (.limit-denominator 20))
+          M4 (-> (/ i2 i4) (Fraction) (.limit-denominator 20))
 
           Mdp1 2 Mcm1 2 Mcm2 2 Mcm3 2
           Mcm51 M1.numerator Mcm52 M2.denominator Mcm53 M1.denominator
