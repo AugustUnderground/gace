@@ -143,7 +143,9 @@
     (observation performance self.target))
 
     (defn size-circuit [self sizing]
-      (let [performance (ac.evaluate-circuit self.ace :params sizing) 
+      (let [clipped-sizing (clip-sizing ace-backend sizing)
+            _ (pp clipped-sizing)
+            performance (ac.evaluate-circuit self.ace :params clipped-sizing) 
             
             obs (observation performance self.target)
             rew (reward performance self.target self.condition)

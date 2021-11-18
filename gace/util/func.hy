@@ -322,3 +322,20 @@
                             (os.strerror errno.ENOSYS) 
                             (.format "{} is not a valid ACE backend."
                                      ace-backend)))]))
+
+(defn clip-sizing ^(of dict str float) [^str ace-backend ^(of dict str float) sizing]
+  """
+  Clip sizing according to technology constraints.
+  """
+  (let [con (technology-data ace-backend)
+        w-min (get con "w_min")
+        w-max (get con "w_max")
+        l-min (get con "l_min")
+        l-max (get con "l_max")
+        clip (fn [a b v] (-> v (max a) (min b)))
+        cw (partial clip w-min w-max)
+        cl (partial clip l-min l-max)]
+    (dfor (, k v)
+      [k (cond [(.startswith v "W") (cw v)]
+               [(.startswith v "L") (cl v)]
+               [True v])])))
