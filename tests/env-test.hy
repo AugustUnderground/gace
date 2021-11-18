@@ -19,12 +19,12 @@
 (setv env (gym.make "gace:op2-gpdk180-v0"))
 (setv obs (.reset env))
 
-(setv act (.sample env.action-space))
 
 (setv act (np.array [ 0.18955506 -0.6754353  -0.15983637  0.02873111 -0.5350398 
                   -0.7151296   0.40567723  0.1685969  -0.232339   -0.22847906]))
 
 
+(setv act (.sample env.action-space))
 (setv ob (.step env act))
 
 
