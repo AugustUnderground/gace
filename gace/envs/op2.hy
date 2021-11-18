@@ -108,7 +108,7 @@
                    "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 
                    "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
                              "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }]
-    (pp sizing)
+
     (self.size-circuit sizing))))
 
 (defclass OP2V1Env [ACE]

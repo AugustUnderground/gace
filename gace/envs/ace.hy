@@ -144,7 +144,7 @@
 
     (defn size-circuit [self sizing]
       (let [clipped-sizing (clip-sizing self.ace-backend sizing)
-            _ (pp clipped-sizing)
+
             performance (ac.evaluate-circuit self.ace :params clipped-sizing) 
             
             obs (observation performance self.target)
