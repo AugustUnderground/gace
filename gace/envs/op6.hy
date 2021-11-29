@@ -194,6 +194,42 @@
                (| kwargs {"ace_id" "op6" "ace_backend" "xh035-3V3" 
                           "ace_variant" 1 "obs_shape" (, 235)}))))
 
+(defclass OP6XH018V0Env [OP6V0Env]
+  """
+  Implementation: xh018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP6XH018V0Env self) #**
+               (| kwargs {"ace_id" "op6" "ace_backend" "xh018-1V8" 
+                          "ace_variant" 0 "obs_shape" (, 235)}))))
+
+(defclass OP6XH018V1Env [OP6V1Env]
+  """
+  Implementation: xh018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP6XH018V1Env self) #**
+               (| kwargs {"ace_id" "op6" "ace_backend" "xh018-1V8" 
+                          "ace_variant" 1 "obs_shape" (, 235)}))))
+
+(defclass OP6XT018V0Env [OP6V0Env]
+  """
+  Implementation: xt018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP6XT018V0Env self) #**
+               (| kwargs {"ace_id" "op6" "ace_backend" "xt018-1V8" 
+                          "ace_variant" 0 "obs_shape" (, 235)}))))
+
+(defclass OP6XT018V1Env [OP6V1Env]
+  """
+  Implementation: xt018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP6XT018V1Env self) #**
+               (| kwargs {"ace_id" "op6" "ace_backend" "xt018-1V8" 
+                          "ace_variant" 1 "obs_shape" (, 235)}))))
+
 (defclass OP6SKY130V0Env [OP6V0Env]
   """
   Implementation: sky130-1V8

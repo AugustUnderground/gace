@@ -70,6 +70,24 @@
                (| kwargs {"ace_id" "nand4" "ace_backend" "xh035-3V3" 
                           "ace_variant" 1 "obs_shape" (, 12)}))))
 
+(defclass NAND4XH018V1Env [NAND4V1Env]
+  """
+  Implementation: xh018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH018V1Env self) #**
+               (| kwargs {"ace_id" "nand4" "ace_backend" "xh018-1V8" 
+                          "ace_variant" 1 "obs_shape" (, 12)}))))
+
+(defclass NAND4XT018V1Env [NAND4V1Env]
+  """
+  Implementation: xt018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XT018V1Env self) #**
+               (| kwargs {"ace_id" "nand4" "ace_backend" "xt018-1V8" 
+                          "ace_variant" 1 "obs_shape" (, 12)}))))
+
 (defclass NAND4SKY130V1Env [NAND4V1Env]
   """
   Implementation: sky130-1V8
