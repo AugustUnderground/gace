@@ -1,12 +1,19 @@
 ## Basic Usage
 
+If there is a `$HOME/.ace` directory with backends and ML models as described
+in the [installation guide](./install.md) the following will suffice to create
+an `op2` environment with geomtrical design space in the `sky130` pdk.
+
 ```python
 import gym
 
-# Geometric design space and $HOME/.ace symlink or corresponding env vars
-env = gym.make('gace:op2-sky130-v1')     # Symmetrical Amplifier in SkyWater 130nm
+env = gym.make('gace:op2-sky130-v1')
+```
 
-# Electrical design space and all kwargs
+Otherwise paths have to be named explicitly, here all supported `kwargs` for
+the environment contructor:
+
+```python
 env = gym.make(                      'gace:op2-sky130-v1'    # OP2 in sky130-1V8
               , pdk_path           = '/path/to/tech'         # path to pdk
               , ckt_path           = '/path/to/op2'          # path to testbench
@@ -22,6 +29,8 @@ env = gym.make(                      'gace:op2-sky130-v1'    # OP2 in sky130-1V8
               #, reltol             = 1e-3                    # ONLY FOR NAND4 AND ST1
               , )
 ```
+
+### Design Constraints
 
 The `design-constraints` dict supports the following fields:
 
@@ -48,3 +57,14 @@ The `design-constraints` dict supports the following fields:
 ```
 
 Other fields should have no effect.
+
+### Environment Variants
+
+The variants `v#` define the shape and meaning of the action space.
+
+| Variant | Description                                           |
+|---------|-------------------------------------------------------|
+| `v0`    | Electrical Design Space: `gmoverid`, `fug` as inputs. |
+| `v1`    | Geometrical Design Space: `W`, `L`, `M`  as inputs.   |
+| `v3`    | TBA                                                   |
+| `v4`    | TBA                                                   |
