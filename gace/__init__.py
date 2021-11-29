@@ -2,7 +2,7 @@
 from gace.util import check_env
 
 ## Environment Variants:
-# 
+#
 # | Variant | Description                                |
 # |---------+--------------------------------------------|
 # | v0      | Electrical Action Space (gmoverid and fug) |
@@ -11,6 +11,8 @@ from gace.util import check_env
 #
 # Technolgies:
 #   - X-Fab 350nm: xh035-3V3
+#   - X-Fab 180nm: xh018-1V8
+#   - X-Fab 180nm: xt018-1V8
 #   - SkyWater 130nm: sky130-1V8
 #   - GPDK 180nm: gpdk180-1V2
 #   - TODO PTM 130nm: ptm130-1V2
@@ -25,6 +27,22 @@ register( id          = 'op1-xh035-v0'
 register( id          = 'op1-xh035-v1'
         , entry_point = 'gace.envs:OP1XH035V1Env'
         , )
+
+#register( id          = 'op1-xh018-v0'
+#        , entry_point = 'gace.envs:OP1XH018V0Env'
+#        , )
+#
+#register( id          = 'op1-xh018-v1'
+#        , entry_point = 'gace.envs:OP1XH018V1Env'
+#        , )
+#
+#register( id          = 'op1-xt018-v0'
+#        , entry_point = 'gace.envs:OP1XT018V0Env'
+#        , )
+#
+#register( id          = 'op1-xt018-v1'
+#        , entry_point = 'gace.envs:OP1XT018V1Env'
+#        , )
 
 register( id          = 'op1-sky130-v0'
         , entry_point = 'gace.envs:OP1SKY130V0Env'
@@ -51,6 +69,22 @@ register( id          = 'op2-xh035-v1'
         , entry_point = 'gace.envs:OP2XH035V1Env'
         , )
 
+#register( id          = 'op2-xh018-v0'
+#        , entry_point = 'gace.envs:OP2XH018V0Env'
+#        , )
+#
+#register( id          = 'op2-xh018-v1'
+#        , entry_point = 'gace.envs:OP2XH018V1Env'
+#        , )
+#
+#register( id          = 'op2-xt018-v0'
+#        , entry_point = 'gace.envs:OP2XT018V0Env'
+#        , )
+#
+#register( id          = 'op2-xt018-v1'
+#        , entry_point = 'gace.envs:OP2XT018V1Env'
+#        , )
+
 register( id          = 'op2-sky130-v0'
         , entry_point = 'gace.envs:OP2SKY130V1Env'
         , )
@@ -75,6 +109,22 @@ register( id          = 'op3-xh035-v0'
 register( id          = 'op3-xh035-v1'
         , entry_point = 'gace.envs:OP3XH035V1Env'
         , )
+
+#register( id          = 'op3-xh018-v0'
+#        , entry_point = 'gace.envs:OP3XH018V0Env'
+#        , )
+#
+#register( id          = 'op3-xh018-v1'
+#        , entry_point = 'gace.envs:OP3XH018V1Env'
+#        , )
+#
+#register( id          = 'op3-xt018-v0'
+#        , entry_point = 'gace.envs:OP3XT018V0Env'
+#        , )
+#
+#register( id          = 'op3-xt018-v1'
+#        , entry_point = 'gace.envs:OP3XT018V1Env'
+#        , )
 
 register( id          = 'op3-sky130-v0'
         , entry_point = 'gace.envs:OP3SKY130V0Env'
@@ -101,6 +151,22 @@ register( id          = 'op4-xh035-v1'
         , entry_point = 'gace.envs:OP4XH035V1Env'
         , )
 
+#register( id          = 'op4-xh018-v0'
+#        , entry_point = 'gace.envs:OP4XH018V0Env'
+#        , )
+#
+#register( id          = 'op4-xh018-v1'
+#        , entry_point = 'gace.envs:OP4XH018V1Env'
+#        , )
+#
+#register( id          = 'op4-xt018-v0'
+#        , entry_point = 'gace.envs:OP4XT018V0Env'
+#        , )
+#
+#register( id          = 'op4-xt018-v1'
+#        , entry_point = 'gace.envs:OP4XT018V1Env'
+#        , )
+
 register( id          = 'op4-sky130-v0'
         , entry_point = 'gace.envs:OP4SKY130V0Env'
         , )
@@ -125,6 +191,22 @@ register( id          = 'op5-xh035-v0'
 register( id          = 'op5-xh035-v1'
         , entry_point = 'gace.envs:OP5XH035V1Env'
         , )
+
+#register( id          = 'op5-xh018-v0'
+#        , entry_point = 'gace.envs:OP5XH018V0Env'
+#        , )
+#
+#register( id          = 'op5-xh018-v1'
+#        , entry_point = 'gace.envs:OP5XH018V1Env'
+#        , )
+#
+#register( id          = 'op5-xt018-v0'
+#        , entry_point = 'gace.envs:OP5XT018V0Env'
+#        , )
+#
+#register( id          = 'op5-xt018-v1'
+#        , entry_point = 'gace.envs:OP5XT018V1Env'
+#        , )
 
 register( id          = 'op5-sky130-v0'
         , entry_point = 'gace.envs:OP5SKY130V0Env'
@@ -151,6 +233,22 @@ register( id          = 'op6-xh035-v1'
         , entry_point = 'gace.envs:OP6XH035V1Env'
         , )
 
+#register( id          = 'op6-xh018-v0'
+#        , entry_point = 'gace.envs:OP6XH018V0Env'
+#        , )
+#
+#register( id          = 'op6-xh018-v1'
+#        , entry_point = 'gace.envs:OP6XH018V1Env'
+#        , )
+#
+#register( id          = 'op6-xt018-v0'
+#        , entry_point = 'gace.envs:OP6XT018V0Env'
+#        , )
+#
+#register( id          = 'op6-xt018-v1'
+#        , entry_point = 'gace.envs:OP6XT018V1Env'
+#        , )
+
 register( id          = 'op6-sky130-v0'
         , entry_point = 'gace.envs:OP6SKY130V0Env'
         , )
@@ -168,7 +266,7 @@ register( id          = 'op6-gpdk180-v1'
         , )
 
 ## AC²E: OP7
-# ... 
+# ...
 
 ## AC²E: OP8 - Wideswing Current Mirror
 register( id          = 'op8-xh035-v0'
@@ -178,6 +276,22 @@ register( id          = 'op8-xh035-v0'
 register( id          = 'op8-xh035-v1'
         , entry_point = 'gace.envs:OP8XH035V1Env'
         , )
+
+#register( id          = 'op8-xh018-v0'
+#        , entry_point = 'gace.envs:OP8XH018V0Env'
+#        , )
+#
+#register( id          = 'op8-xh018-v1'
+#        , entry_point = 'gace.envs:OP8XH018V1Env'
+#        , )
+#
+#register( id          = 'op8-xt018-v0'
+#        , entry_point = 'gace.envs:OP8XT018V0Env'
+#        , )
+#
+#register( id          = 'op8-xt018-v1'
+#        , entry_point = 'gace.envs:OP8XT018V1Env'
+#        , )
 
 register( id          = 'op8-gpdk180-v0'
         , entry_point = 'gace.envs:OP8GPDK180V0Env'
@@ -196,6 +310,22 @@ register( id          = 'op9-xh035-v1'
         , entry_point = 'gace.envs:OP9XH035V1Env'
         , )
 
+#register( id          = 'op9-xh018-v0'
+#        , entry_point = 'gace.envs:OP9XH018V0Env'
+#        , )
+#
+#register( id          = 'op9-xh018-v1'
+#        , entry_point = 'gace.envs:OP9XH018V1Env'
+#        , )
+#
+#register( id          = 'op9-xt018-v0'
+#        , entry_point = 'gace.envs:OP9XT018V0Env'
+#        , )
+#
+#register( id          = 'op9-xt018-v1'
+#        , entry_point = 'gace.envs:OP9XT018V1Env'
+#        , )
+
 register( id          = 'op9-gpdk180-v0'
         , entry_point = 'gace.envs:OP9GPDK180V0Env'
         , )
@@ -205,11 +335,19 @@ register( id          = 'op9-gpdk180-v1'
         , )
 
 ## AC²E: OP10
-# ... 
+# ...
 
 ## AC²E: NAND4 - 4 NAND Gate Inverter Chain
 register( id          = 'nand4-xh035-v1'
         , entry_point = 'gace.envs:NAND4XH035V1Env'
+        , )
+
+register( id          = 'nand4-xh018-v1'
+        , entry_point = 'gace.envs:NAND4XH018V1Env'
+        , )
+
+register( id          = 'nand4-xt018-v1'
+        , entry_point = 'gace.envs:NAND4XT018V1Env'
         , )
 
 register( id          = 'nand4-sky130-v1'
@@ -223,6 +361,14 @@ register( id          = 'nand4-gpdk180-v1'
 ## AC²E: ST1 - Schmitt Trigger
 register( id          = 'st1-xh035-v1'
         , entry_point = 'gace.envs:ST1XH035V1Env'
+        , )
+
+register( id          = 'st1-xh018-v1'
+        , entry_point = 'gace.envs:ST1XH018V1Env'
+        , )
+
+register( id          = 'st1-xt018-v1'
+        , entry_point = 'gace.envs:ST1XT018V1Env'
         , )
 
 register( id          = 'st1-sky130-v1'
