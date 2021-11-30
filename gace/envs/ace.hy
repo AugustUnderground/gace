@@ -77,7 +77,7 @@
     
     ;; Environment Configurations
     (setv self.max-steps max-steps
-          self.num-steps 0
+          self.num-steps (int 0)
           self.data-log-path data-log-path
           self.data-log (pd.DataFrame)
           self.param-log-path param-log-path)
@@ -151,7 +151,7 @@
             
             obs (observation performance self.target)
             rew (reward performance self.target self.condition)
-            don (or (> self.num-steps self.max-steps) 
+            don (or (>= (inc self.num-steps) self.max-steps) 
                     (all (second (target-distance performance 
                                                   self.target 
                                                   self.condition))))
