@@ -143,31 +143,31 @@
 
     (observation performance self.target))
 
-    (defn size-circuit [self sizing &optional [blocklist []]]
-      (let [clipped-sizing (clip-sizing self.ace-backend sizing)
+  (defn size-circuit [self sizing &optional [blocklist []]]
+    (let [clipped-sizing (clip-sizing self.ace-backend sizing)
 
-            performance (ac.evaluate-circuit self.ace :params clipped-sizing
-                                                      :blocklist blocklist) 
-            
-            obs (observation performance self.target)
-            rew (reward performance self.target self.condition)
-            don (or (>= (inc self.num-steps) self.max-steps) 
-                    (all (second (target-distance performance 
-                                                  self.target 
-                                                  self.condition))))
-            inf (info performance self.target self.input-parameters) ]
+          performance (ac.evaluate-circuit self.ace :params clipped-sizing
+                                                    :blocklist blocklist) 
+          
+          obs (observation performance self.target)
+          rew (reward performance self.target self.condition)
+          don (or (>= (inc self.num-steps) self.max-steps) 
+                  (all (second (target-distance performance 
+                                                self.target 
+                                                self.condition))))
+          inf (info performance self.target self.input-parameters) ]
 
-        (when (bool self.data-log-path)
-          (setv self.data-log (.append self.data-log (| sizing performance)
-                                       :ignore-index True)))
+      (when (bool self.data-log-path)
+        (setv self.data-log (.append self.data-log (| sizing performance)
+                                     :ignore-index True)))
 
-        (when (and (bool self.param-log-path) 
-                   (or (np.any (np.isnan obs)) 
-                       (np.any (np.isinf obs))))
-          (save-state self.ace self.ace-id self.param-log-path))
-         
-        (when (and (bool self.data-log-path) don)
-          (save-data self.data-log self.data-log-path self.ace-id))
+      (when (and (bool self.param-log-path) 
+                 (or (np.any (np.isnan obs)) 
+                     (np.any (np.isinf obs))))
+        (save-state self.ace self.ace-id self.param-log-path))
+       
+      (when (and (bool self.data-log-path) don)
+        (save-data self.data-log self.data-log-path self.ace-id))
 
       (setv self.num-steps (inc self.num-steps))
       (, obs rew don inf)))
