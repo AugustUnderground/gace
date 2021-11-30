@@ -11,11 +11,10 @@
 (import [hy.contrib.sequences [Sequence end-sequence]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(defn target-specification [^str ace-id ^str ace-backend
+(defn target-specification [^str ace-id ^dict dc
                   &optional ^bool [random False] 
                             ^bool [noisy True]]
-  (let [td (technology-data ace-backend)
-        vdd (get td "vdd")
+  (let [vdd (get dc "vsup" "init")
         ts (cond [(in ace-id ["op1" "op6"])
                   {"a_0"         105.0
                    "ugbw"        3500000.0
@@ -222,5 +221,5 @@
          #_/ }]
         [True (raise (NotImplementedError errno.ENOSYS
                       (os.strerror errno.ENOSYS) 
-                      (.format "There is no reward condition for {} in {}"
-                               ace-id ace-backend)))]))
+                      (.format "There is no reward condition for {}."
+                               ace-id)))]))

@@ -43,6 +43,7 @@
     target: Dict[str, float] ({})       -> Specific Target to reach
     random-target: bool (False)         -> Randomize Target each episode
     noisy-target: bool  (True)          -> Add some noise after each reset
+    train-mode: bool (True)             -> Whether this is training or eval
     reltol: float (1e-3)                -> Relative tolarnce for equaltiy
     data-log-path: str ("")             -> Write a dataframe to HDF5 at this location
     param-log-path: str ('.')           -> Write a json to this location
@@ -53,9 +54,10 @@
                        ^str [ckt-path None] ^str [pdk-path None]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
-                       ^int [max-steps 666] ^(of dict str float) [design-constraints {}]
+                       ^int [max-steps 666] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
+                       ^bool [train-mode True]
                        ^str [nmos-path None] ^str [pmos-path None]
                        ^str [data-log-path ""] ^str [param-log-path "."]]
 
@@ -67,14 +69,35 @@
                                                 :ckt ckt-path :pdk [pdk-path])
           self.ace             (self.ace-constructor))
 
-    ;; Get technology constraints attached to this ACE object
-    (for [(, k v) (-> self.ace-backend (technology-data) (.items))]
-      (setattr self k v))
-    
-    ;; Use given `design-constraints` to override technology-data.
-    (for [(, k v) (.items design-constraints)]
-      (setattr self k v))
-    
+    ;; Obtain design constraints from ACE backend and override if given
+    (setv dc (design-constraints self.ace)
+          self.design-constraints (dfor k (.keys dc) 
+                                          [k (.get design-constr k 
+                                                   (get dc k))]))
+
+    ;; Generate action space for the given ACE Environment
+    (setv (, self.action-space  
+          self.action-scale-min
+          self.action-scale-max) (action-space self.ace
+                                               self.design-constraints 
+                                               self.ace-id 
+                                               self.ace-variant))
+
+    ;; Override step function
+    (setv self.step (cond [(= self.ace-variant 0) self.step-v0]
+                          [(= self.ace-variant 1) self.step-v1]
+                          [(= self.ace-variant 2) self.step-v2]
+                         ; [(= av 3) self.step-v3]
+                          [True 
+                           (raise (NotImplementedError errno.ENOSYS
+                                    (os.strerror errno.ENOSYS) 
+                                    (.format "Variant v{} not implemented for {}." 
+                                    av self.ace-id)))]))
+
+
+    ;; Set training mode by default
+    (setv self.train-mode train-mode)
+
     ;; Environment Configurations
     (setv self.max-steps max-steps
           self.num-steps (int 0)
@@ -86,9 +109,10 @@
     (setv self.random-target random-target
           self.noisy-target  noisy-target
           self.target        (or target 
-                                 (target-specification self.ace-id self.ace-backend
-                                      :random self.random-target
-                                      :noisy self.noisy-target))
+                                 (target-specification self.ace-id 
+                                                       self.design-constraints
+                                                       :random self.random-target
+                                                       :noisy self.noisy-target))
           self.reltol reltol
           self.condition (reward-condition self.ace-id :tolerance self.reltol))
 
@@ -106,6 +130,10 @@
       (setv self.nmos (load-primitive "nmos" self.ace-backend :dev-path nmos-path)
             self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path)))
 
+    ;; Specify Input Parameter Names
+    (setv self.input-parameters (input-parameters self.ace-id self.ace-variant))
+
+    ;; Call gym.Env constructor
     (.__init__ (super ACE self)))
   
   (defn reset ^np.array [self]
@@ -144,9 +172,9 @@
     (observation performance self.target))
 
   (defn size-circuit [self sizing &optional [blocklist []]]
-    (let [clipped-sizing (clip-sizing self.ace-backend sizing)
+    (let [;clipped-sizing (clip-sizing self.ace-backend sizing)
 
-          performance (ac.evaluate-circuit self.ace :params clipped-sizing
+          performance (ac.evaluate-circuit self.ace :params sizing ;clipped-sizing
                                                     :blocklist blocklist) 
           
           obs (observation performance self.target)

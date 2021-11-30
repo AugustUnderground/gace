@@ -34,42 +34,9 @@
   Base class for OP6
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super OP6Env self) #** (| kwargs {"ace_id" "op6"}))))
+    (.__init__ (super OP6Env self) #** (| kwargs {"ace_id" "op6"})))
 
-(defclass OP6V0Env [OP6Env]
-  """
-  Base class for electrical design space (v0)
-  """
-  (defn __init__ [self &kwargs kwargs]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP6V0Env self) #** (| kwargs {"ace_variant" 0}))
-
-    ;; The action space consists of 14 parameters ∈ [-1;1]. One gm/id and fug for
-    ;; each building block and 2 branch currents.
-    (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 14) 
-                                 :dtype np.float32)
-          self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 6)  ; gm/Id min
-                                   (np.repeat self.fug-min  6)  ; fug min
-                                   (np.array [(/ self.i0 3.0)   ; i1 = M11 : M12
-                                              (/ self.i0 3.0)   ; i2 = M11 : M13
-                                              #_/ ])))
-          self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 6)  ; gm/Id min
-                                   (np.repeat self.fug-max  6)  ; fug min
-                                   (np.array [(* self.i0 10.0)  ; i1 = M11 : M12
-                                              (* self.i0 40.0)  ; i2 = M11 : M13
-                                              #_/ ]))))
-
-    ;; Specify Input Parameternames
-    (setv self.input-parameters 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1" "gmid-res" "gmid-cap"
-            "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1"  "fug-res"  "fug-cap"
-            "i1" "i2" ]))
-
-  (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
+  (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action]
     """
     Takes an array of electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
@@ -82,7 +49,8 @@
              i1 i2 ) (unscale-value action self.action-scale-min 
                                            self.action-scale-max)
 
-          i0 self.i0
+          i0  (get self.design-constraints "i0" "init")
+          vdd (get self.design-constraints "vsup" "init")
           
           M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 10))
           M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 40))
@@ -94,12 +62,12 @@
           Mcap 2
           Mdp1 2
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2.0) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2.0) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2.0) 0.0]])
-          cs1-in (np.array [[gmid-cs1 fug-cs1 (/ self.vdd 2.0) 0.0]])
-          cap-in (np.array [[gmid-cap fug-cap             0.0  0.0]])
-          res-in (np.array [[gmid-res fug-res             0.0  0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2.0) 0.0]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 2.0) 0.0]])
+          cs1-in (np.array [[gmid-cs1 fug-cs1 (/ vdd 2.0) 0.0]])
+          cap-in (np.array [[gmid-cap fug-cap        0.0  0.0]])
+          res-in (np.array [[gmid-res fug-res        0.0  0.0]])
           
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -129,36 +97,9 @@
                              "Mcm13" Mcm13 
                   #_/ }]
 
-    (self.size-circuit sizing))))
+    (self.size-circuit sizing)))
 
-(defclass OP6V1Env [OP6Env]
-  """
-  Base class for electrical design space (v1)
-  """
-  (defn __init__ [self &kwargs kwargs]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP6V1Env self) #** (| kwargs {"ace_variant" 1}))
-
-    ;; The action space consists of 12 parameters ∈ [-1;1]. Ws and Ls for
-    ;; each building block and mirror ratios as well as the cap and res.
-    (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 18) 
-                                 :dtype np.float32)
-          l-min (list (repeat self.l-min 6)) l-max (list (repeat self.l-max 6))
-          w-min (list (repeat self.w-min 6)) w-max (list (repeat self.w-max 6))
-          m-min [1 1 1 1 1 1]             m-max [3 40 4 4 10 40]
-          self.action-scale-min (np.array (+ l-min w-min m-min))
-          self.action-scale-max (np.array (+ l-max w-max m-max)))
-
-    ;; Specify Input Parameternames
-    (setv self.input-parameters [ "Ldp1" "Lcm1"  "Lcm2"  "Lcs1" "Lcap" "Lres"
-                                  "Wdp1" "Wcm1"  "Wcm2"  "Wcs1" "Wcap" "Wres"
-                                         "Mcm11"         "Mcs1" "Mcap" "Mres" 
-                                         "Mcm12"
-                                         "Mcm13" ]))
-
-  (defn step [self action]
+  (defn step-v1 [self action]
     """
     Takes an array of geometric parameters for each building block and mirror
     ratios This is passed to the parent class where the netlist ist modified
@@ -183,82 +124,82 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP6XH035V0Env [OP6V0Env]
+(defclass OP6XH035V0Env [OP6Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6XH035V0Env self) #**
-               (| kwargs {"ace_backend" "xh035-3V3"}))))
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 0}))))
 
-(defclass OP6XH035V1Env [OP6V1Env]
+(defclass OP6XH035V1Env [OP6Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6XH035V1Env self) #**
-               (| kwargs {"ace_backend" "xh035-3V3"}))))
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
 
-(defclass OP6XH018V0Env [OP6V0Env]
+(defclass OP6XH018V0Env [OP6Env]
   """
   Implementation: xh018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6XH018V0Env self) #**
-               (| kwargs {"ace_backend" "xh018-1V8"}))))
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 0}))))
 
-(defclass OP6XH018V1Env [OP6V1Env]
+(defclass OP6XH018V1Env [OP6Env]
   """
   Implementation: xh018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6XH018V1Env self) #**
-               (| kwargs {"ace_backend" "xh018-1V8"}))))
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 1}))))
 
-(defclass OP6XT018V0Env [OP6V0Env]
+(defclass OP6XT018V0Env [OP6Env]
   """
   Implementation: xt018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6XT018V0Env self) #**
-               (| kwargs {"ace_backend" "xt018-1V8"}))))
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 0}))))
 
-(defclass OP6XT018V1Env [OP6V1Env]
+(defclass OP6XT018V1Env [OP6Env]
   """
   Implementation: xt018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6XT018V1Env self) #**
-               (| kwargs {"ace_backend" "xt018-1V8"}))))
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 1}))))
 
-(defclass OP6SKY130V0Env [OP6V0Env]
+(defclass OP6SKY130V0Env [OP6Env]
   """
   Implementation: sky130-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6SKY130V0Env self) #**
-               (| kwargs {"ace_backend" "sky130-1V8"}))))
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 0}))))
 
-(defclass OP6SKY130V1Env [OP6V1Env]
+(defclass OP6SKY130V1Env [OP6Env]
   """
   Implementation: sky130-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6SKY130V1Env self) #**
-               (| kwargs {"ace_backend" "sky130-1V8"}))))
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 1}))))
 
-(defclass OP6GPDK180V0Env [OP6V0Env]
+(defclass OP6GPDK180V0Env [OP6Env]
   """
   Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6GPDK180V0Env self) #**
-               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 0}))))
 
-(defclass OP6GPDK180V1Env [OP6V1Env]
+(defclass OP6GPDK180V1Env [OP6Env]
   """
   Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP6GPDK180V1Env self) #**
-               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 1}))))

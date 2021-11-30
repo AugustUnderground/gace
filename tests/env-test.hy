@@ -15,16 +15,17 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:nand4-xh035-v1"))
+(setv env (gym.make "gace:op1-xh035-v0"))
+
 (setv obs (.reset env))
 (gace.check-env env)
 
 (setx act (.sample env.action-space))
-(pp (setx ob (.step env act)))
+(pp (.step env act))
 
 (for [i [1 2 3 4 5 6 8 9]]
-  (setv env (gym.make f"gace:op{i}-xh035-v1"))
-  (print f"TESTING op{i} v1")
+  (setv env (gym.make f"gace:op{i}-xh035-v0"))
+  (print f"TESTING op{i} v0")
   (gace.check-env env)
   (.close env) (del env) )
 

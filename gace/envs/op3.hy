@@ -8,9 +8,6 @@
 (import [numpy :as np])
 (import [pandas :as pd])
 
-(import gym)
-(import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
-
 (import [.ace [ACE]])
 (import [gace.util.func [*]])
 (import [gace.util.target [*]])
@@ -34,43 +31,9 @@
   Base class for OP3
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super OP3Env self) #** (| kwargs {"ace_id" "op3"}))))
+    (.__init__ (super OP3Env self) #** (| kwargs {"ace_id" "op3"})))
 
-(defclass OP3V0Env [OP3Env]
-  """
-  Base class for electrical design space (v0)
-  """
-  (defn __init__ [self &kwargs kwargs]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP3V0Env self) #** (| kwargs {"ace_variant" 0}))
-
-    ;; The action space consists of 11 parameters ∈ [-1;1]. One gm/id and fug for
-    ;; each building block and 3 branch currents.
-    (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 11) 
-                                 :dtype np.float32)
-          self.action-scale-min 
-                (np.concatenate (, (np.repeat self.gmid-min 4)      ; gm/Id min
-                                   (np.repeat self.fug-min  4)      ; fug min
-                                   (np.array [(/ self.i0 3.0)       ; i1 = M11 : M12
-                                              (/ self.i0 2.0 3.0)   ; i2 = M211 : M212
-                                              (/ self.i0 2.0 3.0)   ; i3 = M221 : M222
-                                              #_/ ])))
-          self.action-scale-max 
-                (np.concatenate (, (np.repeat self.gmid-max 4)      ; gm/Id min
-                                   (np.repeat self.fug-max  4)      ; fug min
-                                   (np.array [(* self.i0 16.0)      ; i1 = M11 : M12
-                                              (* self.i0 8.0 20.0)  ; i2 = M211 : M212
-                                              (* self.i0 8.0 20.0)  ; i3 = M221 : M222
-                                              #_/ ]))))
-
-    ;; Specify Input Parameternames
-    (setv self.input-parameters [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
-                                  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
-                                  "i1" "i2" "i3" ]))
-
-  (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
+  (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action]
     """
     Takes an array of electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
@@ -83,7 +46,8 @@
              i1 i2 i3 ) (unscale-value action self.action-scale-min 
                                               self.action-scale-max)
 
-          i0 self.i0
+          i0  (get self.design-constraints "i0" "init")
+          vdd (get self.design-constraints "vsup" "init")
 
           M1 (->    (/ i0 i1)      (Fraction) (.limit-denominator 16))
           M2 (-> (/ (/ i1 2.0) i2) (Fraction) (.limit-denominator 20))
@@ -95,10 +59,10 @@
           Mcm2x1 2 Mcm212 (round (/ i1 i3)) Mcm222 (round (/ i1 i2))
           Mdp1   2
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ self.vdd 2) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ self.vdd 2) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ self.vdd 2) 0.0]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ self.vdd 2) 0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2) 0.0]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 2) 0.0]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 2) 0.0]])
 
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -122,35 +86,9 @@
                                            "Mcm222" Mcm222 
                   #_/ }]
 
-    (self.size-circuit sizing))))
+    (self.size-circuit sizing)))
 
-(defclass OP3V1Env [OP3Env]
-  """
-  Base class for geometric design space (v1)
-  """
-  (defn __init__ [self &kwargs kwargs]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super OP3V1Env self) #** (| kwargs {"ace_variant" 1}))
-
-    ;; The action space consists of 14 geometrical parameters ∈ [-1;1]:
-    (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 15) 
-                                 :dtype np.float32)
-          l-min (list (repeat self.l-min 4)) l-max (list (repeat self.l-max 4))
-          w-min (list (repeat self.w-min 4)) w-max (list (repeat self.w-max 4))
-          m-min [1 1  1  1  1  1  1]         m-max [3 20 10 16 20 10 3]
-          self.action-scale-min (np.array (+ l-min w-min m-min))
-          self.action-scale-max (np.array (+ l-max w-max m-max)))
-
-    ;; Specify Input Parameternames
-    (setv self.input-parameters [ "Ldp1" "Lcm1"  "Lcm2"   "Lcm3" 
-                                  "Wdp1" "Wcm1"  "Wcm2"   "Wcm3"
-                                         "Mcm11" "Mcm212" "Mcm31" 
-                                         "Mcm12" "Mcm222" "Mcm32" 
-                                         "Mcm2x1" ]))
-
-  (defn step [self action]
+  (defn step-v1 [self action]
     """
     Takes an array of geometric parameters for each building block and mirror
     ratios This is passed to the parent class where the netlist ist modified
@@ -173,82 +111,82 @@
 
       (self.size-circuit sizing))))
 
-(defclass OP3XH035V0Env [OP3V0Env]
+(defclass OP3XH035V0Env [OP3Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH035V0Env self) #**
-               (| kwargs {"ace_backend" "xh035-3V3"}))))
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 0}))))
 
-(defclass OP3XH035V1Env [OP3V1Env]
+(defclass OP3XH035V1Env [OP3Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH035V1Env self) #**
-               (| kwargs {"ace_backend" "xh035-3V3"}))))
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
 
-(defclass OP3XH018V0Env [OP3V0Env]
+(defclass OP3XH018V0Env [OP3Env]
   """
   Implementation: xh018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH018V0Env self) #**
-               (| kwargs {"ace_backend" "xh018-1V8"}))))
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 0}))))
 
-(defclass OP3XH018V1Env [OP3V1Env]
+(defclass OP3XH018V1Env [OP3Env]
   """
   Implementation: xh018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH018V1Env self) #**
-               (| kwargs {"ace_backend" "xh018-1V8"}))))
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 1}))))
 
-(defclass OP3XT018V0Env [OP3V0Env]
+(defclass OP3XT018V0Env [OP3Env]
   """
   Implementation: xt018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XT018V0Env self) #**
-               (| kwargs {"ace_backend" "xt018-1V8"}))))
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 0}))))
 
-(defclass OP3XT018V1Env [OP3V1Env]
+(defclass OP3XT018V1Env [OP3Env]
   """
   Implementation: xt018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XT018V1Env self) #**
-               (| kwargs {"ace_backend" "xt018-1V8"}))))
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 1}))))
 
-(defclass OP3SKY130V0Env [OP3V0Env]
+(defclass OP3SKY130V0Env [OP3Env]
   """
   Implementation: sky130-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3SKY130V0Env self) #**
-               (| kwargs {"ace_backend" "sky130-1V8"}))))
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 0}))))
 
-(defclass OP3SKY130V1Env [OP3V1Env]
+(defclass OP3SKY130V1Env [OP3Env]
   """
   Implementation: sky130-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3SKY130V1Env self) #**
-               (| kwargs {"ace_backend" "sky130-1V8"}))))
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 1}))))
 
-(defclass OP3GPDK180V0Env [OP3V0Env]
+(defclass OP3GPDK180V0Env [OP3Env]
   """
   Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V0Env self) #**
-               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 0}))))
 
-(defclass OP3GPDK180V1Env [OP3V1Env]
+(defclass OP3GPDK180V1Env [OP3Env]
   """
   Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V1Env self) #**
-               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 1}))))

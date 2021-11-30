@@ -12,6 +12,7 @@
 (import [torch :as pt])
 (import [numpy :as np])
 (import [pandas :as pd])
+(import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
 (import [.prim [*]])
 (import [hace :as ac])
@@ -287,88 +288,182 @@
           (get analyses it)
           (.tolist it))))
 
-(defn technology-data ^(of dict str float) [^str ace-backend]
+
+(defn action-space ^(of tuple) [ace ^dict dc ^str ace-id  ^int ace-variant]
+  """
+  Generates an action space for the given ace-id and variant
+  """
+  (let [ip (input-parameters ace-id ace-variant)
+
+        num-params (fn [p ps] (len (list (filter #%(.startswith %1 p) ps))))
+
+        base-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
+
+        action-space (cond [(in ace-variant [0 1]) base-space]
+                           [(in ace-variant [2 3])
+                            (Tuple (, base-space 
+                                      (->> ace (ac.simulation-analyses) 
+                                           (len) (** 2) (dec) (Discrete))))]
+                           [True
+                            (raise (NotImplementedError errno.ENOSYS
+                                      (os.strerror errno.ENOSYS) 
+                                      (.format "No action space for {}-v{}."
+                                      ace-id ace-variant)))])
+
+        scale-min (cond [(in ace-variant [0 2])
+                        (np.concatenate 
+                          (, (np.repeat (get dc "gmid" "min") 
+                                        (num-params "gmid" ip))
+                             (np.repeat (get dc "fug" "min")  
+                                        (num-params "fug" ip))
+                             (np.repeat (get dc "rc" "min")  
+                                        (num-params "r" ip))
+                             (np.repeat (get dc "cc" "min")  
+                                        (num-params "c" ip))
+                             (np.repeat (/ (get dc "i0" "init") 3.0) 
+                                        (num-params "i" ip))))]
+                        [(in ace-variant [1 3])
+                         (np.array (lfor p ip (get dc p "min")))]
+                        [True
+                          (raise (NotImplementedError errno.ENOSYS
+                                    (os.strerror errno.ENOSYS) 
+                                    (.format "No action space for {}-v{}."
+                                     ace-id ace-variant)))])
+
+        scale-max (cond [(in ace-variant [0 2])
+                        (np.concatenate 
+                          (, (np.repeat (get dc "gmid" "max") 
+                                        (num-params "gmid" ip))
+                             (np.repeat (get dc "fug" "max")  
+                                        (num-params "fug" ip))
+                             (np.repeat (get dc "rc" "max")  
+                                        (num-params "r" ip))
+                             (np.repeat (get dc "cc" "max")  
+                                        (num-params "c" ip))
+                             (np.repeat (/ (get dc "i0" "init") 3.0) 
+                                        (num-params "i" ip))))]
+                        [(in ace-variant [1 3])
+                         (np.array (lfor p ip (get dc p "max")))]
+                        [True
+                          (raise (NotImplementedError errno.ENOSYS
+                                    (os.strerror errno.ENOSYS) 
+                                    (.format "No action space for {}-v{}."
+                                     ace-id ace-variant)))])]
+    (, action-space scale-min scale-max)))
+
+(defn design-constraints ^dict [ace]
   """
   Returns a dictionary containing technology constraints.
   """
-  (cond [(= ace-backend "xh035-3V3")
-         {"cs"       0.85e-15 ; Poly Capacitance per μm^2
-          "rs"       100      ; Sheet Resistance in Ω/□
-          "i0"       3e-6     ; Bias Current in A
-          "vdd"      3.3      ; Supply Voltage
-          "Wres"     2e-6     ; Resistor Width in m
-          "Mcap"     1e-6     ; Capacitance multiplier
-          "Rc_min"   0.5e3    ; Minimum Compensation Resistor = 500Ω
-          "Rc_max"   50e3     ; Minimum Compensation Resistor = 50000Ω
-          "Cc_min"   0.5e-12  ; Minimum Compensation Capacitor = 0.5pF
-          "Cc_max"   5e-12    ; Minimum Compensation Capacitor = 5pF
-          "w_min"    0.4e-6
-          "w_max"    150e-6
-          "l_min"    0.35e-6
-          "l_max"    15e-6
-          "gmid_min" 6.0      ; Minimum device efficiency
-          "gmid_max" 26.0     ; Maximum device efficiency
-          "fug_min"  1e6      ; Minimum device speed
-          "fug_max"  1e9      ; Maximum device speed
-          #_/ }]
-        [(= ace-backend "sky130-1V8")
-         {"cs"       0.85e-15 ; Poly Capacitance per μm^2
-          "rs"       100      ; Sheet Resistance in Ω/□
-          "i0"       3e-6     ; Bias Current in A
-          "vdd"      1.8      ; Supply Voltage
-          "Wres"     2e-6     ; Resistor Width in m
-          "Mcap"     1e-6     ; Capacitance multiplier
-          "Rc_min"   0.5e3    ; Minimum Compensation Resistor = 500Ω
-          "Rc_max"   50e3     ; Minimum Compensation Resistor = 50000Ω
-          "Cc_min"   0.5e-12  ; Minimum Compensation Capacitor = 0.5pF
-          "Cc_max"   5e-12    ; Minimum Compensation Capacitor = 5pF
-          "w_min"    0.42
-          "w_max"    100
-          "l_min"    0.15
-          "l_max"    100
-          "gmid_min" 6.0      ; Minimum device efficiency
-          "gmid_max" 26.0     ; Maximum device efficiency
-          "fug_min"  1e6      ; Minimum device speed
-          "fug_max"  1e9      ; Maximum device speed
-          #_/ }]
-        [(= ace-backend "gpdk180-1V8")
-         {"cs"       0.85e-15 ; Poly Capacitance per μm^2
-          "rs"       100      ; Sheet Resistance in Ω/□
-          "i0"       3e-6     ; Bias Current in A
-          "vdd"      1.8      ; Supply Voltage
-          "Wres"     2e-6     ; Resistor Width in m
-          "Mcap"     1e-6     ; Capacitance multiplier
-          "Rc_min"   0.5e3    ; Minimum Compensation Resistor = 500Ω
-          "Rc_max"   50e3     ; Minimum Compensation Resistor = 50000Ω
-          "Cc_min"   0.5e-12  ; Minimum Compensation Capacitor = 0.5pF
-          "Cc_max"   5e-12    ; Minimum Compensation Capacitor = 5pF
-          "w_min"    0.42
-          "w_max"    100
-          "l_min"    0.18
-          "l_max"    20
-          "gmid_min" 6.0      ; Minimum device efficiency
-          "gmid_max" 26.0     ; Maximum device efficiency
-          "fug_min"  1e6      ; Minimum device speed
-          "fug_max"  1e9      ; Maximum device speed
-          #_/ }]
-        [True (raise (NotImplementedError errno.ENOSYS
-                            (os.strerror errno.ENOSYS) 
-                            (.format "{} is not a valid ACE backend."
-                                     ace-backend)))]))
+  (| (ac.parameter-dict ace)
+     { "gmid" { "init" 10.0
+                "max"  26.0
+                "min"  6.0
+                "grid" NaN }
+       "fug" { "init" 1.0e8
+               "max"  1.0e9
+               "min"  1.0e6
+               "grid" NaN }
+       "rc"  { "init" 5e3
+               "max"  50e3
+               "min"  0.5e3
+               "grid" NaN }
+       "cc" { "init" 1.0e-12
+              "max"  5.0e-12
+              "min"  0.5e-12
+              "grid" NaN }
+       #_/ }))
 
-(defn clip-sizing ^(of dict str float) [^str ace-backend ^(of dict str float) sizing]
+(defn input-parameters ^(of list str) [^str ace-id ^int ace-variant]
   """
-  Clip sizing according to technology constraints.
+  Returns a list of input parameter names
   """
-  (let [con (technology-data ace-backend)
-        w-min (get con "w_min")
-        w-max (get con "w_max")
-        l-min (get con "l_min")
-        l-max (get con "l_max")
-        clip (fn [a b v] (-> v (max a) (min b)))
-        cw (partial clip w-min w-max)
-        cl (partial clip l-min l-max)]
-    (dfor (, k v) (.items sizing)
-      [k (cond [(.startswith k "W") (cw v)]
-               [(.startswith k "L") (cl v)]
-               [True v])])))
+  (cond [(and (= ace-id "op1") (in ace-variant [0 2])) 
+         [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
+           "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
+           "res" "cap" "i1" "i2" ]]
+        [(and (= ace-id "op1") (= ace-variant 1)) 
+         [ "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
+           "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
+                "Mcm11"         "Mcs"
+                "Mcm12" 
+                "Mcm13" ]]
+        [(and (= ace-id "op2") (in ace-variant [0 2])) 
+         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
+           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1" 
+           "i1" "i2" ]]
+        [(and (= ace-id "op2") (= ace-variant 1))
+         [ "Ld" "Lcm1"  "Lcm2" "Lcm3"  
+           "Wd" "Wcm1"  "Wcm2" "Wcm3" 
+                "Mcm11" "Mcm21"  
+                "Mcm12" "Mcm22" ]]
+        [(and (= ace-id "op3") (= ace-variant 0))
+         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
+           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
+           "i1" "i2" "i3" ]]
+        [(and (= ace-id "op3") (= ace-variant 1)) 
+         [ "Ld" "Lcm1"  "Lcm2"   "Lcm3" 
+           "Wd" "Wcm1"  "Wcm2"   "Wcm3"
+                "Mcm11" "Mcm212" "Mcm31" 
+                "Mcm12" "Mcm222" "Mcm32" 
+                        "Mcm2x1" ]]
+        [(and (= ace-id "op4") (= ace-variant 0)) 
+         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref" 
+           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref" 
+           "i1" "i2" "i3" ]]
+        [(and (= ace-id "op4") (= ace-variant 1)) 
+         [ "Ld" "Lcm1"  "Lcm2"  "Lcm3"  "Lc1" "Lr" 
+           "Wd" "Wcm1"  "Wcm2"  "Wcm3"  "Wc1" "Wr"
+                "Mcm11" "Mcm21"         "Mc1" 
+                "Mcm12" "Mcm22" 
+                "Mcm13" ]]
+        [(and (= ace-id "op5") (= ace-variant 0))
+         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
+           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
+           "i1" "i2" "i3" "i4" ]]
+        [(and (= ace-id "op5") (= ace-variant 1)) 
+         [ "Ld" "Lcm1"  "Lcm2"   "Lcm3"  "Lc1"  "Lr"
+           "Wd" "Wcm1"  "Wcm2"   "Wcm3"  "Wc1"  "Wr"
+                "Mcm11" "Mcm212" "Mcm31" "Mc11" 
+                "Mcm12" "Mcm222" "Mcm32" "Mc12" 
+                "Mcm13" "Mcm2x1" ]]
+        [(and (= ace-id "op6") (= ace-variant 0)) 
+         [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1" "gmid-res" "gmid-cap"
+           "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1"  "fug-res"  "fug-cap"
+           "i1" "i2" ]]
+        [(and (= ace-id "op6") (= ace-variant 1)) 
+         [ "Ld" "Lcm1"  "Lcm2"  "Lcs" "Lc1" "Lr1"
+           "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wc1" "Wr1"
+                "Mcm11"         "Mcs" "Mc1" "Mr1" 
+                "Mcm12"
+                "Mcm13" ]]
+        [(and (= ace-id "op8") (= ace-variant 0)) 
+         [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-cm5" 
+           "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-cm5" 
+           "i1" "i2" "i3" "i4" ]]
+        [(and (= ace-id "op8") (= ace-variant 1)) 
+         [ "Ld1" "Lcm1" "Lcm2" "Lcm3" "Lcm4"  "Lcm5"
+           "Wd1" "Wcm1" "Wcm2" "Wcm3" "Wcm4"  "Wcm5"
+                 "Mcm1" "Mcm2" "Mcm3" "Mcm41" "Mcm51" 
+                                      "Mcm42" "Mcm52" 
+                                      "Mcm43" "Mcm53" ]]
+        [(and (= ace-id "op9") (= ace-variant 0)) 
+         [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-ls1" "gmid-re1" "gmid-re2"
+           "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-ls1"  "fug-re1"  "fug-re2"
+           "i1" "i2" "i3" "i4" "i5" "i6" ]]
+        [(and (= ace-id "op9") (= ace-variant 1)) 
+         [ "Ld1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lr1" "Lr2"
+           "Wd1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wr2" "Wr1"
+                 "Mcm1" "Mcm2" "Mcm31" "Mcm41" "Mls1"
+                               "Mcm32" "Mcm42"
+                               "Mcm33" "Mcm43"
+                               "Mcm34" "Mcm44" ]]
+        [(and (= ace-id "nand4") (= ace-variant 1)) 
+         ["Wn0" "Wp" "Wn2" "Wn1" "Wn3"]]
+        [(and (= ace-id "st1") (= ace-variant 1)) 
+         ["Wp0" "Wn0" "Wp2" "Wp1" "Wn2" "Wn1"]]
+        [True
+         (raise (NotImplementedError errno.ENOSYS
+                                    (os.strerror errno.ENOSYS) 
+                                    (.format "No parameters for {}-v{}."
+                                     ace-id ace-variant)))]))

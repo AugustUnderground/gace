@@ -34,29 +34,9 @@
   Base class for NAND4
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super ST1Env self) #** (| kwargs {"ace_id" "st1"}))))
+    (.__init__ (super ST1Env self) #** (| kwargs {"ace_id" "st1"})))
 
-(defclass ST1V1Env [ST1Env]
-  """
-  Base class for geometric design space (v1)
-  """
-  (defn __init__ [self &kwargs kwargs]
-
-    ;; Parent constructor for initialization
-    (.__init__ (super ST1V1Env self) #** (| kwargs {"ace_variant" 1}))
-
-    ;; The action space consists of 6 parameters ∈ [-1;1]. Each width of the
-    ;; schmitt trigger.
-    (setv self.action-space (Box :low -1.0 :high 1.0 
-                                 :shape (, 6) 
-                                 :dtype np.float32)
-          self.action-scale-min (np.array (list (repeat self.w-min 6)))
-          self.action-scale-max (np.array (list (repeat self.w-max 6))))
-
-    ;; Specify Input Parameternames
-    (setv self.input-parameters ["Wp0" "Wn0" "Wp2" "Wp1" "Wn2" "Wn1"]))
-
-  (defn step [self action]
+  (defn step-v1 [self action]
     """
     Takes an array of geometric parameters for each building block and mirror
     ratios This is passed to the parent class where the netlist ist modified
@@ -71,42 +51,42 @@
 
       (self.size-circuit sizing))))
 
-(defclass ST1XH035V1Env [ST1V1Env]
+(defclass ST1XH035V1Env [ST1Env]
   """
   Implementation: xh035-3V3
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH035V1Env self) #**
-               (| kwargs {"ace_backend" "xh035-3V3"}))))
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
 
-(defclass ST1XH018V1Env [ST1V1Env]
+(defclass ST1XH018V1Env [ST1Env]
   """
   Implementation: xh018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH018V1Env self) #**
-               (| kwargs {"ace_backend" "xh018-1V8"}))))
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 1}))))
 
-(defclass ST1XT018V1Env [ST1V1Env]
+(defclass ST1XT018V1Env [ST1Env]
   """
   Implementation: xt018-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XT018V1Env self) #**
-               (| kwargs {"ace_backend" "xt018-1V8"}))))
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 1}))))
 
-(defclass ST1SKY130V1Env [ST1V1Env]
+(defclass ST1SKY130V1Env [ST1Env]
   """
   Implementation: sky130-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1SKY130V1Env self) #**
-               (| kwargs {"ace_backend" "sky130-1V8"}))))
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 1}))))
 
-(defclass ST1GPDK180V1Env [ST1V1Env]
+(defclass ST1GPDK180V1Env [ST1Env]
   """
   Implementation: gpdk180-1V8
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1GPDK180V1Env self) #**
-               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 1}))))
