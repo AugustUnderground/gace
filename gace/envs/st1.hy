@@ -29,14 +29,21 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass ST1V1Env [ACE]
+(defclass ST1Env [ACE]
+  """
+  Base class for NAND4
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super ST1Env self) #** (| kwargs {"ace_id" "st1"}))))
+
+(defclass ST1V1Env [ST1Env]
   """
   Base class for geometric design space (v1)
   """
   (defn __init__ [self &kwargs kwargs]
 
     ;; Parent constructor for initialization
-    (.__init__ (super ST1V1Env self) #** kwargs)
+    (.__init__ (super ST1V1Env self) #** (| kwargs {"ace_variant" 1}))
 
     ;; The action space consists of 6 parameters ∈ [-1;1]. Each width of the
     ;; schmitt trigger.
@@ -70,8 +77,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH035V1Env self) #**
-               (| kwargs {"ace_id" "st1" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xh035-3V3"}))))
 
 (defclass ST1XH018V1Env [ST1V1Env]
   """
@@ -79,8 +85,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH018V1Env self) #**
-               (| kwargs {"ace_id" "st1" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xh018-1V8"}))))
 
 (defclass ST1XT018V1Env [ST1V1Env]
   """
@@ -88,8 +93,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XT018V1Env self) #**
-               (| kwargs {"ace_id" "st1" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xt018-1V8"}))))
 
 (defclass ST1SKY130V1Env [ST1V1Env]
   """
@@ -97,8 +101,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1SKY130V1Env self) #**
-               (| kwargs {"ace_id" "st1" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "sky130-1V8"}))))
 
 (defclass ST1GPDK180V1Env [ST1V1Env]
   """
@@ -106,5 +109,4 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "st1" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8"}))))

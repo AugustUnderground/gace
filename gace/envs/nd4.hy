@@ -28,14 +28,21 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass NAND4V1Env [ACE]
+(defclass NAND4Env [ACE]
+  """
+  Base class for NAND4
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4Env self) #** (| kwargs {"ace_id" "nand4"}))))
+
+(defclass NAND4V1Env [NAND4Env]
   """
   Base class for geometric design space (v1)
   """
   (defn __init__ [self &kwargs kwargs]
     
     ;; Parent constructor for initialization
-    (.__init__ (super NAND4V1Env self) #** kwargs)
+    (.__init__ (super NAND4V1Env self) #** (| kwargs {"ace_variant" 1}))
 
     ;; The action space consists of 5 parameters ∈ [-1;1]. Each width of the
     ;; inverter chain.
@@ -67,8 +74,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH035V1Env self) #**
-               (| kwargs {"ace_id" "nand4" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xh035-3V3"}))))
 
 (defclass NAND4XH018V1Env [NAND4V1Env]
   """
@@ -76,8 +82,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH018V1Env self) #**
-               (| kwargs {"ace_id" "nand4" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xh018-1V8"}))))
 
 (defclass NAND4XT018V1Env [NAND4V1Env]
   """
@@ -85,8 +90,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XT018V1Env self) #**
-               (| kwargs {"ace_id" "nand4" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xt018-1V8"}))))
 
 (defclass NAND4SKY130V1Env [NAND4V1Env]
   """
@@ -94,8 +98,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4SKY130V1Env self) #**
-               (| kwargs {"ace_id" "nand4" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "sky130-1V8"}))))
 
 (defclass NAND4GPDK180V1Env [NAND4V1Env]
   """
@@ -103,5 +106,4 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "nand4" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8"}))))

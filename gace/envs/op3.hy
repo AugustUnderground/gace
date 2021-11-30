@@ -29,14 +29,21 @@
 ;(import multiprocess)
 ;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
 
-(defclass OP3V0Env [ACE]
+(defclass OP3Env [ACE]
+  """
+  Base class for OP3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP3Env self) #** (| kwargs {"ace_id" "op3"}))))
+
+(defclass OP3V0Env [OP3Env]
   """
   Base class for electrical design space (v0)
   """
   (defn __init__ [self &kwargs kwargs]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP3V0Env self) #** kwargs)
+    (.__init__ (super OP3V0Env self) #** (| kwargs {"ace_variant" 0}))
 
     ;; The action space consists of 11 parameters ∈ [-1;1]. One gm/id and fug for
     ;; each building block and 3 branch currents.
@@ -117,14 +124,14 @@
 
     (self.size-circuit sizing))))
 
-(defclass OP3V1Env [ACE]
+(defclass OP3V1Env [OP3Env]
   """
   Base class for geometric design space (v1)
   """
   (defn __init__ [self &kwargs kwargs]
 
     ;; Parent constructor for initialization
-    (.__init__ (super OP3V1Env self) #** kwargs)
+    (.__init__ (super OP3V1Env self) #** (| kwargs {"ace_variant" 1}))
 
     ;; The action space consists of 14 geometrical parameters ∈ [-1;1]:
     (setv self.action-space (Box :low -1.0 :high 1.0 
@@ -172,8 +179,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH035V0Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 0}))))
+               (| kwargs {"ace_backend" "xh035-3V3"}))))
 
 (defclass OP3XH035V1Env [OP3V1Env]
   """
@@ -181,8 +187,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH035V1Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xh035-3V3"}))))
 
 (defclass OP3XH018V0Env [OP3V0Env]
   """
@@ -190,8 +195,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH018V0Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 0}))))
+               (| kwargs {"ace_backend" "xh018-1V8"}))))
 
 (defclass OP3XH018V1Env [OP3V1Env]
   """
@@ -199,8 +203,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH018V1Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xh018-1V8"}))))
 
 (defclass OP3XT018V0Env [OP3V0Env]
   """
@@ -208,8 +211,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XT018V0Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 0}))))
+               (| kwargs {"ace_backend" "xt018-1V8"}))))
 
 (defclass OP3XT018V1Env [OP3V1Env]
   """
@@ -217,8 +219,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XT018V1Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "xt018-1V8"}))))
 
 (defclass OP3SKY130V0Env [OP3V0Env]
   """
@@ -226,8 +227,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3SKY130V0Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 0}))))
+               (| kwargs {"ace_backend" "sky130-1V8"}))))
 
 (defclass OP3SKY130V1Env [OP3V1Env]
   """
@@ -235,8 +235,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3SKY130V1Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "sky130-1V8"}))))
 
 (defclass OP3GPDK180V0Env [OP3V0Env]
   """
@@ -244,8 +243,7 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V0Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 0}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
 
 (defclass OP3GPDK180V1Env [OP3V1Env]
   """
@@ -253,5 +251,4 @@
   """
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V1Env self) #**
-               (| kwargs {"ace_id" "op3" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1}))))
+               (| kwargs {"ace_backend" "gpdk180-1V8"}))))
