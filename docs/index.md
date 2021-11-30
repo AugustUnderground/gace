@@ -117,7 +117,7 @@ integrated circuit design, based on [AC²E](https://github.com/matthschw/ace) /
     + [X] [OP9: Amplifier with Cascode Wideswing Current Mirror](./op9.md)
     + [ ] [OP10: TBA](./op10.md)
 - Other Environments
-    + [X] [NAND4: Inverter Chain](./nand4.md)
+    + [X] [NAND4: Inverter Chain](./nd4.md)
     + [X] [ST1: Schmitt Trigger](./st1.md)
 - [Issues](./issues.md)
 
