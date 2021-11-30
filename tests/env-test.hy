@@ -10,17 +10,16 @@
 (import gym)
 (import gace)
 (import [operator [itemgetter]])
-(import [stable-baselines3.common.env-checker [check-env]])
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op2-gpdk180-v0"))
+(setv env (gym.make "gace:op2-xh035-v2"))
 (setv obs (.reset env))
 
-(setv act (.sample env.action-space))
-(setv ob (.step env act))
+(setx act (.sample env.action-space))
+(pp (setx ob (.step env act)))
 
 
 

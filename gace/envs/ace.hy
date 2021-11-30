@@ -101,7 +101,7 @@
           self.condition (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; Primitive Device setup
-    (when (= self.ace-variant 0)
+    (when (in self.ace-variant [0 2])
       (setv self.nmos (load-primitive "nmos" self.ace-backend :dev-path nmos-path)
             self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path)))
 
@@ -142,10 +142,11 @@
 
     (observation performance self.target))
 
-    (defn size-circuit [self sizing]
+    (defn size-circuit [self sizing &optional [blocklist []]]
       (let [clipped-sizing (clip-sizing self.ace-backend sizing)
 
-            performance (ac.evaluate-circuit self.ace :params clipped-sizing) 
+            performance (ac.evaluate-circuit self.ace :params clipped-sizing
+                                                      :blocklist blocklist) 
             
             obs (observation performance self.target)
             rew (reward performance self.target self.condition)

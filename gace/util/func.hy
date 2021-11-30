@@ -257,7 +257,23 @@
                                               (.replace "." "_"))])) 
              (.to-hdf data-path :key hdf-key :append True :mode "a"))))
 
-(defn technology-data [ace-backend]
+
+(defn simulation-mask ^(of list str) [ace ^int mask]
+  """
+  Converts an integer to an ace simulation blocklist.
+  """
+  (let [analyses      (-> ace (ac.simulation-analyses) (np.array))
+        num-analyses  (len analyses)]
+    (as-> mask it
+          (& it (<< 1 (np.arange num-analyses)))
+          (.astype it bool)
+          (get analyses it)
+          (.tolist it))))
+
+(defn technology-data ^(of dict str float) [^str ace-backend]
+  """
+  Returns a dictionary containing technology constraints.
+  """
   (cond [(= ace-backend "xh035-3V3")
          {"cs"       0.85e-15 ; Poly Capacitance per μm^2
           "rs"       100      ; Sheet Resistance in Ω/□

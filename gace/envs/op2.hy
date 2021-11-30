@@ -21,7 +21,7 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
-(import  [typing [List Set Dict Tuple Optional Union]])
+(import  [typing [List Set Optional Union]])
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
@@ -61,7 +61,8 @@
                                   "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1" 
                                   "i1" "i2" ]))
 
-  (defn step ^(of tuple np.array float bool dict) [self ^np.array action]
+  (defn step ^(of tuple np.array float bool dict) [self ^np.array action 
+             &optional ^(of list str) [blocklist []]]
     """
     Takes an array of electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
@@ -138,7 +139,8 @@
                                          "Mcm11" "Mcm21"  
                                          "Mcm12" "Mcm22" ]))
 
-  (defn step [self action]
+  (defn step ^(of tuple np.array float bool dict) [self ^np.array action 
+             &optional ^(of list str) [blocklist []]]
     """
     Takes an array of geometric parameters for each building block and mirror
     ratios This is passed to the parent class where the netlist ist modified
@@ -159,6 +161,53 @@
 
       (self.size-circuit sizing))))
 
+(defclass OP2V2Env [OP2V0Env]
+  """
+  Enhancement of electrical design space (v0) which takes additional actions to
+  decide which simulations are run. (v3)
+  """
+  (defn __init__ [self &kwargs kwargs]
+
+    (.__init__ (super OP2V2Env self) #** 
+               (dfor (, k v) (.items kwargs) :if (not-in k ["train"]) [k v]))
+    
+    ;; Set to train mode (default) or eval mode
+    (setv self.train (.get kwargs "train" True))
+
+    ;; The action space consists of the parent action space and a simulation
+    ;; blocklist mask.
+    (setv self.analyses (ac.simulation-analyses self.ace)
+          self.num-analyses (len self.analyses)
+          self.action-space (Tuple (, self.action-space
+                                      (Discrete (** 2 self.num-analyses)))))
+
+    ;; Specify Input Parameternames
+    (setv self.input-parameters [ (tuple self.input-parameters)
+                                  (tuple self.analyses) ]))
+
+  (defn step ^(of tuple np.array float bool dict) [self ^tuple action]
+    """
+    Same step as v0, but with the option to block certain simulation analyses.
+    """
+    (let [design-action     (first action)
+          simulation-action (simulation-mask self.ace (second action))
+          pi                (ac.performance-identifiers 
+                                self.ace :blocklist simulation-action)
+          perfomances       (flatten (lfor p pi [(.format "perfomance_{}" p)
+                                                 (.format "target_{}" p)
+                                                 (.format "distance_{}" p)]))
+          (, obs  reward 
+             done info)     (.step (super) design-action 
+                                   :blocklist (if self.train [] 
+                                                  simulation-action))
+
+          obs-mask          (np.array (lfor op (get info "output-parameters") 
+                                               (int (in op perfomances))))
+
+          observations      (* obs obs-mask) ]
+
+      (, observations reward done info))))
+
 (defclass OP2XH035V0Env [OP2V0Env]
   """
   Implementation: xh035-3V3
@@ -176,6 +225,15 @@
     (.__init__ (super OP2XH035V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xh035-3V3" 
                           "ace_variant" 1 "obs_shape" (, 206)}))))
+
+(defclass OP2XH035V2Env [OP2V2Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP2XH035V2Env self) #**
+               (| kwargs {"ace_id" "op2" "ace_backend" "xh035-3V3" 
+                          "ace_variant" 2 "obs_shape" (, 206)}))))
 
 (defclass OP2XH018V0Env [OP2V0Env]
   """
