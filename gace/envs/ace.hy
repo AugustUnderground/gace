@@ -37,7 +37,6 @@
   Optional:
     ckt-path: str (None)                -> Path to ACE Testbench
     pdk-path: str (None)                -> Path to PDK
-    obs-shape: Tuple[Int] (0 ,)         -> Shape of observations
     obs-lo: Union[float, np.array] -Inf -> Lower bound of obs
     obs-hi: Union[float, np.array] +Inf -> Upper bound of obs
     max-steps: int (666)                -> Maximum number of steps before reset
@@ -52,7 +51,6 @@
 
   (defn __init__ [self ^str ace-id ^str ace-backend ^int ace-variant &optional 
                        ^str [ckt-path None] ^str [pdk-path None]
-                       ^(of Tuple int) [obs-shape (, 0)]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
                        ^int [max-steps 666] ^(of dict str float) [design-constraints {}]
@@ -77,12 +75,6 @@
     (for [(, k v) (.items design-constraints)]
       (setattr self k v))
     
-    ;; The `Box` type observation space consists of perforamnces, the distance
-    ;; to the target, as well as general information about the current
-    ;; operating point.
-    (setv self.observation-space (Box :low obs-lo :high obs-hi :shape obs-shape  
-                                      :dtype np.float32))
-
     ;; Environment Configurations
     (setv self.max-steps max-steps
           self.num-steps 0
@@ -99,6 +91,15 @@
                                       :noisy self.noisy-target))
           self.reltol reltol
           self.condition (reward-condition self.ace-id :tolerance self.reltol))
+
+    ;; The `Box` type observation space consists of perforamnces, the distance
+    ;; to the target, as well as general information about the current
+    ;; operating point.
+    (setv obs-shape (observation-shape self.ace self.ace-id 
+                                       (-> self.target (.keys) (list)))
+          self.observation-space (Box :low obs-lo :high obs-hi 
+                                      :shape obs-shape
+                                      :dtype np.float32))
 
     ;; Primitive Device setup
     (when (in self.ace-variant [0 2])

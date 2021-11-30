@@ -179,7 +179,7 @@
     (setv self.analyses (ac.simulation-analyses self.ace)
           self.num-analyses (len self.analyses)
           self.action-space (Tuple (, self.action-space
-                                      (Discrete (** 2 self.num-analyses)))))
+                                      (Discrete (dec (** 2 self.num-analyses))))))
 
     ;; Specify Input Parameternames
     (setv self.input-parameters [ (tuple self.input-parameters)
@@ -215,7 +215,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH035V0Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 0 "obs_shape" (, 206)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP2XH035V1Env [OP2V1Env]
   """
@@ -224,7 +224,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH035V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1 "obs_shape" (, 206)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP2XH035V2Env [OP2V2Env]
   """
@@ -233,7 +233,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH035V2Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 2 "obs_shape" (, 206)}))))
+                          "ace_variant" 2}))))
 
 (defclass OP2XH018V0Env [OP2V0Env]
   """
@@ -242,7 +242,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH018V0Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 206)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP2XH018V1Env [OP2V1Env]
   """
@@ -251,7 +251,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH018V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 206)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP2XT018V0Env [OP2V0Env]
   """
@@ -260,7 +260,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XT018V0Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 206)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP2XT018V1Env [OP2V1Env]
   """
@@ -269,7 +269,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XT018V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 206)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP2SKY130V0Env [OP2V0Env]
   """
@@ -278,7 +278,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2SKY130V0Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 266)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP2SKY130V1Env [OP2V1Env]
   """
@@ -287,7 +287,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2SKY130V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 266)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP2GPDK180V0Env [OP2V0Env]
   """
@@ -296,7 +296,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2GPDK180V0Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 306)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP2GPDK180V1Env [OP2V1Env]
   """
@@ -305,4 +305,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2GPDK180V1Env self) #**
                (| kwargs {"ace_id" "op2" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 306)}))))
+                          "ace_variant" 1}))))

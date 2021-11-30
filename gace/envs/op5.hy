@@ -187,7 +187,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5XH035V0Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 0 "obs_shape" (, 285)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP5XH035V1Env [OP5V1Env]
   """
@@ -196,7 +196,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5XH035V1Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1 "obs_shape" (, 285)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP5XH018V0Env [OP5V0Env]
   """
@@ -205,7 +205,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5XH018V0Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 285)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP5XH018V1Env [OP5V1Env]
   """
@@ -214,7 +214,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5XH018V1Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 285)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP5SKY130V0Env [OP5V0Env]
   """
@@ -223,7 +223,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5SKY130V0Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 305)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP5SKY130V1Env [OP5V1Env]
   """
@@ -232,7 +232,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5SKY130V1Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 305)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP5GPDK180V0Env [OP5V0Env]
   """
@@ -241,7 +241,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5GPDK180V0Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 397)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP5GPDK180V1Env [OP5V1Env]
   """
@@ -250,4 +250,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP5GPDK180V1Env self) #**
                (| kwargs {"ace_id" "op5" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 397)}))))
+                          "ace_variant" 1}))))

@@ -186,7 +186,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP8XH035V0Env self) #**
                (| kwargs {"ace_id" "op8" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 0 "obs_shape" (, 277)}))))
+                          "ace_variant" 0}))))
   
 (defclass OP8XH035V1Env [OP8V1Env]
 """
@@ -195,7 +195,7 @@ Implementation: xh035-3V3
 (defn __init__ [self &kwargs kwargs]
   (.__init__ (super OP8XH035V1Env self) #**
              (| kwargs {"ace_id" "op8" "ace_backend" "xh035-3V3" 
-                        "ace_variant" 1 "obs_shape" (, 277)}))))
+                        "ace_variant" 1}))))
 
 (defclass OP8XH018V0Env [OP8V0Env]
   """
@@ -204,7 +204,7 @@ Implementation: xh035-3V3
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP8XH018V0Env self) #**
                (| kwargs {"ace_id" "op8" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 277)}))))
+                          "ace_variant" 0}))))
   
 (defclass OP8XH018V1Env [OP8V1Env]
 """
@@ -213,7 +213,7 @@ Implementation: xh018-1V8
 (defn __init__ [self &kwargs kwargs]
   (.__init__ (super OP8XH018V1Env self) #**
              (| kwargs {"ace_id" "op8" "ace_backend" "xh018-1V8" 
-                        "ace_variant" 1 "obs_shape" (, 277)}))))
+                        "ace_variant" 1}))))
 
 (defclass OP8XT018V0Env [OP8V0Env]
   """
@@ -222,7 +222,7 @@ Implementation: xh018-1V8
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP8XT018V0Env self) #**
                (| kwargs {"ace_id" "op8" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 277)}))))
+                          "ace_variant" 0}))))
   
 (defclass OP8XT018V1Env [OP8V1Env]
 """
@@ -231,7 +231,7 @@ Implementation: xt018-1V8
 (defn __init__ [self &kwargs kwargs]
   (.__init__ (super OP8XT018V1Env self) #**
              (| kwargs {"ace_id" "op8" "ace_backend" "xt018-1V8" 
-                        "ace_variant" 1 "obs_shape" (, 277)}))))
+                        "ace_variant" 1}))))
 
 (defclass OP8GPDK180V0Env [OP8V0Env]
   """
@@ -240,7 +240,7 @@ Implementation: xt018-1V8
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP8GPDK180V0Env self) #**
                (| kwargs {"ace_id" "op8" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 397)}))))
+                          "ace_variant" 0}))))
   
 (defclass OP8GPDK180V1Env [OP8V1Env]
 """
@@ -249,4 +249,4 @@ Implementation: gpdk180-1V8
 (defn __init__ [self &kwargs kwargs]
   (.__init__ (super OP8GPDK180V1Env self) #**
              (| kwargs {"ace_id" "op8" "ace_backend" "gpdk180-1V8" 
-                        "ace_variant" 1 "obs_shape" (, 397)}))))
+                        "ace_variant" 1}))))

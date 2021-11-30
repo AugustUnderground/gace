@@ -71,7 +71,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH035V1Env self) #**
                (| kwargs {"ace_id" "st1" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1}))))
 
 (defclass ST1XH018V1Env [ST1V1Env]
   """
@@ -80,7 +80,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH018V1Env self) #**
                (| kwargs {"ace_id" "st1" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1}))))
 
 (defclass ST1XT018V1Env [ST1V1Env]
   """
@@ -89,7 +89,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XT018V1Env self) #**
                (| kwargs {"ace_id" "st1" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1}))))
 
 (defclass ST1SKY130V1Env [ST1V1Env]
   """
@@ -98,7 +98,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1SKY130V1Env self) #**
                (| kwargs {"ace_id" "st1" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1}))))
 
 (defclass ST1GPDK180V1Env [ST1V1Env]
   """
@@ -107,4 +107,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1GPDK180V1Env self) #**
                (| kwargs {"ace_id" "st1" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 12)}))))
+                          "ace_variant" 1}))))

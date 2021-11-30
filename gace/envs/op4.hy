@@ -186,7 +186,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4XH035V0Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 0 "obs_shape" (, 285)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP4XH035V1Env [OP4V1Env]
   """
@@ -195,7 +195,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4XH035V1Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xh035-3V3" 
-                          "ace_variant" 1 "obs_shape" (, 285)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP4XH018V0Env [OP4V0Env]
   """
@@ -204,7 +204,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4XH018V0Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 285)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP4XH018V1Env [OP4V1Env]
   """
@@ -213,7 +213,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4XH018V1Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xh018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 285)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP4XT018V0Env [OP4V0Env]
   """
@@ -222,7 +222,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4XT018V0Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 285)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP4XT018V1Env [OP4V1Env]
   """
@@ -231,7 +231,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4XT018V1Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "xt018-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 285)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP4SKY130V0Env [OP4V0Env]
   """
@@ -240,7 +240,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4SKY130V0Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 305)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP4SKY130V1Env [OP4V1Env]
   """
@@ -249,7 +249,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4SKY130V1Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "sky130-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 305)}))))
+                          "ace_variant" 1}))))
 
 (defclass OP4GPDK180V0Env [OP4V0Env]
   """
@@ -258,7 +258,7 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4GPDK180V0Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 0 "obs_shape" (, 397)}))))
+                          "ace_variant" 0}))))
 
 (defclass OP4GPDK180V1Env [OP4V1Env]
   """
@@ -267,4 +267,4 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP4GPDK180V1Env self) #**
                (| kwargs {"ace_id" "op4" "ace_backend" "gpdk180-1V8" 
-                          "ace_variant" 1 "obs_shape" (, 397)}))))
+                          "ace_variant" 1}))))

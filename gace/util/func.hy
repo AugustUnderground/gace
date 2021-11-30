@@ -185,6 +185,23 @@
       
     (, dist mask perf targ)))
 
+(defn observation-shape ^(of tuple int) [ace ^str ace-id ^(of list str) targets]
+  """
+  Returns a tuple (, int) with the shape of the observation space for the given
+  ace backend.
+  """
+  (, (cond [(.startswith ace-id "op")
+            (+ (len (ac.performance-identifiers ace))
+               (* 2 (len targets)))]
+           [(or (.startswith ace-id "nand") 
+                (.startswith ace-id "st"))
+            (* 3 (len (ac.performance-identifiers ace)))]
+           [True 
+            (raise (NotImplementedError errno.ENOSYS
+                     (os.strerror errno.ENOSYS) 
+                     (.format "No Observation Space shape for given ace id: '{}'."
+                              ace-id)))])))
+
 (defn observation ^np.array [^(of dict str float) performance 
                              ^(of dict str float) target]
   """
