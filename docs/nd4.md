@@ -30,8 +30,27 @@ The overall reward `r` is calculated based on individual performance
 parameters:
 
 ```
-r = - ∑ ( | t - p | / t )
+r = ∑ ( (tanh(| l |) · m) + (- l² · (1 - m)) )
 ```
+
+Where `l` is the vector with normalized losses for each performance `p` and
+target value `t`
+
+```
+    | t - p |
+l = ---------
+        t
+```
+
+and `m` is a mask showing whether the performance was reached, i.e. 
+
+```
+(t - (t * reltol)) < p < (t + (t * reltol))
+``` 
+
+meaning the performance `p` is within a tolerance band, in
+which case `tanh` is applied so the reward doesn't increase infinitely.
+Otherwise the loss is squared and negated.
 
 ### 4 Gate Inverter Chain (NAND4)
 
