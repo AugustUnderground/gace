@@ -49,18 +49,22 @@
              i1 i2 ) (unscale-value action self.action-scale-min 
                                            self.action-scale-max)
 
-          i0  (get self.design-constraints "i0" "init")
+          i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
+
+          M1-lim (get self.design-constraints "Mcm12" "max")
+          M2-lim (get self.design-constraints "Mcm13" "max")
           
-          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 10))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 40))
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))
           
           Mcm11 M1.numerator Mcm12 M1.denominator Mcm13 M2.denominator
-          Mcm2 2
-          Mcs1 2
-          Mres 2
-          Mcap 2
-          Mdp1 2
+          Mcm21 (get self.design-constraints "Mcm21" "init")
+          Mcm22 (get self.design-constraints "Mcm22" "init")
+          Mcs1  (get self.design-constraints "Mcs"   "init")
+          Mres  (get self.design-constraints "Mr1"   "init")
+          Mcap  (get self.design-constraints "Mc1"   "init")
+          Mdp1  (get self.design-constraints "Md"    "init")
 
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) 0.0]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2.0) 0.0]])
@@ -90,10 +94,10 @@
           Wcap (/ i2     (get cap-out 0)) 
           Wres (/ i2     (get res-out 0)) 
           
-          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2 "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2 "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm2 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
-                             "Mcm12" Mcm12 "Mcm22" Mcm2
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
+                             "Mcm12" Mcm12 "Mcm22" Mcm22
                              "Mcm13" Mcm13 
                   #_/ }]
 
@@ -112,13 +116,14 @@
                    Mcm13  ) (unscale-value action self.action-scale-min 
                                                   self.action-scale-max)
 
-          Mdp1 2
-          Mcm2 2
+          Mdp1  (get self.design-constraints "Md"    "init")
+          Mcm21 (get self.design-constraints "Mcm21" "init")
+          Mcm22 (get self.design-constraints "Mcm22" "init")
 
-          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2 "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2 "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm2 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
-                             "Mcm12" Mcm12 "Mcm22" Mcm2
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
+                             "Mcm12" Mcm12 "Mcm22" Mcm22
                              "Mcm13" Mcm13 
                   #_/ }]
 

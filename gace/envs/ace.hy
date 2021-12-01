@@ -178,7 +178,7 @@
                                                     :blocklist blocklist) 
           
           obs (observation performance self.target)
-          rew (reward performance self.target self.condition)
+          rew (reward performance self.target self.condition self.reltol)
           don (or (>= (inc self.num-steps) self.max-steps) 
                   (all (second (target-distance performance 
                                                 self.target 

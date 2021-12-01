@@ -47,16 +47,21 @@
              i1 i2 ) (unscale-value action self.action-scale-min 
                                            self.action-scale-max)
 
-          i0  (get self.design-constraints "i0" "init")
+          i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
+          
+          M1-lim (get self.design-constraints "Mcm12" "max")
+          M2-lim (get self.design-constraints "Mcm22" "max")
 
-          M1 (->    (/ i0 i1)      (Fraction) (.limit-denominator 16))
-          M2 (-> (/ (/ i1 2.0) i2) (Fraction) (.limit-denominator 20))
+          M1 (-> (/ i0     i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i1 2.0 i2) (Fraction) (.limit-denominator M2-lim))
+
           Mcm11 M1.numerator Mcm12 M1.denominator
           Mcm21 M2.numerator Mcm22 M2.denominator
           
-          Mdp1  2
-          Mcm31 2 Mcm32 2
+          Mdp1  (get self.design-constraints "Md"    "init")
+          Mcm31 (get self.design-constraints "Mcm31" "init") 
+          Mcm32 (get self.design-constraints "Mcm32" "init")
 
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) 0.0]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2.0) 0.0]])
@@ -98,12 +103,14 @@
                   Mcm12 Mcm22 ) (unscale-value action self.action-scale-min 
                                                       self.action-scale-max)
 
-          Mcm31 2 Mcm32 2 Mdp1 2
+          Mcm31 (get self.design-constraints "Mcm31" "init") 
+          Mcm32 (get self.design-constraints "Mcm32" "init") 
+          Mdp1  (get self.design-constraints "Md"    "init")
 
-          sizing { "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  "Ld" Ldp1
-                   "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  "Wd" Wdp1
-                   "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 "Md" Mdp1 
-                   "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }]
+          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  
+                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  
+                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31  
+                             "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }]
 
       (self.size-circuit sizing)))
 

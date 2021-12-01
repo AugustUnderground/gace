@@ -49,15 +49,24 @@
              i1 i2 i3 i4 ) (unscale-value action self.action-scale-min 
                                                  self.action-scale-max)
 
-          i0  (get self.design-constraints "i0" "init")
+          i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
+          
+          M1-lim (get self.design-constraints "Mcm53" "max")
+          M2-lim (get self.design-constraints "Mcm52" "max")
+          M3-lim (get self.design-constraints "Mcm42" "max")
+          M4-lim (get self.design-constraints "Mcm43" "max")
 
-          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 15))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 3))
-          M3 (-> (/ i2 i3) (Fraction) (.limit-denominator 20))
-          M4 (-> (/ i2 i4) (Fraction) (.limit-denominator 20))
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))
+          M3 (-> (/ i2 i3) (Fraction) (.limit-denominator M3-lim))
+          M4 (-> (/ i2 i4) (Fraction) (.limit-denominator M4-lim))
 
-          Mdp1 2 Mcm1 2 Mcm2 2 Mcm3 2
+          Mdp1 (get self.design-constraints "Md1"  "init") 
+          Mcm1 (get self.design-constraints "Mcm1" "init") 
+          Mcm2 (get self.design-constraints "Mcm2" "init") 
+          Mcm3 (get self.design-constraints "Mcm3" "init")
+
           Mcm51 M1.numerator Mcm52 M2.denominator Mcm53 M1.denominator
           Mcm41 M3.numerator Mcm42 M3.denominator Mcm43 M4.denominator
 
@@ -82,12 +91,12 @@
           Lcm4 (get cm4-out 1)
           Lcm5 (get cm5-out 1)
 
-          Wdp1 (/ (/ i1 2.0) (get dp1-out 0)) 
-          Wcm1 (/    i3      (get cm1-out 0))
-          Wcm2 (/    i3      (get cm2-out 0))
-          Wcm3 (/    i3      (get cm3-out 0))
-          Wcm4 (/    i2      (get cm4-out 0))
-          Wcm5 (/    i0      (get cm5-out 0))
+          Wdp1 (/ i1 2.0 (get dp1-out 0)) 
+          Wcm1 (/ i3     (get cm1-out 0))
+          Wcm2 (/ i3     (get cm2-out 0))
+          Wcm3 (/ i3     (get cm3-out 0))
+          Wcm4 (/ i2     (get cm4-out 0))
+          Wcm5 (/ i0     (get cm5-out 0))
 
           sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
                    "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wcm4"  Wcm4  "Wcm5"  Wcm5
@@ -112,7 +121,7 @@
                                                                 self.action-scale-min 
                                                                 self.action-scale-max)
           
-          Mdp1 2
+          Mdp1 (get self.design-constraints "Md1" "init")
 
           sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
                    "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wcm4"  Wcm4  "Wcm5"  Wcm5

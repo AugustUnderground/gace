@@ -46,17 +46,22 @@
              i1 i2 i3 ) (unscale-value action self.action-scale-min 
                                               self.action-scale-max)
 
-          i0  (get self.design-constraints "i0" "init")
+          i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
 
-          M1 (-> (/ i0 i1)     (Fraction) (.limit-denominator 16))
-          M2 (-> (/ i1 2.0 i2) (Fraction) (.limit-denominator 20))
-          M3 (-> (/ i0 i3)     (Fraction) (.limit-denominator 3))
+          M1-lim (get self.design-constraints "Mcm13" "max")
+          M2-lim (get self.design-constraints "Mcm22" "max")
+          M3-lim (get self.design-constraints "Mcm12" "max")
 
-          Mdp1  2
+          M1 (-> (/ i0     i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i1 2.0 i2) (Fraction) (.limit-denominator M2-lim))
+          M3 (-> (/ i0     i3) (Fraction) (.limit-denominator M3-lim))
+
+          Mdp1  (get self.design-constraints "Md" "init")
           Mcm11 M1.numerator Mcm12 M3.denominator Mcm13 M1.denominator
           Mcm21 M2.numerator Mcm22 M2.denominator
-          Mcm31 2            Mcm32 2
+          Mcm31 (get self.design-constraints "Mcm31" "init")            
+          Mcm32 (get self.design-constraints "Mcm32" "init")
           Mls1  Mcm22
 
           ;vx (/ self.vdd 2.7)
@@ -111,7 +116,9 @@
                   Mcm13 )           (unscale-value action self.action-scale-min 
                                                           self.action-scale-max)
 
-          Mcm31 2 Mcm32 2 Mdp1 2
+          Mcm31 (get self.design-constraints "Mcm31" "init") 
+          Mcm32 (get self.design-constraints "Mcm32" "init") 
+          Mdp1  (get self.design-constraints "Md"    "init")
 
           sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3 "Lc1" Lls1 "Lr" Lref
                    "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 "Wc1" Wls1 "Wr" Wref

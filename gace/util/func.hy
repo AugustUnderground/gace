@@ -227,7 +227,8 @@
 
 (defn reward ^float [^(of dict str float) performance
                      ^(of dict str float) target
-                     ^(of dict) condition]
+                     ^(of dict) condition
+                     ^(of float) tolerance]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
@@ -240,8 +241,11 @@
   """
   (let [(, loss mask _ _) (target-distance performance target condition)
 
-        cost (+ (* (np.tanh (np.abs loss)) mask) 
-                (* (- (** loss 2.0)) (np.invert mask))) ]
+        ;cost (+ (* (np.tanh (np.abs loss)) mask) 
+        ;        (* (- (** loss 2.0)) (np.invert mask))) 
+
+        cost (+ (* (/ (* (- (** loss 2.0)) 0.5) tolerance) mask)
+                (* (- (- (np.abs loss)) (* 0.5 tolerance)) (np.invert mask))) ]
 
        (-> cost (np.nan-to-num) (np.sum))))
 

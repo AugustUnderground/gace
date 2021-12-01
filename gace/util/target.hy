@@ -14,7 +14,7 @@
 (defn target-specification [^str ace-id ^dict dc
                   &optional ^bool [random False] 
                             ^bool [noisy True]]
-  (let [vdd (get dc "vsup" "init")
+  (let [vdd (get dc (if (.startswith ace-id "op") "vsup" "vdd") "init")
         ts (cond [(in ace-id ["op1" "op6"])
                   {"a_0"         105.0
                    "ugbw"        3500000.0

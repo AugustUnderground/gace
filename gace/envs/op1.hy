@@ -46,19 +46,24 @@
              res cap i1 i2 ) (unscale-value action self.action-scale-min 
                                                    self.action-scale-max)
           
-          rc (get self.design-constraints "rc" "init")
-          cc (get self.design-constraints "cc" "init")
-          i0  (get self.design-constraints "i0" "init")
-          vdd (get self.design-constraints "vsup" "init")
+          rc   (get self.design-constraints "rc"   "init")
+          cc   (get self.design-constraints "cc"   "init")
+          i0   (get self.design-constraints "i0"   "init")
+          vdd  (get self.design-constraints "vsup" "init")
           Wres (get self.design-constraints "Wres" "init")
           Mcap (get self.design-constraints "Mcap" "init")
+
+          M1-lim (get self.design-constraints "Mcm12" "max")
+          M2-lim (get self.design-constraints "Mcm13" "max")
           
-          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 10))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 40))
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))
 
           Mcm11 M1.numerator Mcm12 M1.denominator Mcm13 M2.denominator
-          Mcm21 2            Mcm22 2
-          Mdp1  2            Mcap  2
+          Mcm21 (get self.design-constraints "Mcm21" "init")            
+          Mcm22 (get self.design-constraints "Mcm22" "init")
+          Mdp1  (get self.design-constraints "Md"    "init")            
+          Mcap  (get self.design-constraints "Mcap"  "init")
           Mcs1  Mcm13
 
           Lres (* (/ res rc) Wres)
@@ -106,10 +111,10 @@
                    Mcm13 )          (unscale-value action self.action-scale-min 
                                                           self.action-scale-max)
           
-          Mdp1  2
-          Mcm21 2 
-          Mcm22 2
-          Mcap  1 
+          Mdp1  (get self.design-constraints "Md"    "init")
+          Mcm21 (get self.design-constraints "Mcm21" "init") 
+          Mcm22 (get self.design-constraints "Mcm22" "init")
+          Mcap  (get self.design-constraints "Mcap"  "init") 
 
           sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs" Lcs1 "Lres" Lres  
                    "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wres" Wres "Wcap" Wcap

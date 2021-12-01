@@ -49,19 +49,30 @@
              i1 i2 i3 i4 i5 i6) (unscale-value action self.action-scale-min 
                                                       self.action-scale-max)
 
-          i0  (get self.design-constraints "i0" "init")
+          i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
 
-          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator 25))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator 15))
-          M3 (-> (/ i0 i3) (Fraction) (.limit-denominator 3))
-          M4 (-> (/ i3 i4) (Fraction) (.limit-denominator 3))
-          M5 (-> (/ i3 i5) (Fraction) (.limit-denominator 20))
-          M6 (-> (/ i3 i6) (Fraction) (.limit-denominator 20))
+          M1-lim (get self.design-constraints "Mcm43" "max")
+          M2-lim (get self.design-constraints "Mcm44" "max")
+          M3-lim (get self.design-constraints "Mcm42" "max")
+          M4-lim (get self.design-constraints "Mcm32" "max")
+          M5-lim (get self.design-constraints "Mcm33" "max")
+          M6-lim (get self.design-constraints "Mcm34" "max")
+
+          M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))
+          M3 (-> (/ i0 i3) (Fraction) (.limit-denominator M3-lim))
+          M4 (-> (/ i3 i4) (Fraction) (.limit-denominator M4-lim))
+          M5 (-> (/ i3 i5) (Fraction) (.limit-denominator M5-lim))
+          M6 (-> (/ i3 i6) (Fraction) (.limit-denominator M6-lim))
 
           Mcm41 M1.numerator Mcm42 M3.denominator Mcm43 M1.denominator Mcm44 M2.denominator 
           Mcm31 M4.numerator Mcm32 M4.denominator Mcm33 M5.denominator Mcm34 M6.denominator
-          Mdp1 2 Mcm1 2 Mcm2 2 Mls1 2 
+
+          Mdp1 (get self.design-constraints "Md1"  "init") 
+          Mcm1 (get self.design-constraints "Mcm1" "init") 
+          Mcm2 (get self.design-constraints "Mcm2" "init") 
+          Mls1 (get self.design-constraints "Mls1" "init") 
 
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) 0.0]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2.0) 0.0]])
@@ -90,14 +101,14 @@
           Lre1 (get re1-out 1)
           Lre2 (get re2-out 1)
 
-          Wdp1 (/ (/ i1 2.0) (get dp1-out 0)) 
-          Wcm1 (/    i5      (get cm1-out 0))
-          Wcm2 (/    i6      (get cm2-out 0))
-          Wcm3 (/    i3      (get cm3-out 0))
-          Wcm4 (/    i0      (get cm4-out 0))
-          Wls1 (/    i5      (get ls1-out 0))
-          Wre1 (/    i2      (get re1-out 0))
-          Wre2 (/    i4      (get re2-out 0))
+          Wdp1 (/ i1 2.0 (get dp1-out 0)) 
+          Wcm1 (/ i5     (get cm1-out 0))
+          Wcm2 (/ i6     (get cm2-out 0))
+          Wcm3 (/ i3     (get cm3-out 0))
+          Wcm4 (/ i0     (get cm4-out 0))
+          Wls1 (/ i5     (get ls1-out 0))
+          Wre1 (/ i2     (get re1-out 0))
+          Wre2 (/ i4     (get re2-out 0))
 
           sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3"  Lcm3  "Lcm4"  Lcm4  "Lls1" Lls1 "Lr1" Lre1 "Lr2" Lre2
                    "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wre1 "Wr1" Wre2
@@ -123,7 +134,7 @@
                         Mcm34 Mcm44 ) (unscale-value action self.action-scale-min 
                                                             self.action-scale-max)
 
-          Mdp1 2
+          Mdp1 (get self.design-constraints "Md1" "init")
 
           sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3"  Lcm3  "Lcm4"  Lcm4  "Lls1" Lls1 "Lr1" Lr1 "Lr2" Lr2
                    "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wr1 "Wr1" Wr2

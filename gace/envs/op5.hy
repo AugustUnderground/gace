@@ -49,20 +49,27 @@
              i1 i2 i3 i4) (unscale-value action self.action-scale-min 
                                                 self.action-scale-max)
 
-          i0  (get self.design-constraints "i0" "init")
+          i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
 
-          M1 (-> (/ i0     i1) (Fraction) (.limit-denominator 16))
-          M2 (-> (/ i0 2.0 i2) (Fraction) (.limit-denominator 20))
-          M3 (-> (/ i0 2.0 i3) (Fraction) (.limit-denominator 20))
-          M4 (-> (/ i0     i4) (Fraction) (.limit-denominator 3))
-          M5 (-> (/ i3     i2) (Fraction) (.limit-denominator 10))
+          M1-lim (get self.design-constraints "Mcm13"  "max")
+          M2-lim (get self.design-constraints "Mcm212" "max")
+          M3-lim (get self.design-constraints "Mcm222" "max")
+          M4-lim (get self.design-constraints "Mcm12"  "max")
+          M5-lim (get self.design-constraints "Mcm32"  "max")
+
+          M1 (-> (/ i0     i1) (Fraction) (.limit-denominator M1-lim))
+          M2 (-> (/ i0 2.0 i2) (Fraction) (.limit-denominator M2-lim))
+          M3 (-> (/ i0 2.0 i3) (Fraction) (.limit-denominator M3-lim))
+          M4 (-> (/ i0     i4) (Fraction) (.limit-denominator M4-lim))
+          M5 (-> (/ i3     i2) (Fraction) (.limit-denominator M5-lim))
 
           Mcm11  M1.numerator   Mcm12  M4.denominator Mcm13 M1.denominator
           Mcm31  M5.numerator   Mcm32  M5.denominator
-          Mcm212 M2.denominator Mcm222 M3.denominator Mcm2x1 2 
           Mls11  Mcm31          Mls12  Mcm32
-          Mdp1   2
+          Mcm212 M2.denominator Mcm222 M3.denominator 
+          Mcm2x1 (get self.design-constraints "Mcm2x1" "init") 
+          Mdp1   (get self.design-constraints "Md"     "init")
 
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2) 0.0]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2) 0.0]])
@@ -114,7 +121,7 @@
                   Mcm13 Mcm2x1) (unscale-value action self.action-scale-min 
                                                self.action-scale-max)
 
-          Mdp1 2
+          Mdp1 (get self.design-constraints "Md" "init")
 
           sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Lc1"  Lls1  "Lr" Lref
                    "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wc1"  Wls1  "Wr" Wref
