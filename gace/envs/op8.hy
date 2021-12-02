@@ -105,32 +105,7 @@
                                                                   "Mcm43" Mcm42 "Mcm53" Mcm53 
                    #_/ }]
     
-    (self.size-circuit sizing)))
-
-  (defn step-v1 [self action]
-    """
-    Takes an array of geometric parameters for each building block and mirror
-    ratios This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    """
-    (let [ (,  Ldp1 Lcm1 Lcm2 Lcm3 Lcm4  Lcm5 
-               Wdp1 Wcm1 Wcm2 Wcm3 Wcm4  Wcm5 
-                    Mcm1 Mcm2 Mcm3 Mcm41 Mcm51 
-                                   Mcm42 Mcm52 
-                                   Mcm43 Mcm53 ) (unscale-value action 
-                                                                self.action-scale-min 
-                                                                self.action-scale-max)
-          
-          Mdp1 (get self.design-constraints "Md1" "init")
-
-          sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
-                   "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wcm4"  Wcm4  "Wcm5"  Wcm5
-                   "Md1" Mdp1 "Mcm1" Mcm1 "Mcm2" Mcm2 "Mcm3" Mcm3 "Mcm41" Mcm41 "Mcm51" Mcm51
-                                                                  "Mcm42" Mcm42 "Mcm52" Mcm52
-                                                                  "Mcm43" Mcm42 "Mcm53" Mcm53 
-                   #_/ } ]
-
-      (self.size-circuit sizing))))
+    (self.size-circuit sizing))))
 
 (defclass OP8XH035V0Env [OP8Env]
   """

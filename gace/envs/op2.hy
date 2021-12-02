@@ -90,31 +90,7 @@
 
     (self.size-circuit sizing)))
 
-  (defn step-v1 ^(of tuple np.array float bool dict) [self ^np.array action 
-             &optional ^(of list str) [blocklist []]]
-    """
-    Takes an array of geometric parameters for each building block and mirror
-    ratios This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    """
-    (let [(, Ldp1 Lcm1  Lcm2 Lcm3  
-             Wdp1 Wcm1  Wcm2 Wcm3 
-                  Mcm11 Mcm21  
-                  Mcm12 Mcm22 ) (unscale-value action self.action-scale-min 
-                                                      self.action-scale-max)
-
-          Mcm31 (get self.design-constraints "Mcm31" "init") 
-          Mcm32 (get self.design-constraints "Mcm32" "init") 
-          Mdp1  (get self.design-constraints "Md"    "init")
-
-          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3  
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3  
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31  
-                             "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }]
-
-      (self.size-circuit sizing)))
-
-  (defn step-v2 ^(of tuple np.array float bool dict) [self ^tuple action]
+  (defn step-v5 ^(of tuple np.array float bool dict) [self ^tuple action]
     """
     Same step as v0, but with the option to block certain simulation analyses.
     """

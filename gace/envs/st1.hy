@@ -34,22 +34,7 @@
   Base class for NAND4
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super ST1Env self) #** (| kwargs {"ace_id" "st1"})))
-
-  (defn step-v1 [self action]
-    """
-    Takes an array of geometric parameters for each building block and mirror
-    ratios This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    """
-    (let [(, Wn0 Wn1 Wn2 Wp0 Wp1 Wp2) (unscale-value action 
-                                                     self.action-scale-min 
-                                                     self.action-scale-max)
-          
-          sizing {"Wn0" Wn0 "Wn1" Wn1 "Wn2" Wn2 
-                  "Wp0" Wp0 "Wp1" Wp1 "Wp2" Wp2}]
-
-      (self.size-circuit sizing))))
+    (.__init__ (super ST1Env self) #** (| kwargs {"ace_id" "st1"}))))
 
 (defclass ST1XH035V1Env [ST1Env]
   """

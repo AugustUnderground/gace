@@ -19,29 +19,33 @@
   (assert (isinstance env gym.Env) "The env must inherit from gym.Env class.")
 
   (assert (hasattr env "observation_space") "The env must specify an observation_space.")
-  (assert (hasattr env "action_space") "The env must specify an action_space.")
+
   (assert (isinstance env.observation-space gym.spaces.Space) 
           "The observation space must inherit from gym.spaces.")
-  (assert (isinstance env.action-space gym.spaces.Space)
-          "The action space must inherit from gym.spaces.")
-  
-  (when (isinstance env.action-space gym.spaces.Dict)
-    (for [s (env.action-space.values)]
-      (assert (isinstance s gym.spaces.Space) 
-          "The observation space must inherit from gym.spaces.")))
 
   (when (not-in (len env.observation-space.shape) [1 3])
     (warnings.warn "The observation space is not ∈ [1,3], it should be flattened."))
 
-  (when (np.any (!= (np.abs env.action-space.low) (np.abs env.action-space.high)))
-    (warnings.warn "The action space is not symmetric."))
-  
-  (when (or (np.any (> (np.abs env.action-space.low) 1) )
-            (np.any (> (np.abs env.action-space.high) 1)))
-    (warnings.warn "The action space is not ∈ [-1;1]."))
+  (assert (hasattr env "action_space") "The env must specify an action_space.")
 
-  (when  (not (env.action-space.is-bounded))
-    (warnings.warn "The action space is not bounded."))
+  (assert (isinstance env.action-space gym.spaces.Space)
+          "The action space must inherit from gym.spaces.")
+  
+  (when (isinstance env.action-space gym.spaces.Tuple)
+    (for [s env.action-space]
+      (assert (isinstance s gym.spaces.Space) 
+          "The observation space must inherit from gym.spaces.")))
+
+  (when (isinstance env.action-space gym.spaces.Box)
+    (when (np.any (!= (np.abs env.action-space.low) (np.abs env.action-space.high)))
+          (warnings.warn "The action space is not symmetric."))
+  
+    (when (or (np.any (> (np.abs env.action-space.low) 1))
+              (np.any (> (np.abs env.action-space.high) 1)))
+          (warnings.warn "The action space is not ∈ [-1;1]."))
+
+    (when (not (env.action-space.is-bounded))
+          (warnings.warn "The action space is not bounded.")))
 
   (setv obs (env.reset))
 

@@ -33,20 +33,7 @@
   Base class for NAND4
   """
   (defn __init__ [self &kwargs kwargs]
-    (.__init__ (super NAND4Env self) #** (| kwargs {"ace_id" "nand4"})))
-
-  (defn step-v1 [self action]
-    """
-    Takes an array of geometric parameters for each building block and mirror
-    ratios This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    """
-    (let [(, Wn0 Wn1 Wn2 Wn3 Wp1) (unscale-value action self.action-scale-min 
-                                                        self.action-scale-max)
-          
-          sizing {"Wn0" Wn0 "Wn1" Wn1 "Wn2" Wn2 "Wn3" Wn3 "Wp" Wp1}]
-
-      (self.size-circuit sizing))))
+    (.__init__ (super NAND4Env self) #** (| kwargs {"ace_id" "nand4"}))))
 
 (defclass NAND4XH035V1Env [NAND4Env]
   """
@@ -55,6 +42,14 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super NAND4XH035V1Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
+
+(defclass NAND4XH035V3Env [NAND4Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super NAND4XH035V3Env self) #**
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 3}))))
 
 (defclass NAND4XH018V1Env [NAND4Env]
   """

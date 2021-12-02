@@ -31,6 +31,7 @@
   Base class for OP1
   """
   (defn __init__ [self &kwargs kwargs]
+
     (.__init__ (super OP1Env self) #** (| kwargs {"ace_id" "op1"})))
 
   (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -96,34 +97,7 @@
                              "Mcm13" Mcm13 
                    #_/ } ]
 
-    (self.size-circuit sizing)))
-
-  (defn step-v1 [self action]
-    """
-    Takes an array of geometric parameters for each building block and mirror
-    ratios This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    """
-    (let [ (, Ldp1 Lcm1  Lcm2  Lcs1 Lres  
-              Wdp1 Wcm1  Wcm2  Wcs1 Wres Wcap
-                   Mcm11       Mcs1
-                   Mcm12      
-                   Mcm13 )          (unscale-value action self.action-scale-min 
-                                                          self.action-scale-max)
-          
-          Mdp1  (get self.design-constraints "Md"    "init")
-          Mcm21 (get self.design-constraints "Mcm21" "init") 
-          Mcm22 (get self.design-constraints "Mcm22" "init")
-          Mcap  (get self.design-constraints "Mcap"  "init") 
-
-          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs" Lcs1 "Lres" Lres  
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wres" Wres "Wcap" Wcap
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1             "Mcap" Mcap  
-                             "Mcm12" Mcm12 "Mcm22" Mcm22
-                             "Mcm13" Mcm13 
-                   #_/ }]
-
-      (self.size-circuit sizing))))
+    (self.size-circuit sizing))))
 
 (defclass OP1XH035V0Env [OP1Env]
   """

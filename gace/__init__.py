@@ -350,6 +350,10 @@ register( id          = 'nand4-xh035-v1'
         , entry_point = 'gace.envs:NAND4XH035V1Env'
         , )
 
+register( id          = 'nand4-xh035-v3'
+        , entry_point = 'gace.envs:NAND4XH035V3Env'
+        , )
+
 register( id          = 'nand4-xh018-v1'
         , entry_point = 'gace.envs:NAND4XH018V1Env'
         , )

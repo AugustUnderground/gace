@@ -290,20 +290,61 @@
           (get analyses it)
           (.tolist it))))
 
+(defn step-v1 ^(of dict str float) [^(of list str) input-parameters
+                                    ^np.array action-scale-min 
+                                    ^np.array action-scale-max 
+                                    ^np.array action]
+  """
+  Takes a list of input parameters, lower and upper bounds and an action.
+  Un-Scales the action according to bounds and returns a sizing dict.
+  """
+    (dict (zip input-parameters (unscale-value action action-scale-min 
+                                                      action-scale-max))))
+
+(defn step-v3 [^(of list str) input-parameters 
+               ^(of list str) design-constraints
+               ace ^np.array action]
+  """
+  Takes an relative geometric action.
+  """
+  (let [cs (ac.current-sizing ace)
+        ca (np.array (lfor ip input-parameters (get cs ip)))
+
+        ga (np.array (lfor ip input-parameters 
+                           (get design-constraints ip "grid")))
+
+        sa (+ ca (* (- action 1) ga))]
+    
+    (dict (zip input-parameters sa))))
+
 
 (defn action-space ^(of tuple) [ace ^dict dc ^str ace-id  ^int ace-variant]
   """
   Generates an action space for the given ace-id and variant
+
+    For variants 0 and 1 the action space is contionous (Box) ∈ [-1; 1], where
+    the minimum and maximum are defined by the `design-constraints`' min and max
+    values.
+
+    For variants 2 and 3 the action space is discrete (MultiDiscrete) ∈ [0;2]:
+    DEC[0], NOP[1], INC[2]. The ∆ for each parameter is defined by the
+    `design-constraints`' grid.
   """
-  (let [ip (input-parameters ace-id ace-variant)
+  (let [ip (input-parameters ace ace-id ace-variant)
 
         num-params (fn [p ps] (len (list (filter #%(.startswith %1 p) ps))))
 
-        base-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
+        abs-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
+        rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
 
-        action-space (cond [(in ace-variant [0 1]) base-space]
-                           [(in ace-variant [2 3])
-                            (Tuple (, base-space 
+        action-space (cond [(in ace-variant [0 1]) abs-space]
+                           [(in ace-variant [2 3]) rel-space]
+                           [(in ace-variant [4 5])
+                            (Tuple (, abs-space 
+                                      (->> ace (ac.simulation-analyses) 
+                                           (len) (** 2) (dec) (Discrete))))]
+                           [(in rel-variant [6 7])
+                            (Tuple (, rel-space 
                                       (->> ace (ac.simulation-analyses) 
                                            (len) (** 2) (dec) (Discrete))))]
                            [True
@@ -312,8 +353,8 @@
                                       (.format "No action space for {}-v{}."
                                       ace-id ace-variant)))])
 
-        scale-min (cond [(in ace-variant [0 2])
-                        (np.concatenate 
+        scale-min (cond [(in ace-variant [0])   ; Absolute Electrical
+                         (np.concatenate 
                           (, (np.repeat (get dc "gmid" "min") 
                                         (num-params "gmid" ip))
                              (np.repeat (get dc "fug" "min")  
@@ -324,15 +365,17 @@
                                         (num-params "c" ip))
                              (np.repeat (/ (get dc "i0" "init") 3.0) 
                                         (num-params "i" ip))))]
-                        [(in ace-variant [1 3])
+                        [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
+                        [(in ace-variant [2 3])   ; relative Electrical and Geometrical
+                         None]
                         [True
                           (raise (NotImplementedError errno.ENOSYS
                                     (os.strerror errno.ENOSYS) 
                                     (.format "No action space for {}-v{}."
                                      ace-id ace-variant)))])
 
-        scale-max (cond [(in ace-variant [0 2])
+        scale-max (cond [(in ace-variant [0])     ; Absolute Electrical
                         (np.concatenate 
                           (, (np.repeat (get dc "gmid" "max") 
                                         (num-params "gmid" ip))
@@ -344,13 +387,16 @@
                                         (num-params "c" ip))
                              (np.repeat (/ (get dc "i0" "init") 3.0) 
                                         (num-params "i" ip))))]
-                        [(in ace-variant [1 3])
+                        [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
+                        [(in ace-variant [2 3])   ; relative Electrical and Geometrical
+                         None]
                         [True
                           (raise (NotImplementedError errno.ENOSYS
                                     (os.strerror errno.ENOSYS) 
                                     (.format "No action space for {}-v{}."
                                      ace-id ace-variant)))])]
+
     (, action-space scale-min scale-max)))
 
 (defn design-constraints ^dict [ace]
@@ -376,96 +422,46 @@
               "grid" 0.2e-12 }
        #_/ }))
 
-(defn input-parameters ^(of list str) [^str ace-id ^int ace-variant]
+(defn input-parameters ^(of list str) [ace ^str ace-id ^int ace-variant]
   """
   Returns a list of input parameter names
   """
-  (cond [(and (= ace-id "op1") (in ace-variant [0 2])) 
-         [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
-           "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
-           "res" "cap" "i1" "i2" ]]
-        [(and (= ace-id "op1") (= ace-variant 1)) 
-         [ "Ld" "Lcm1"  "Lcm2"  "Lcs"         "Lres"
-           "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wcap"  "Wres"
-                "Mcm11"         "Mcs"
-                "Mcm12" 
-                "Mcm13" ]]
+  (cond [(in ace-variant [1 3])
+         (ac.sizing-identifiers ace)]
+        [(and (= ace-id "op1") (in ace-variant [0 2])) 
+          [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
+            "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
+            "res" "cap" "i1" "i2" ]]
         [(and (= ace-id "op2") (in ace-variant [0 2])) 
-         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
-           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1" 
-           "i1" "i2" ]]
-        [(and (= ace-id "op2") (= ace-variant 1))
-         [ "Ld" "Lcm1"  "Lcm2" "Lcm3"  
-           "Wd" "Wcm1"  "Wcm2" "Wcm3" 
-                "Mcm11" "Mcm21"  
-                "Mcm12" "Mcm22" ]]
-        [(and (= ace-id "op3") (= ace-variant 0))
-         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
-           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
-           "i1" "i2" "i3" ]]
-        [(and (= ace-id "op3") (= ace-variant 1)) 
-         [ "Ld" "Lcm1"  "Lcm2"   "Lcm3" 
-           "Wd" "Wcm1"  "Wcm2"   "Wcm3"
-                "Mcm11" "Mcm212" "Mcm31" 
-                "Mcm12" "Mcm222" "Mcm32" 
-                        "Mcm2x1" ]]
-        [(and (= ace-id "op4") (= ace-variant 0)) 
-         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref" 
-           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref" 
-           "i1" "i2" "i3" ]]
-        [(and (= ace-id "op4") (= ace-variant 1)) 
-         [ "Ld" "Lcm1"  "Lcm2"  "Lcm3"  "Lc1" "Lr" 
-           "Wd" "Wcm1"  "Wcm2"  "Wcm3"  "Wc1" "Wr"
-                "Mcm11" "Mcm21"         "Mc1" 
-                "Mcm12" "Mcm22" 
-                "Mcm13" ]]
-        [(and (= ace-id "op5") (= ace-variant 0))
-         [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
-           "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
-           "i1" "i2" "i3" "i4" ]]
-        [(and (= ace-id "op5") (= ace-variant 1)) 
-         [ "Ld" "Lcm1"  "Lcm2"   "Lcm3"  "Lc1"  "Lr"
-           "Wd" "Wcm1"  "Wcm2"   "Wcm3"  "Wc1"  "Wr"
-                "Mcm11" "Mcm212" "Mcm31" "Mc11" 
-                "Mcm12" "Mcm222" "Mcm32" "Mc12" 
-                "Mcm13" "Mcm2x1" ]]
-        [(and (= ace-id "op6") (= ace-variant 0)) 
-         [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1" "gmid-res" "gmid-cap"
-           "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1"  "fug-res"  "fug-cap"
-           "i1" "i2" ]]
-        [(and (= ace-id "op6") (= ace-variant 1)) 
-         [ "Ld" "Lcm1"  "Lcm2"  "Lcs" "Lc1" "Lr1"
-           "Wd" "Wcm1"  "Wcm2"  "Wcs" "Wc1" "Wr1"
-                "Mcm11"         "Mcs" "Mc1" "Mr1" 
-                "Mcm12"
-                "Mcm13" ]]
-        [(and (= ace-id "op8") (= ace-variant 0)) 
-         [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-cm5" 
-           "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-cm5" 
-           "i1" "i2" "i3" "i4" ]]
-        [(and (= ace-id "op8") (= ace-variant 1)) 
-         [ "Ld1" "Lcm1" "Lcm2" "Lcm3" "Lcm4"  "Lcm5"
-           "Wd1" "Wcm1" "Wcm2" "Wcm3" "Wcm4"  "Wcm5"
-                 "Mcm1" "Mcm2" "Mcm3" "Mcm41" "Mcm51" 
-                                      "Mcm42" "Mcm52" 
-                                      "Mcm43" "Mcm53" ]]
-        [(and (= ace-id "op9") (= ace-variant 0)) 
-         [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-ls1" "gmid-re1" "gmid-re2"
-           "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-ls1"  "fug-re1"  "fug-re2"
-           "i1" "i2" "i3" "i4" "i5" "i6" ]]
-        [(and (= ace-id "op9") (= ace-variant 1)) 
-         [ "Ld1" "Lcm1" "Lcm2" "Lcm3"  "Lcm4"  "Lls1" "Lr1" "Lr2"
-           "Wd1" "Wcm1" "Wcm2" "Wcm3"  "Wcm4"  "Wls1" "Wr2" "Wr1"
-                 "Mcm1" "Mcm2" "Mcm31" "Mcm41" "Mls1"
-                               "Mcm32" "Mcm42"
-                               "Mcm33" "Mcm43"
-                               "Mcm34" "Mcm44" ]]
-        [(and (= ace-id "nand4") (= ace-variant 1)) 
-         ["Wn0" "Wp" "Wn2" "Wn1" "Wn3"]]
-        [(and (= ace-id "st1") (= ace-variant 1)) 
-         ["Wp0" "Wn0" "Wp2" "Wp1" "Wn2" "Wn1"]]
-        [True
+          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
+            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1" 
+            "i1" "i2" ]]
+        [(and (= ace-id "op3") (in ace-variant [0 2])) 
+          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
+            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
+            "i1" "i2" "i3" ]]
+        [(and (= ace-id "op4") (in ace-variant [0 2])) 
+          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref" 
+            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref" 
+            "i1" "i2" "i3" ]]
+        [(and (= ace-id "op5") (in ace-variant [0 2])) 
+          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
+            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
+            "i1" "i2" "i3" "i4" ]]
+        [(and (= ace-id "op6") (in ace-variant [0 2])) 
+          [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1" "gmid-res" "gmid-cap"
+            "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1"  "fug-res"  "fug-cap"
+            "i1" "i2" ]]
+        [(and (= ace-id "op8") (in ace-variant [0 2])) 
+          [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-cm5" 
+            "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-cm5" 
+            "i1" "i2" "i3" "i4" ]]
+        [(and (= ace-id "op9") (in ace-variant [0 2])) 
+          [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-ls1" "gmid-re1" "gmid-re2"
+            "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-ls1"  "fug-re1"  "fug-re2"
+            "i1" "i2" "i3" "i4" "i5" "i6" ]]
+        [True 
          (raise (NotImplementedError errno.ENOSYS
-                                    (os.strerror errno.ENOSYS) 
-                                    (.format "No parameters for {}-v{}."
+                                     (os.strerror errno.ENOSYS) 
+                                     (.format "No parameters for {}-v{}."
                                      ace-id ace-variant)))]))

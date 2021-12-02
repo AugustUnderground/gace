@@ -65,7 +65,7 @@ from gace.envs.op9 import ( OP9XH035V0Env, OP9XH035V1Env
                           , )
 
 # 4 NAND Gate Inverter Chain
-from gace.envs.nd4 import ( NAND4XH035V1Env
+from gace.envs.nd4 import ( NAND4XH035V1Env, NAND4XH035V3Env
                           , NAND4XH018V1Env
                           , NAND4XT018V1Env
                           , NAND4SKY130V1Env

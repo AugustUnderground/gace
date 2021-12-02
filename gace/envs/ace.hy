@@ -9,7 +9,6 @@
 (import [pandas :as pd])
 
 (import gym)
-(import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
 (import [gace.util.func [*]])
 (import [gace.util.prim [*]])
@@ -58,7 +57,11 @@
                        ^int [max-steps 666] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
-                       ^bool [train-mode True] ^(of Callable) [custom-reward None]
+                       ^bool [train-mode True] 
+                       ^(of Callable)   [custom-reward None]
+                       ^(of gym.spaces) [custom-action None]
+                       ^(of np.array)   [custom-action-lo None]
+                       ^(of np.array)   [custom-action-hi None]
                        ^str [nmos-path None] ^str [pmos-path None]
                        ^str [data-log-path ""] ^str [param-log-path "."]]
 
@@ -79,21 +82,35 @@
     ;; Generate action space for the given ACE Environment
     (setv (, self.action-space  
           self.action-scale-min
-          self.action-scale-max) (action-space self.ace
-                                               self.design-constraints 
-                                               self.ace-id 
-                                               self.ace-variant))
+          self.action-scale-max) (if custom-action 
+                                    (, custom-action 
+                                       custom-action-lo 
+                                       custom-action-hi) 
+                                    (action-space self.ace
+                                                  self.design-constraints 
+                                                  self.ace-id 
+                                                  self.ace-variant)))
+
+    ;; Default Step functions
+    (setv self.step-funcs (| {1 (fn [^np.array action &optional [blocklist []]]
+                                  (-> (step-v1 self.input-parameters 
+                                               self.action-scale-min 
+                                               self.action-scale-max 
+                                               action)
+                                     (self.size-circuit :blocklist blocklist)))
+                              3 (fn [^np.array action &optional [blocklist []]]
+                                  (-> (step-v3 self.input-parameters 
+                                               self.design-constraints
+                                               self.ace action)
+                                      (self.size-circuit :blocklist blocklist)))
+                              #_/ }
+                              (if (hasattr self "step_v0") 
+                                  {0 self.step-v0} {})
+                              (if (hasattr self "step_v2") 
+                                  {2 self.step-v2} {})))
 
     ;; Override step function
-    (setv self.step (cond [(= self.ace-variant 0) self.step-v0]
-                          [(= self.ace-variant 1) self.step-v1]
-                          [(= self.ace-variant 2) self.step-v2]
-                         ; [(= av 3) self.step-v3]
-                          [True 
-                           (raise (NotImplementedError errno.ENOSYS
-                                    (os.strerror errno.ENOSYS) 
-                                    (.format "Variant v{} not implemented for {}." 
-                                    av self.ace-id)))]))
+    (setv self.step (get self.step-funcs self.ace-variant))
 
     ;; Set training mode by default
     (setv self.train-mode train-mode)
@@ -132,7 +149,8 @@
             self.pmos (load-primitive "pmos" self.ace-backend :dev-path pmos-path)))
 
     ;; Specify Input Parameter Names
-    (setv self.input-parameters (input-parameters self.ace-id self.ace-variant))
+    (setv self.input-parameters (input-parameters self.ace self.ace-id 
+                                                  self.ace-variant))
 
     ;; Call gym.Env constructor
     (.__init__ (super ACE self)))
