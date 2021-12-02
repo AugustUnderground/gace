@@ -173,9 +173,7 @@
     (observation performance self.target))
 
   (defn size-circuit [self sizing &optional [blocklist []]]
-    (let [;clipped-sizing (clip-sizing self.ace-backend sizing)
-
-          performance (ac.evaluate-circuit self.ace :params sizing ;clipped-sizing
+    (let [performance (ac.evaluate-circuit self.ace :params sizing
                                                     :blocklist blocklist) 
           
           obs (observation performance self.target)
