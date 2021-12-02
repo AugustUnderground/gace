@@ -52,7 +52,7 @@ environments.
 
 ### Reward
 
-The overall reward `r` is calculated based on individual performance
+By default the overall reward `r` is calculated based on individual performance
 parameters:
 
 ```
@@ -71,3 +71,6 @@ l = ---------
 and `m` is a mask showing whether the performance was reached, i.e. `p > t`, in
 which case `tanh` is applied so the reward doesn't increase infinitely.
 Otherwise the loss is squared and negated.
+
+**This behaviour can be overridden** by passing a `custom_reward` function to
+the environment constructor (see [usage](./usage.md)).
