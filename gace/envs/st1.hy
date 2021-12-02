@@ -44,6 +44,14 @@
     (.__init__ (super ST1XH035V1Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
 
+(defclass ST1XH035V3Env [ST1Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super ST1XH035V3Env self) #**
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 3}))))
+
 (defclass ST1XH018V1Env [ST1Env]
   """
   Implementation: xh018-1V8
@@ -51,6 +59,14 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1XH018V1Env self) #**
                (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 1}))))
+
+(defclass ST1XH018V3Env [ST1Env]
+  """
+  Implementation: xh018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super ST1XH018V3Env self) #**
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 3}))))
 
 (defclass ST1XT018V1Env [ST1Env]
   """
@@ -60,6 +76,14 @@
     (.__init__ (super ST1XT018V1Env self) #**
                (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 1}))))
 
+(defclass ST1XT018V3Env [ST1Env]
+  """
+  Implementation: xt018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super ST1XT018V3Env self) #**
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 3}))))
+
 (defclass ST1SKY130V1Env [ST1Env]
   """
   Implementation: sky130-1V8
@@ -68,6 +92,14 @@
     (.__init__ (super ST1SKY130V1Env self) #**
                (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 1}))))
 
+(defclass ST1SKY130V3Env [ST1Env]
+  """
+  Implementation: sky130-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super ST1SKY130V3Env self) #**
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 3}))))
+
 (defclass ST1GPDK180V1Env [ST1Env]
   """
   Implementation: gpdk180-1V8
@@ -75,3 +107,11 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super ST1GPDK180V1Env self) #**
                (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 1}))))
+
+(defclass ST1GPDK180V3Env [ST1Env]
+  """
+  Implementation: gpdk180-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super ST1GPDK180V3Env self) #**
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 3}))))

@@ -110,6 +110,14 @@
     (.__init__ (super OP3XH035V1Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
 
+(defclass OP3XH035V3Env [OP3Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP3XH035V3Env self) #**
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 3}))))
+
 (defclass OP3XH018V0Env [OP3Env]
   """
   Implementation: xh018-1V8
@@ -125,6 +133,14 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3XH018V1Env self) #**
                (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 1}))))
+
+(defclass OP3XH018V3Env [OP3Env]
+  """
+  Implementation: xh018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP3XH018V3Env self) #**
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 3}))))
 
 (defclass OP3XT018V0Env [OP3Env]
   """
@@ -142,6 +158,14 @@
     (.__init__ (super OP3XT018V1Env self) #**
                (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 1}))))
 
+(defclass OP3XT018V3Env [OP3Env]
+  """
+  Implementation: xt018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP3XT018V3Env self) #**
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 3}))))
+
 (defclass OP3SKY130V0Env [OP3Env]
   """
   Implementation: sky130-1V8
@@ -158,6 +182,14 @@
     (.__init__ (super OP3SKY130V1Env self) #**
                (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 1}))))
 
+(defclass OP3SKY130V3Env [OP3Env]
+  """
+  Implementation: sky130-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP3SKY130V3Env self) #**
+               (| kwargs {"ace_backend" "sky130-1V8" "ace_variant" 3}))))
+
 (defclass OP3GPDK180V0Env [OP3Env]
   """
   Implementation: gpdk180-1V8
@@ -173,3 +205,11 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP3GPDK180V1Env self) #**
                (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 1}))))
+
+(defclass OP3GPDK180V3Env [OP3Env]
+  """
+  Implementation: gpdk180-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP3GPDK180V3Env self) #**
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 3}))))

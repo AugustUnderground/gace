@@ -123,6 +123,14 @@
     (.__init__ (super OP8XH035V1Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
 
+(defclass OP8XH035V3Env [OP8Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP8XH035V3Env self) #**
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 3}))))
+
 (defclass OP8XH018V0Env [OP8Env]
   """
   Implementation: xh018-1V8
@@ -138,6 +146,14 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP8XH018V1Env self) #**
                (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 1}))))
+
+(defclass OP8XH018V3Env [OP8Env]
+  """
+  Implementation: xh018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP8XH018V3Env self) #**
+               (| kwargs {"ace_backend" "xh018-1V8" "ace_variant" 3}))))
 
 (defclass OP8XT018V0Env [OP8Env]
   """
@@ -155,6 +171,14 @@
     (.__init__ (super OP8XT018V1Env self) #**
                (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 1}))))
 
+(defclass OP8XT018V3Env [OP8Env]
+  """
+  Implementation: xt018-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP8XT018V3Env self) #**
+               (| kwargs {"ace_backend" "xt018-1V8" "ace_variant" 3}))))
+
 (defclass OP8GPDK180V0Env [OP8Env]
   """
   Implementation: gpdk180-1V8
@@ -170,3 +194,11 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP8GPDK180V1Env self) #**
                (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 1}))))
+
+(defclass OP8GPDK180V3Env [OP8Env]
+  """
+  Implementation: gpdk180-1V8
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP8GPDK180V3Env self) #**
+               (| kwargs {"ace_backend" "gpdk180-1V8" "ace_variant" 3}))))
