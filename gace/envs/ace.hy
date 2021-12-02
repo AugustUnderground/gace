@@ -20,7 +20,7 @@
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (require [hy.contrib.sequences [defseq seq]])
-(import  [typing [List Set Dict Tuple Optional Union]])
+(import  [typing [List Set Dict Tuple Optional Union Callable]])
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
@@ -44,6 +44,7 @@
     random-target: bool (False)         -> Randomize Target each episode
     noisy-target: bool  (True)          -> Add some noise after each reset
     train-mode: bool (True)             -> Whether this is training or eval
+    custom-reward: function (None)      -> A custom reward function
     reltol: float (1e-3)                -> Relative tolarnce for equaltiy
     data-log-path: str ("")             -> Write a dataframe to HDF5 at this location
     param-log-path: str ('.')           -> Write a json to this location
@@ -57,7 +58,7 @@
                        ^int [max-steps 666] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
-                       ^bool [train-mode True]
+                       ^bool [train-mode True] ^(of Callable) [custom-reward None]
                        ^str [nmos-path None] ^str [pmos-path None]
                        ^str [data-log-path ""] ^str [param-log-path "."]]
 
@@ -94,7 +95,6 @@
                                     (.format "Variant v{} not implemented for {}." 
                                     av self.ace-id)))]))
 
-
     ;; Set training mode by default
     (setv self.train-mode train-mode)
 
@@ -113,8 +113,9 @@
                                                        self.design-constraints
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
-          self.reltol reltol
-          self.condition (reward-condition self.ace-id :tolerance self.reltol))
+          self.reltol        reltol
+          self.reward        (or custom-reward reward)
+          self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
     ;; to the target, as well as general information about the current
@@ -178,7 +179,7 @@
                                                     :blocklist blocklist) 
           
           obs (observation performance self.target)
-          rew (reward performance self.target self.condition self.reltol)
+          rew (self.reward performance self.target self.condition self.reltol)
           don (or (>= (inc self.num-steps) self.max-steps) 
                   (all (second (target-distance performance 
                                                 self.target 

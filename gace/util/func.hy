@@ -234,6 +234,7 @@
   Arguments:
     performance:  Dictionary with performances.
     target:       Dictionary with target values.
+    target:       Dictionary with binary conditionals 
     
   **NOTE**: Both dictionaries must include the keys defined in `params`.
   If no arguments are provided, the current state of the object is used to
@@ -241,11 +242,8 @@
   """
   (let [(, loss mask _ _) (target-distance performance target condition)
 
-        ;cost (+ (* (np.tanh (np.abs loss)) mask) 
-        ;        (* (- (** loss 2.0)) (np.invert mask))) 
-
-        cost (+ (* (/ (* (- (** loss 2.0)) 0.5) tolerance) mask)
-                (* (- (- (np.abs loss)) (* 0.5 tolerance)) (np.invert mask))) ]
+        cost (+ (* (np.tanh (np.abs loss)) mask) 
+                (* (- (** loss 2.0)) (np.invert mask))) ]
 
        (-> cost (np.nan-to-num) (np.sum))))
 

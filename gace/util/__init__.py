@@ -1,8 +1,7 @@
 import hy
 
-from gace.util.prim import *
-from gace.util.func import *
-from gace.util.test import *
-
-from gace.util.render import *
-from gace.util.target import *
+from . import func
+from . import prim
+from . import test
+from . import render
+from . import target

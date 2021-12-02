@@ -32,8 +32,6 @@
     (del env)))
 
 
-
-
 (for [o [1 2 3 4 5 6 8 9]]
   (setv op f"op{o}")
   (setv env0 (gym.make f"gace:{op}-gpdk180-v0"))

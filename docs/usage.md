@@ -27,7 +27,22 @@ env = gym.make(                      'gace:op2-sky130-v1'    # OP2 in sky130-1V8
               , data_log_path      = '/path/to/data/log'     # Write data after each episode
               , params_log_path    = '/path/to/param/log'    # Dump circuit state if NaN
               #, reltol             = 1e-3                    # ONLY FOR NAND4 AND ST1
+              , custom_reward      = reward_function         # A custom reward function
               , )
+```
+
+The `custom_reward` function must be of type `Callable` and adhere to the same
+signature as `gace.util.func.reward`. An example is given in `examples/mwe.py`:
+
+```python
+def reward ( performance: Dict[str, float]
+           , target: Dict[str, float]
+           , condition: Dict[str, Callable]
+           , tolerance: float) -> float:
+    loss, mask, _, _ = target_distance(performance, target, condition)
+    cost = (( ( -(loss ** 2.0)) / 2.0 / tolerance) * mask
+           + (-np.abs(loss) - (0.5 * tolerance)) * np.invert(mask))
+    return float(np.sum(np.nan_to_num(cost)))
 ```
 
 ### Design Constraints

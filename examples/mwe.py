@@ -1,15 +1,18 @@
-import os
 import gym
+import numpy as np
 from gace import check_env
+from gace.util.func import target_distance
+from typing import Dict, Callable
 
-HOME = os.path.expanduser('~')
+def reward ( performance: Dict[str, float]
+           , target: Dict[str, float]
+           , condition: Dict[str, Callable]
+           , tolerance: float) -> float:
+    loss, mask, _, _ = target_distance(performance, target, condition)
+    cost = (( ( -(loss ** 2.0)) / 2.0 / tolerance) * mask
+           + (-np.abs(loss) - (0.5 * tolerance)) * np.invert(mask))
+    return float(np.sum(np.nan_to_num(cost)))
 
-op = 'op1'
-
-env = gym.make( f'gace:{op}-xh035-v1')
-              , ckt_path      = f'{HOME}/Workspace/ACE/ace/resource/xh035-3V3/{op}'
-              , pdk_path      = f'/mnt/data/pdk/XKIT/xh035/cadence/v6_6/spectre/v6_6_2/mos'
-              , random_target = True
-              , )
+env = gym.make('gace:op2-xh035-v1', custom_reward = reward)
 
 check_env(env)
