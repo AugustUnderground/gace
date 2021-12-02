@@ -361,19 +361,19 @@
      { "gmid" { "init" 10.0
                 "max"  26.0
                 "min"  6.0
-                "grid" NaN }
+                "grid" 0.1 }
        "fug" { "init" 1.0e8
                "max"  1.0e9
                "min"  1.0e6
-               "grid" NaN }
+               "grid" 1e4 }
        "rc"  { "init" 5e3
                "max"  50e3
                "min"  0.5e3
-               "grid" NaN }
+               "grid" 0.5e3 }
        "cc" { "init" 1.0e-12
               "max"  5.0e-12
               "min"  0.5e-12
-              "grid" NaN }
+              "grid" 0.2e-12 }
        #_/ }))
 
 (defn input-parameters ^(of list str) [^str ace-id ^int ace-variant]
