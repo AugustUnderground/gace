@@ -77,9 +77,11 @@ Other fields should have no effect.
 
 The variants `v#` define the shape and meaning of the action space.
 
-| Variant | Description                                           |
-|---------|-------------------------------------------------------|
-| `v0`    | Electrical Design Space: `gmoverid`, `fug` as inputs. |
-| `v1`    | Geometrical Design Space: `W`, `L`, `M`  as inputs.   |
-| `v3`    | TBA                                                   |
-| `v4`    | TBA                                                   |
+| Variant | Description                                                               |
+|---------|---------------------------------------------------------------------------|
+| `v0`    | Absolute Continuous Electrical Design Space: `gmoverid`, `fug` as inputs. |
+| `v1`    | Absolute Continuous Geometrical Design Space: `W`, `L`, `M`  as inputs.   |
+| `v2`    | Relative Discrete Electrical Design Space: `gmoverid`, `fug` as inputs.   |
+| `v3`    | Relative Discrete Geometrical Design Space: `W`, `L`, `M`  as inputs.     |
+| `v4`    | TBA                                                                       |
+| `v5`    | TBA                                                                       |

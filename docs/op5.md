@@ -9,6 +9,8 @@ Registered as `gace:op5-<tech>-<variant>`.
 | Technology | Dimensions     |
 |------------|----------------|
 | `xh035`    | `ℝ²⁸⁵∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²⁸⁵∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²⁸⁵∈(-∞ ;∞)` |
 | `sky130`   | `ℝ³⁰⁵∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ³⁹⁷∈(-∞ ;∞)` |
 
@@ -44,6 +46,8 @@ gym.spaces.Box( low   = -np.inf
 |---------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹⁶∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "gmid-c1", "gmid-r", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "fug-c1", "fug-r", "i1", "i2", "i3", "i4"]`                          |
 | `v1`    | `ℝ²²∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Lc1", "Lr", "Wd", "Wcm1", "Wcm2", "Wcm3", "Wc1", "Wr", "Mcm11", "Mcm212", "Mcm31", "Mc11", "Mcm12", "Mcm222", "Mcm32", "Mc12", "Mcm13", "Mcm2x1"]` |
+| `v2`    | `ℝ¹⁶∈[0,1,2]` | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "gmid-c1", "gmid-r", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "fug-c1", "fug-r", "i1", "i2", "i3", "i4"]`                          |
+| `v3`    | `ℝ²²∈[0,1,2]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Lc1", "Lr", "Wd", "Wcm1", "Wcm2", "Wcm3", "Wc1", "Wr", "Mcm11", "Mcm212", "Mcm31", "Mc11", "Mcm12", "Mcm222", "Mcm32", "Mc12", "Mcm13", "Mcm2x1"]` |
 
 
 Where `i1` is the drain current through `MNCM13`, `i2` is the drain current
@@ -64,5 +68,15 @@ gym.spaces.Box( low   = -1.0
               , shape = (22 , )
               , dtype = np.float32
               , )
+
+# v2 action space
+gym.spaces.MultiDiscrete( list(repeat(3, 16))
+                        , dtype = np.int32
+                        , )
+
+# v3 action space
+gym.spaces.MultiDiscrete( list(repeat(3, 22))
+                        , dtype = np.int32
+                        , )
 ```
 

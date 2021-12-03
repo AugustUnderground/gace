@@ -9,6 +9,8 @@ Registered as `gace:op2-<tech>-<variant>`.
 | Technology | Dimensions     |
 |------------|----------------|
 | `xh035`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
 | `sky130`   | `ℝ²⁶⁶∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ³⁰⁶∈(-∞ ;∞)` |
 
@@ -44,6 +46,8 @@ gym.spaces.Box( low   = -np.inf
 |---------|------------------|-------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹⁰∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1" "i2"]` |
 | `v1`    | `ℝ¹²∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
+| `v2`    | `ℝ¹⁰∈[0,1,2]`    | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1" "i2"]` |
+| `v3`    | `ℝ¹²∈[0,1,2]`    | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
 
 Where `i1` is the drain current through `MNCM12` and `i2` is the drain current
 through `MPCM212` and `MPCM222`.
@@ -62,6 +66,15 @@ gym.spaces.Box( low   = -1.0
               , shape = (12 , )
               , dtype = np.float32
               , )
-```
 
+# v2 action space
+gym.spaces.MultiDiscrete( list(repeat(3, 10))
+                        , dtype = np.int32
+                        , )
+
+# v3 action space
+gym.spaces.MultiDiscrete( list(repeat(3, 12))
+                        , dtype = np.int32
+                        , )
+```
 

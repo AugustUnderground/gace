@@ -63,6 +63,8 @@ Registered as `gace:nand4-<tech>-<variant>`.
 | Technology | Dimensions    |
 |------------|---------------|
 | `xh035`    | `ℝ¹²∈(-∞ ;∞)` |
+| `xh018`    | `ℝ¹²∈(-∞ ;∞)` |
+| `xt018`    | `ℝ¹²∈(-∞ ;∞)` |
 | `sky130`   | `ℝ¹²∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ¹²∈(-∞ ;∞)` |
 
@@ -70,7 +72,7 @@ For details see the `output-parameters` field of the `info` dictionary
 returned by `step()`.
 
 ```python
-# xh035, sky130, gpdk180
+# xh035, xh018, xt018, sky130, gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
               , shape = (12 , )
@@ -83,6 +85,7 @@ gym.spaces.Box( low   = -np.inf
 | Variant | Dimensions      | Parameters                           |
 |---------|-----------------|--------------------------------------|
 | `v1`    | `ℝ⁵∈[-1.0;1.0]` | `["Wn0", "Wp", "Wn2", "Wn1", "Wn3"]` |
+| `v3`    | `ℝ⁵∈[0,1,2]`    | `["Wn0", "Wp", "Wn2", "Wn1", "Wn3"]` |
 
 ```python
 # v1 action space
@@ -91,5 +94,9 @@ gym.spaces.Box( low   = -1.0
               , shape = (5 , )
               , dtype = np.float32
               , )
-```
 
+# v3 action space
+gym.spaces.MultiDiscrete( list(repeat(3, 5))
+                        , dtype = np.int32
+                        , )
+```

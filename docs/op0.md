@@ -44,11 +44,12 @@ Action Spaces in `v0` and `v1` are _continuous_ and implemented with
 `gym.spaces.Box`. For further details, see the descriptions for specific
 environments.
 
-| Variant | Description                                      |
-|---------|--------------------------------------------------|
-| `v0`    | Electrical design space (`gmoverid`, `fug`, ...) |
-| `v1`    | Geometric Design Space (`W`, `L`, ...)           |
-| `v2`    | TBA                                              |
+| Variant | Description                                                          |
+|---------|----------------------------------------------------------------------|
+| `v0`    | Absolute Continuous Electrical design space (`gmoverid`, `fug`, ...) |
+| `v1`    | Absolute Continuous Geometric Design Space (`W`, `L`, ...)           |
+| `v2`    | Relative Discrete Electrical design space (`gmoverid`, `fug`, ...)   |
+| `v3`    | Relative Discrete Geometric Design Space (`W`, `L`, ...)             |
 
 ### Reward
 
