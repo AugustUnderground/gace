@@ -131,7 +131,7 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          self.reward        (or custom-reward reward)
+          self.reward        (or custom-reward relative-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -191,20 +191,20 @@
     (observation performance self.target))
 
   (defn size-circuit [self sizing &optional [blocklist []]]
-    (let [performance (ac.evaluate-circuit self.ace :params sizing
-                                                    :blocklist blocklist) 
+    (let [prev-perf (ac.current-performance self.ace)
+          curr-perf (ac.evaluate-circuit self.ace :params sizing
+                                                  :blocklist blocklist) 
           
-          obs (observation performance self.target)
-          rew (self.reward performance self.target self.condition self.reltol)
+          obs (observation curr-perf self.target)
+          rew (self.reward curr-perf prev-perf self.target self.condition)
           don (or (>= (inc self.num-steps) self.max-steps) 
-                  (all (second (target-distance performance 
+                  (all (second (target-distance curr-perf 
                                                 self.target 
                                                 self.condition))))
-          inf (info performance self.target self.input-parameters) ]
+          inf (info curr-perf self.target self.input-parameters) ]
 
-      (when (bool self.data-log-path)
-        (setv self.data-log (.append self.data-log (| sizing performance)
-                                     :ignore-index True)))
+      (setv self.data-log (.append self.data-log (| sizing curr-perf)
+                                   :ignore-index True))
 
       (when (and (bool self.param-log-path) 
                  (or (np.any (np.isnan obs)) 

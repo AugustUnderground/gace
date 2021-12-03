@@ -225,27 +225,53 @@
       
     (np.nan-to-num obs)))
 
-(defn reward ^float [^(of dict str float) performance
-                     ^(of dict str float) target
-                     ^(of dict) condition
-                     ^(of float) tolerance]
+(defn absolute-reward ^float [^(of dict str float) curr-perf
+                              ^(of dict str float) prev-perf
+                              ^(of dict str float) target
+                              ^(of dict) condition]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
-    performance:  Dictionary with performances.
-    target:       Dictionary with target values.
-    target:       Dictionary with binary conditionals 
+    curr-perf:  Dictionary with performances.
+    prev-perf:  Dictionary with performances.
+    target:     Dictionary with target values.
+    condition:  Dictionary with binary conditionals 
     
   **NOTE**: Both dictionaries must include the keys defined in `params`.
   If no arguments are provided, the current state of the object is used to
   calculate the reward.
   """
-  (let [(, loss mask _ _) (target-distance performance target condition)
+  (let [(, loss mask _ _) (target-distance curr-perf target condition)
 
         cost (+ (* (np.tanh (np.abs loss)) mask) 
                 (* (- (** loss 2.0)) (np.invert mask))) ]
 
-       (-> cost (np.nan-to-num) (np.sum))))
+    (-> cost (np.nan-to-num) (np.sum))))
+
+(defn relative-reward ^float [^(of dict str float) curr-perf
+                              ^(of dict str float) prev-perf
+                              ^(of dict str float) target
+                              ^(of dict) condition]
+  """
+  Calculates a reward based on the relative improvement, compared to previous
+  performance. Arguments:
+    curr-perf:  Dictionary with performances.
+    prev-perf:  Dictionary with performances.
+    target:     Dictionary with target values.
+    condition:  Dictionary with binary conditionals 
+  """
+  (let [(, curr-loss curr-mask _ _) (target-distance curr-perf target condition)
+        (, prev-loss prev-mask _ _) (target-distance prev-perf target condition)
+
+        curr-cost (+ (* (np.tanh (np.abs curr-loss)) curr-mask) 
+                     (* (- (** curr-loss 2.0)) (np.invert curr-mask))) 
+
+        prev-cost (+ (* (np.tanh (np.abs prev-loss)) prev-mask) 
+                     (* (- (** prev-loss 2.0)) (np.invert prev-mask))) 
+
+        cost      (- (np.nan-to-num curr-cost) (np.nan-to-num prev-cost))]
+
+    (-> cost (np.sum))))
 
 (defn info ^(of dict) [^(of dict str float) performance 
                        ^(of dict str float) target 
