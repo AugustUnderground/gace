@@ -15,7 +15,7 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op2-xh035-v3"))
+(setv env (gym.make "gace:op2-xh035-v0"))
 
 (setv obs (.reset env))
 (gace.check-env env)
