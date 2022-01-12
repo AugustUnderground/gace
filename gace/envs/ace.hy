@@ -91,26 +91,23 @@
                                                   self.ace-id 
                                                   self.ace-variant)))
 
-    ;; Default Step functions
-    (setv self.step-funcs (| {1 (fn [^np.array action &optional [blocklist []]]
+    ;; Override step function
+    ;(setv self.step (get self.step-funcs self.ace-variant))
+    (setv self.step (cond [(= self.ace-variant 0) self.step-v0] 
+                          [(= self.ace-variant 1)
+                           (fn [^np.array action &optional [blocklist []]]
                                   (-> (step-v1 self.input-parameters 
                                                self.action-scale-min 
                                                self.action-scale-max 
                                                action)
-                                     (self.size-circuit :blocklist blocklist)))
-                              3 (fn [^np.array action &optional [blocklist []]]
+                                     (self.size-circuit :blocklist blocklist)))]
+                          [(= self.ace-variant 2) self.step-v2]
+                          [(= self.ace-variant 3)
+                           (fn [^np.array action &optional [blocklist []]]
                                   (-> (step-v3 self.input-parameters 
                                                self.design-constraints
                                                self.ace action)
-                                      (self.size-circuit :blocklist blocklist)))
-                              #_/ }
-                              (if (hasattr self "step_v0") 
-                                  {0 self.step-v0} {})
-                              (if (hasattr self "step_v2") 
-                                  {2 self.step-v2} {})))
-
-    ;; Override step function
-    (setv self.step (get self.step-funcs self.ace-variant))
+                                      (self.size-circuit :blocklist blocklist)))]))
 
     ;; Set training mode by default
     (setv self.train-mode train-mode)
