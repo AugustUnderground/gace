@@ -96,46 +96,49 @@
          (+ (- (np.exp (- (er x)))) 1)
          (- (er x))))))
 
-(defn ace-constructor [ace-id ace-backend 
-                      &optional ^(of list str) [pdk []] 
-                                ^str [ckt None]]
-  (let [pdk-path ;; Check for PDK
-        (cond [(all (lfor p pdk (and p (os.path.exists p)))) pdk]
-              [(in "ACE_PDK" os.environ) [(os.environ.get "ACE_PDK")]]
-              [(os.path.exists (.format "{}/.ace/{}/pdk" 
-                                        (os.path.expanduser "~") 
-                                        ace-backend ))
-               [(.format "{}/.ace/{}/pdk" (os.path.expanduser "~") 
-                                          ace-backend)]]
-              [True (raise (FileNotFoundError errno.ENOENT 
-                            (os.strerror errno.ENOENT) 
-                            (.format "No PDK found for {} and {}"
-                                     ace-id ace-backend)))])
-    
-      ckt-path ;; Check ACE backend Testbench
-        (cond [(and ckt (os.path.exists ckt)) ckt]
-              [(in "ACE_BACKEND" os.environ) 
-               (.format "{}/{}" (os.environ.get "ACE_BACKEND") ace-id)]
-              [(os.path.exists (.format "{}/.ace/{}/{}" 
-                                        (os.path.expanduser "~") 
-                                        ace-backend 
-                                        ace-id))
-               (.format "{}/.ace/{}/{}" (os.path.expanduser "~") 
-                                        ace-backend 
-                                        ace-id)]
-              [True (raise (FileNotFoundError errno.ENOENT 
-                            (os.strerror errno.ENOENT) 
-                            (.format "No ACE Testbench found for {} in {}"
-                                     ace-id ace-backend)))])
+(defn ace-constructor [ace-id ace-backend &optional ^(of list str) [pdk []] ^str [ckt None]]
+  (fn [] (ac.make-env ace-id ace-backend :pdk pdk :ckt ckt)))
 
-      ace-maker (cond [(.startswith ace-id "op")    ac.single-ended-opamp]
-                       [(.startswith ace-id "st")   ac.schmitt-trigger]
-                       [(.startswith ace-id "nand") ac.nand-4]
-                       [True (raise (NotImplementedError errno.ENOSYS
-                            (os.strerror errno.ENOSYS) 
-                            (.format "{} is not a valid ACE id."
-                                     ace-id)))]) ]
-    (fn [] (ace-maker ckt-path :pdk-path pdk-path))))
+;;(defn ace-constructor [ace-id ace-backend 
+;;                      &optional ^(of list str) [pdk []] 
+;;                                ^str [ckt None]]
+;;  (let [pdk-path ;; Check for PDK
+;;        (cond [(all (lfor p pdk (and p (os.path.exists p)))) pdk]
+;;              [(in "ACE_PDK" os.environ) [(os.environ.get "ACE_PDK")]]
+;;              [(os.path.exists (.format "{}/.ace/{}/pdk" 
+;;                                        (os.path.expanduser "~") 
+;;                                        ace-backend ))
+;;               [(.format "{}/.ace/{}/pdk" (os.path.expanduser "~") 
+;;                                          ace-backend)]]
+;;              [True (raise (FileNotFoundError errno.ENOENT 
+;;                            (os.strerror errno.ENOENT) 
+;;                            (.format "No PDK found for {} and {}"
+;;                                     ace-id ace-backend)))])
+;;    
+;;      ckt-path ;; Check ACE backend Testbench
+;;        (cond [(and ckt (os.path.exists ckt)) ckt]
+;;              [(in "ACE_BACKEND" os.environ) 
+;;               (.format "{}/{}" (os.environ.get "ACE_BACKEND") ace-id)]
+;;              [(os.path.exists (.format "{}/.ace/{}/{}" 
+;;                                        (os.path.expanduser "~") 
+;;                                        ace-backend 
+;;                                        ace-id))
+;;               (.format "{}/.ace/{}/{}" (os.path.expanduser "~") 
+;;                                        ace-backend 
+;;                                        ace-id)]
+;;              [True (raise (FileNotFoundError errno.ENOENT 
+;;                            (os.strerror errno.ENOENT) 
+;;                            (.format "No ACE Testbench found for {} in {}"
+;;                                     ace-id ace-backend)))])
+;;
+;;      ace-maker (cond [(.startswith ace-id "op")    ac.single-ended-opamp]
+;;                       [(.startswith ace-id "st")   ac.schmitt-trigger]
+;;                       [(.startswith ace-id "nand") ac.nand-4]
+;;                       [True (raise (NotImplementedError errno.ENOSYS
+;;                            (os.strerror errno.ENOSYS) 
+;;                            (.format "{} is not a valid ACE id."
+;;                                     ace-id)))]) ]
+;;    (fn [] (ace-maker ckt-path :pdk-path pdk-path))))
 
 (defn load-primitive [^str dev-type ^str ace-backend &optional ^str [dev-path ""]]
   (let [device-path (or dev-path (.format "{}/.ace/{}/{}" (os.path.expanduser "~") 
