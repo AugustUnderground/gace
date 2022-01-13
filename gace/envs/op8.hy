@@ -25,10 +25,6 @@
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
-;; THIS WILL BE FIXED IN HY 1.0!
-;(import multiprocess)
-;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
-
 (defclass OP8Env [ACE]
   """
   Base class for OP8
@@ -40,9 +36,7 @@
     """
     Takes an array of electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
-    netlist. This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    TODO: Implement sizing procedure.
+    netlist. 
     """
     (let [(, gmid-dp1 gmid-cm1 gmid-cm2 gmid-cm3 gmid-cm4 gmid-cm5
              fug-dp1  fug-cm1  fug-cm2  fug-cm3  fug-cm4  fug-cm5
@@ -96,16 +90,14 @@
           Wcm2 (/ i3     (get cm2-out 0))
           Wcm3 (/ i3     (get cm3-out 0))
           Wcm4 (/ i2     (get cm4-out 0))
-          Wcm5 (/ i0     (get cm5-out 0))
-
-          sizing { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
+          Wcm5 (/ i0     (get cm5-out 0)) ]
+    
+    { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
                    "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wcm4"  Wcm4  "Wcm5"  Wcm5
                    "Md1" Mdp1 "Mcm1" Mcm1 "Mcm2" Mcm2 "Mcm3" Mcm3 "Mcm41" Mcm41 "Mcm51" Mcm51
                                                                   "Mcm42" Mcm42 "Mcm52" Mcm52
                                                                   "Mcm43" Mcm42 "Mcm53" Mcm53 
-                   #_/ }]
-    
-    (self.size-circuit sizing))))
+                   #_/ })))
 
 (defclass OP8XH035V0Env [OP8Env]
   """

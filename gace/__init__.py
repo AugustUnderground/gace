@@ -4,6 +4,7 @@ from .util import func
 from .util import target
 from .util import render
 from .util.test import check_env
+from gace.envs.vec import VecACE
 
 ## Environment Variants:
 #

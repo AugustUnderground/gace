@@ -23,10 +23,6 @@
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
-;; THIS WILL BE FIXED IN HY 1.0!
-;(import multiprocess)
-;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
-
 (defclass ACE [gym.Env]
   """
   Base class interfacing both ACE and gym.
@@ -71,7 +67,7 @@
           self.ace-variant     ace-variant
           self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
                                                 :ckt ckt-path :pdk [pdk-path])
-          self.ace             (self.ace-constructor))
+          self.ace             (eval self.ace-constructor))
 
     ;; Obtain design constraints from ACE backend and override if given
     (setv dc (design-constraints self.ace)
@@ -90,24 +86,6 @@
                                                   self.design-constraints 
                                                   self.ace-id 
                                                   self.ace-variant)))
-
-    ;; Override step function
-    ;(setv self.step (get self.step-funcs self.ace-variant))
-    (setv self.step (cond [(= self.ace-variant 0) self.step-v0] 
-                          [(= self.ace-variant 1)
-                           (fn [^np.array action &optional [blocklist []]]
-                                  (-> (step-v1 self.input-parameters 
-                                               self.action-scale-min 
-                                               self.action-scale-max 
-                                               action)
-                                     (self.size-circuit :blocklist blocklist)))]
-                          [(= self.ace-variant 2) self.step-v2]
-                          [(= self.ace-variant 3)
-                           (fn [^np.array action &optional [blocklist []]]
-                                  (-> (step-v3 self.input-parameters 
-                                               self.design-constraints
-                                               self.ace action)
-                                      (self.size-circuit :blocklist blocklist)))]))
 
     ;; Set training mode by default
     (setv self.train-mode train-mode)
@@ -149,9 +127,24 @@
     (setv self.input-parameters (input-parameters self.ace self.ace-id 
                                                   self.ace-variant))
 
+    ;; Override step function
+    (setv self.step-fn (cond [(= self.ace-variant 0) self.step-v0] 
+                             [(= self.ace-variant 1)
+                              (partial sizing-step self.input-parameters 
+                                                   self.action-scale-min 
+                                                   self.action-scale-max)]
+                             [(= self.ace-variant 2) self.step-v2]
+                             [(= self.ace-variant 3)
+                              (partial sizing-step-relative self.input-parameters
+                                                            self.design-constraints  
+                                                            self.ace)])
+          self.step 
+            (fn [^np.array action &optional [blocklist []]]
+              (-> action (self.step-fn) (self.size-circuit :blocklist blocklist))))
+
     ;; Call gym.Env constructor
     (.__init__ (super ACE self)))
-  
+
   (defn reset ^np.array [self]
     """
     If not running, this creates a new spectre session. The `moves` counter is
@@ -161,8 +154,9 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
+    ;; If ace does not exist, create it.
     (unless self.ace
-      (setv self.ace (self.ace-constructor)))
+      (setv self.ace (eval self.ace-constructor)))
 
     ;; Reset the step counter and increase the reset counter.
     (setv self.num-steps     (int 0))

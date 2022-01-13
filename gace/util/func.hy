@@ -96,11 +96,14 @@
          (+ (- (np.exp (- (er x)))) 1)
          (- (er x))))))
 
-(defn ace-constructor [ace-id ace-backend &optional ^(of list str) [pdk []] ^str [ckt None]]
+(defn ace-constructor [^str ace-id ^str ace-backend
+        &optional ^(of list str) [pdk []] ^str [ckt None] ^int [num-envs 1]]
   """
   Meta function for (re-)creating environments.
   """
-  (fn [] (ac.make-env ace-id ace-backend :pdk pdk :ckt ckt)))
+  (if (> num-envs 1)
+      `(ac.make-same-env-pool ~num-envs ~ace-id ~ace-backend :pdk ~pdk :ckt ~ckt)
+      `(ac.make-env ~ace-id ~ace-backend :pdk ~pdk :ckt ~ckt)))
 
 (defn load-primitive [^str dev-type ^str ace-backend &optional ^str [dev-path ""]]
   (let [device-path (or dev-path (.format "{}/.ace/{}/{}" (os.path.expanduser "~") 
@@ -281,7 +284,7 @@
           (get analyses it)
           (.tolist it))))
 
-(defn step-v1 ^(of dict str float) [^(of list str) input-parameters
+(defn sizing-step ^(of dict str float) [^(of list str) input-parameters
                                     ^np.array action-scale-min 
                                     ^np.array action-scale-max 
                                     ^np.array action]
@@ -292,7 +295,7 @@
     (dict (zip input-parameters (unscale-value action action-scale-min 
                                                       action-scale-max))))
 
-(defn step-v3 [^(of list str) input-parameters 
+(defn sizing-step-relative [^(of list str) input-parameters 
                ^(of list str) design-constraints
                ace ^np.array action]
   """
@@ -321,7 +324,8 @@
     DEC[0], NOP[1], INC[2]. The ∆ for each parameter is defined by the
     `design-constraints`' grid.
   """
-  (let [ip (input-parameters ace ace-id ace-variant)
+  (let [;_ace (if (ac.is-pool-env ace) (first ace.envs) ace)
+        ip (input-parameters ace ace-id ace-variant)
 
         num-params (fn [p ps] (len (list (filter #%(.startswith %1 p) ps))))
 
@@ -394,24 +398,25 @@
   """
   Returns a dictionary containing technology constraints.
   """
-  (| (ac.parameter-dict ace)
-     { "gmid" { "init" 10.0
-                "max"  26.0
-                "min"  6.0
-                "grid" 0.1 }
-       "fug" { "init" 1.0e8
-               "max"  1.0e9
-               "min"  1.0e6
-               "grid" 1e4 }
-       "rc"  { "init" 5e3
-               "max"  50e3
-               "min"  0.5e3
-               "grid" 0.5e3 }
-       "cc" { "init" 1.0e-12
-              "max"  5.0e-12
-              "min"  0.5e-12
-              "grid" 0.2e-12 }
-       #_/ }))
+  (-> ace ;(ac.is-pool-env) (if (first ace.envs) ace)
+    (ac.parameter-dict)
+    (| { "gmid" { "init" 10.0
+                  "max"  26.0
+                  "min"  6.0
+                  "grid" 0.1 }
+         "fug" { "init" 1.0e8
+                 "max"  1.0e9
+                 "min"  1.0e6
+                 "grid" 1e4 }
+         "rc"  { "init" 5e3
+                 "max"  50e3
+                 "min"  0.5e3
+                 "grid" 0.5e3 }
+         "cc" { "init" 1.0e-12
+                "max"  5.0e-12
+                "min"  0.5e-12
+                "grid" 0.2e-12 }
+         #_/ })))
 
 (defn input-parameters ^(of list str) [ace ^str ace-id ^int ace-variant]
   """

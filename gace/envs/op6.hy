@@ -25,10 +25,6 @@
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
-;; THIS WILL BE FIXED IN HY 1.0!
-;(import multiprocess)
-;(multiprocess.set-executable (.replace sys.executable "hy" "python"))
-
 (defclass OP6Env [ACE]
   """
   Base class for OP6
@@ -40,9 +36,7 @@
     """
     Takes an array of electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
-    netlist. This is passed to the parent class where the netlist ist modified
-    and then simulated, returning observations, reward, done and info.
-    TODO: Implement sizing procedure.
+    netlist. 
     """
     (let [(, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1 gmid-res gmid-cap
              fug-cm1  fug-cm2  fug-cs1  fug-dp1  fug-res  fug-cap
