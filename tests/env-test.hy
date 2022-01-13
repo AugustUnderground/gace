@@ -20,31 +20,13 @@
 (setv envs (gace.VecACE "gace:op2-xh035-v0" n)) 
 (setv obs (.reset envs))
 
-(setx actions (lfor as envs.action-space (.sample as)))
-(setx sizings (->> actions (zip envs.envs) (ap-map (-> it (first) (.step-fn (second it)))) (enumerate) (dict)))
-(setx perfs (-> envs (. pool) (ac.evaluate-circuit-pool :pool-params sizings)))
-
-(lfor p (.values perfs) (get p "MND12:vth"))
-
-
-                              (.values))
-
-
-
-
 (setv tic (.time time))
 (setv (, obs rew don inf) (envs.step (lfor as envs.action-space (.sample as))))
 (setv toc (.time time))
 (print f"Evaluating {n} envs took {(- toc tic):.4}s -> {(/ n (- toc tic)):.3} FPS.")
 
-(lfor as envs.action-space (.sample as))
-;(setv (, o r d i) (.step envs))
-
-
-
 
 (setv env (gym.make "gace:op2-xh035-v1"))
-
 
 (setv obs (.reset env))
 (gace.check-env env)

@@ -119,6 +119,7 @@ integrated circuit design, based on [AC²E](https://github.com/matthschw/ace) /
 - Other Environments
     + [X] [NAND4: Inverter Chain](./nd4.md)
     + [X] [ST1: Schmitt Trigger](./st1.md)
+- Pooled / Parallel Environments
+    + [VecACE](./vec.md)
 - [Issues](./issues.md)
-
 
