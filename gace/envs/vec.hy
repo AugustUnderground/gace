@@ -23,13 +23,15 @@
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
-(defn vector-make [envs &optional ^int [n-proc (-> 0 (os.sched-getaffinity) (len) (// 2))]]
+(setv DEFAULT_N_PROC (-> 0 (os.sched-getaffinity) (len) (// 2)))
+
+(defn vector-make [envs &optional ^int [n-proc DEFAULT_N_PROC]]
   """
   Takes a list of gace environments and returns a 'vectorized' version thereof.
   """
   (VecACE envs n-proc))
 
-(defn vector-make-same [^str env-id ^int num-envs &optional ^int [n-proc (-> 0 (os.sched-getaffinity) (len) (// 2))]]
+(defn vector-make-same [^str env-id ^int num-envs &optional ^int [n-proc DEFAULT_N_PROC]]
   """
   Takes a gace environment id and a number and returns a vectorized
   environemnt, with n times the given id. 
@@ -44,6 +46,7 @@
           self.pool (ac.to-pool (lfor e self.gace-envs e.ace)))
 
     (setv self.action-space (lfor env self.gace-envs env.action-space))
+    (setv self.observation-space (lfor env self.gace-envs env.observation-space))
 
     (setv self.step 
           (fn [^(of list np.array) actions]
