@@ -23,11 +23,24 @@
 (import  [hy.contrib.sequences [Sequence end-sequence]])
 (import  [hy.contrib.pprint [pp pprint]])
 
+(defn vector-make [envs &optional ^int [n-proc (-> 0 (os.sched-getaffinity) (len) (// 2))]]
+  """
+  Takes a list of gace environments and returns a 'vectorized' version thereof.
+  """
+  (VecACE envs n-proc))
+
+(defn vector-make-same [^str env-id ^int num-envs &optional ^int [n-proc (-> 0 (os.sched-getaffinity) (len) (// 2))]]
+  """
+  Takes a gace environment id and a number and returns a vectorized
+  environemnt, with n times the given id. 
+    Short hand for: `vector_make([gym.make(env_id) for _ range(num_envs)])`
+  """
+  (vector-make (list (take num-envs (repeatedly #%(gym.make env-id)))) n-proc))
+
 (defclass VecACE []
-  (defn __init__ [self ^str env-id ^int num-envs &optional 
-                    ^int [n-proc (-> 0 (os.sched-getaffinity) (len) (// 2))]]
+  (defn __init__ [self envs ^int n-proc]
     (setv self.n-proc n-proc
-          self.gace-envs (list (take num-envs (repeatedly #%(gym.make env-id))))
+          self.gace-envs envs
           self.pool (ac.to-pool (lfor e self.gace-envs e.ace)))
 
     (setv self.action-space (lfor env self.gace-envs env.action-space))

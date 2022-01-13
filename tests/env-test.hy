@@ -17,7 +17,7 @@
 (import [hy.contrib.pprint [pp pprint]])
 
 (setv n 64)
-(setv envs (gace.VecACE "gace:op2-xh035-v0" n)) 
+(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
 (setv obs (.reset envs))
 
 (setv tic (.time time))
