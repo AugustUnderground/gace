@@ -59,7 +59,7 @@
   (defn __len__ [self] 
     (len self.gace-envs))
 
-  (defn reset ^np.array [self]
+  (defn reset ^np.array [self &optional ^(of list int) [env-ids []]]
     """
     If not running, this creates a new spectre session. The `moves` counter is
     reset, while the reset counter is increased. If `same-target` is false, a
@@ -68,8 +68,9 @@
     Finally, a simulation is run and the observed perforamnce returned.
     """
 
-    (let [targets (lfor e self.gace-envs e.target)
-          parameters (dict (enumerate (lfor e self.gace-envs
+    (let [envs (if env-ids (lfor i env-ids (get self.gace-envs i)) self.gace-envs)
+          targets (lfor e envs e.target)
+          parameters (dict (enumerate (lfor e envs
               ;; If ace does not exist, create it.
               :do (unless e.ace (setv e.ace (eval e.ace-constructor)))
 

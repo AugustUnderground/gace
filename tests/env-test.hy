@@ -19,6 +19,8 @@
 (setv n 64)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
 (setv obs (.reset envs))
+(setv obs (.reset envs [7 3 29]))
+
 
 (setv tic (.time time))
 (setv (, obs rew don inf) (envs.step (lfor as envs.action-space (.sample as))))
