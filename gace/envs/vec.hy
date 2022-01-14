@@ -31,13 +31,14 @@
   """
   (VecACE envs n-proc))
 
-(defn vector-make-same [^str env-id ^int num-envs &optional ^int [n-proc DEFAULT_N_PROC]]
+(defn vector-make-same [^str env-id ^int num-envs 
+        &optional ^int [n-proc DEFAULT_N_PROC] &kwargs kwargs]
   """
   Takes a gace environment id and a number and returns a vectorized
   environemnt, with n times the given id. 
     Short hand for: `vector_make([gym.make(env_id) for _ range(num_envs)])`
   """
-  (vector-make (list (take num-envs (repeatedly #%(gym.make env-id)))) n-proc))
+  (vector-make (list (take num-envs (repeatedly #%(gym.make env-id #** kwargs)))) n-proc))
 
 (defclass VecACE []
   (defn __init__ [self envs ^int n-proc]
