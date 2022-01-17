@@ -59,6 +59,11 @@
   (defn __len__ [self] 
     (len self.gace-envs))
 
+  (defn seed [self rng-seed &optional ^(of list int) [env-ids []]]
+      (lfor e (if env-ids (lfor i env-ids (get self.gace-envs i)) 
+                          self.gace-envs) 
+           (e.seed rng-seed)))
+
   (defn reset ^np.array [self &optional ^(of list int) [env-ids []]]
     """
     If not running, this creates a new spectre session. The `moves` counter is
