@@ -16,10 +16,11 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv n 64)
+(setv n 32)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
 (setv obs (.reset envs))
 (setv obs (.reset envs [7 3 29]))
+(envs.random-step)
 
 
 (setv tic (.time time))
@@ -35,6 +36,8 @@
 
 (setx act (.sample env.action-space))
 (pp (.step env act))
+
+(env.random-step)
 
 (for [i [1 2 3 4 5 6 8 9]]
   (for [e [0 1]]
