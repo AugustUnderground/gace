@@ -59,10 +59,12 @@
   (defn __len__ [self] 
     (len self.gace-envs))
 
-  (defn seed [self rng-seed &optional ^(of list int) [env-ids []]]
-      (lfor e (if env-ids (lfor i env-ids (get self.gace-envs i)) 
-                          self.gace-envs) 
-           (e.seed rng-seed)))
+  (defn random-step [self]
+  """
+  Vectorized version of the convenience function in case you say to yourself:
+  'But I just wanna take a random step'.
+  """
+    (self.step (lfor as self.action-space (-> as (.sample)))))
 
   (defn reset ^np.array [self &optional ^(of list int) [env-ids []]]
     """
@@ -143,4 +145,14 @@
         (when (and (bool e.data-log-path) d)
           (save-data e.data-log e.data-log-path e.ace-id)))
 
-      (, obs rew don inf))))
+      (, obs rew don inf)))
+
+  (defn seed [self rng-seed &optional ^(of list int) [env-ids []]]
+    (lfor e (if env-ids (lfor i env-ids (get self.gace-envs i)) 
+                        self.gace-envs) 
+         (e.seed rng-seed)))
+
+  (defn close [self &optional ^(of list int) [env-ids []]]
+    (lfor e (if env-ids (lfor i env-ids (get self.gace-envs i)) 
+                        self.gace-envs) 
+         (e.close))))
