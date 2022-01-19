@@ -145,6 +145,15 @@
     ;; Call gym.Env constructor
     (.__init__ (super ACE self)))
 
+  (defn random-step [self]
+  """
+  Convenience function in case you say to yourself:
+  'But I just wanna take a random step.'
+  Mostly for testing the environment etc.
+  """
+    (-> self (. action-space) (.sample) (self.step)))
+
+
   (defn reset ^np.array [self]
     """
     If not running, this creates a new spectre session. The `moves` counter is
