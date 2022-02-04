@@ -157,5 +157,6 @@
             (pt.from-numpy) 
             (self.model) 
             (.numpy) 
+            (np.float64)
             (self.scale-y) 
             (self.trafo-y)))))
