@@ -177,48 +177,48 @@
     (dfor (, p v) (.items ts)
         [ p (if noisy (* v factor) v) ])))
 
-(defn reward-condition ^dict [^str ace-id &optional ^float [tolerance 1e-3]]
+(defn reward-condition ^dict [^str ace-id &optional ^float [tolerance 1e-2]]
   (setv == (fn [a b] (<= (/ (np.abs (- a b)) b) tolerance)))
   (cond [(.startswith ace-id "op")
-         {"a_0"         <=
-          "ugbw"        <=
-          "pm"          <=
-          "gm"          >=
-          "sr_r"        <=
-          "sr_f"        >=
-          "vn_1Hz"      >=
-          "vn_10Hz"     >=
-          "vn_100Hz"    >=
-          "vn_1kHz"     >=
-          "vn_10kHz"    >=
-          "vn_100kHz"   >=
-          "psrr_n"      <=
-          "psrr_p"      <=
-          "cmrr"        <=
-          "v_il"        >=
-          "v_ih"        <=
-          "v_ol"        >=
-          "v_oh"        <=
-          "i_out_min"   >=
-          "i_out_max"   >=
-          "overshoot_r" >=
-          "overshoot_f" >=
-          "voff_stat"   >=
-          "voff_sys"    <=
-          "A"           >=
-          #_/ }]
+         { "a_0"         <=
+           "ugbw"        <=
+           "pm"          <=
+           "gm"          >=
+           "sr_r"        <=
+           "sr_f"        >=
+           "vn_1Hz"      >=
+           "vn_10Hz"     >=
+           "vn_100Hz"    >=
+           "vn_1kHz"     >=
+           "vn_10kHz"    >=
+           "vn_100kHz"   >=
+           "psrr_n"      <=
+           "psrr_p"      <=
+           "cmrr"        <=
+           "v_il"        >=
+           "v_ih"        <=
+           "v_ol"        >=
+           "v_oh"        <=
+           "i_out_min"   >=
+           "i_out_max"   >=
+           "overshoot_r" >=
+           "overshoot_f" >=
+           "voff_stat"   >=
+           "voff_sys"    <=
+           "A"           >=
+           #_/ }]
         [(.startswith ace-id "nand")
-         {"vs0" ==
-          "vs1" ==
-          "vs2" ==
-          "vs3" ==
-          #_/ }]
+         { "vs0" ==
+           "vs1" ==
+           "vs2" ==
+           "vs3" ==
+           #_/ }]
         [(.startswith ace-id "st")
-         {"v_il"  ==
-          "v_ih"  ==
-          "t_plh" ==
-          "t_phl" ==
-         #_/ }]
+         { "v_il"  ==
+           "v_ih"  ==
+           "t_plh" ==
+           "t_phl" ==
+           #_/ }]
         [True (raise (NotImplementedError errno.ENOSYS
                       (os.strerror errno.ENOSYS) 
                       (.format "There is no reward condition for {}."
