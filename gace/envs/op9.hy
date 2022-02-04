@@ -46,12 +46,12 @@
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
 
-          M1-lim (get self.design-constraints "Mcm43" "max")
-          M2-lim (get self.design-constraints "Mcm44" "max")
-          M3-lim (get self.design-constraints "Mcm42" "max")
-          M4-lim (get self.design-constraints "Mcm32" "max")
-          M5-lim (get self.design-constraints "Mcm33" "max")
-          M6-lim (get self.design-constraints "Mcm34" "max")
+          M1-lim (-> self (. design-constraints) (get "Mcm43" "max") (int))
+          M2-lim (-> self (. design-constraints) (get "Mcm44" "max") (int))
+          M3-lim (-> self (. design-constraints) (get "Mcm42" "max") (int))
+          M4-lim (-> self (. design-constraints) (get "Mcm32" "max") (int))
+          M5-lim (-> self (. design-constraints) (get "Mcm33" "max") (int))
+          M6-lim (-> self (. design-constraints) (get "Mcm34" "max") (int))
 
           M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
           M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))

@@ -87,6 +87,10 @@
                                                   self.ace-id 
                                                   self.ace-variant)))
 
+    ;; Input Scaling Functions
+    (setv self.scale-action #%(scale-value %1 self.action-scale-min self.action-scale-max))
+    (setv self.unscale-action #%(unscale-value %1 self.action-scale-min self.action-scale-max))
+
     ;; Set training mode by default
     (setv self.train-mode train-mode)
 
@@ -106,7 +110,8 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          self.reward        (or custom-reward relative-reward)
+          ;self.reward        (or custom-reward relative-reward)
+          self.reward        (or custom-reward absolute-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -141,6 +146,19 @@
           self.step 
             (fn [^np.array action &optional [blocklist []]]
               (-> action (self.step-fn) (self.size-circuit :blocklist blocklist))))
+
+    ;; Get an unscaled sample of the action space. This gives actual values,
+    ;; i.e. not ∈ [-1;1]
+    ;; Just convenience for sampling and unscaling manually.
+    (setv self.unscaled-sample #%(->> self
+                                      (. action-space)
+                                      (.sample) 
+                                      (self.unscale-action)
+                                      (zip self.input-parameters)
+                                      (dict )))
+
+    ;; Convenience function for taking a step with real (unscaled) action.
+    (setv self.unscaled-step #%(-> %1 (self.scale-action) (self.step)))
 
     ;; Call gym.Env constructor
     (.__init__ (super ACE self)))

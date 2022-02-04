@@ -46,8 +46,8 @@
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
 
-          M1-lim (get self.design-constraints "Mcm12" "max")
-          M2-lim (get self.design-constraints "Mcm13" "max")
+          M1-lim (-> self (. design-constraints) (get "Mcm12" "max") (int))
+          M2-lim (-> self (. design-constraints) (get "Mcm13" "max") (int))
           
           M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
           M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))

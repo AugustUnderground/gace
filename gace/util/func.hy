@@ -147,9 +147,9 @@
         dist (/ (np.abs (- perf targ)) targ)
 
         mask (if condition
-                 (lfor (, c p t) 
+                 (np.array (lfor (, c p t) 
                     (zip (p-getter condition) perf targ)
-                    (c t p))
+                    (c t p)))
                  (np.full (len performance-parameters) True))]
       
     (, dist mask perf targ)))
@@ -212,7 +212,11 @@
   (let [(, loss mask _ _) (target-distance curr-perf target condition)
 
         cost (+ (* (np.tanh (np.abs loss)) mask) 
-                (* (- (** loss 2.0)) (np.invert mask))) ]
+                (* (- loss) (np.invert mask))) 
+
+        ;cost (+ (* (np.abs loss) mask) 
+        ;        (* (- (** loss 2.0)) (np.invert mask)))
+     ]
 
     (-> cost (np.nan-to-num) (np.sum))))
 
@@ -237,7 +241,10 @@
         prev-cost (+ (* (np.tanh (np.abs prev-loss)) prev-mask) 
                      (* (- (** prev-loss 2.0)) (np.invert prev-mask))) 
 
-        cost      (- (np.nan-to-num curr-cost) (np.nan-to-num prev-cost))]
+        relative-improvement (- (np.nan-to-num curr-cost) 
+                                (np.nan-to-num prev-cost))
+
+        cost (* relative-improvement (np.abs curr-cost)) ]
 
     (-> cost (np.sum))))
 
@@ -332,21 +339,21 @@
         abs-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
         rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
 
-        action-space (cond [(in ace-variant [0 1]) abs-space]
-                           [(in ace-variant [2 3]) rel-space]
-                           [(in ace-variant [4 5])
-                            (Tuple (, abs-space 
-                                      (->> ace (ac.simulation-analyses) 
-                                           (len) (** 2) (dec) (Discrete))))]
-                           [(in rel-variant [6 7])
-                            (Tuple (, rel-space 
-                                      (->> ace (ac.simulation-analyses) 
-                                           (len) (** 2) (dec) (Discrete))))]
-                           [True
-                            (raise (NotImplementedError errno.ENOSYS
-                                      (os.strerror errno.ENOSYS) 
-                                      (.format "No action space for {}-v{}."
-                                      ace-id ace-variant)))])
+        space (cond [(in ace-variant [0 1]) abs-space]
+                    [(in ace-variant [2 3]) rel-space]
+                    [(in ace-variant [4 5])
+                     (Tuple (, abs-space 
+                               (->> ace (ac.simulation-analyses) 
+                                    (len) (** 2) (dec) (Discrete))))]
+                    [(in rel-variant [6 7])
+                     (Tuple (, rel-space 
+                               (->> ace (ac.simulation-analyses) 
+                                    (len) (** 2) (dec) (Discrete))))]
+                    [True
+                     (raise (NotImplementedError errno.ENOSYS
+                               (os.strerror errno.ENOSYS) 
+                               (.format "No action space for {}-v{}."
+                               ace-id ace-variant)))])
 
         scale-min (cond [(in ace-variant [0])   ; Absolute Electrical
                          (np.concatenate 
@@ -380,7 +387,7 @@
                                         (num-params "r" ip))
                              (np.repeat (get dc "cc" "max")  
                                         (num-params "c" ip))
-                             (np.repeat (/ (get dc "i0" "init") 3.0) 
+                             (np.repeat (* (get dc "i0" "init") 5.0) 
                                         (num-params "i" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
@@ -392,7 +399,7 @@
                                     (.format "No action space for {}-v{}."
                                      ace-id ace-variant)))])]
 
-    (, action-space scale-min scale-max)))
+    (, space scale-min scale-max)))
 
 (defn design-constraints ^dict [ace]
   """
@@ -401,8 +408,8 @@
   (-> ace ;(ac.is-pool-env) (if (first ace.envs) ace)
     (ac.parameter-dict)
     (| { "gmid" { "init" 10.0
-                  "max"  26.0
-                  "min"  6.0
+                  "max"  25.0
+                  "min"  5.0
                   "grid" 0.1 }
          "fug" { "init" 1.0e8
                  "max"  1.0e9
