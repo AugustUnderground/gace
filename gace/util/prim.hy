@@ -150,13 +150,18 @@
   Returns:  numpy array with re-scaled and transformed outputs of machine
             learning model.
   """
-    (with [_ (pt.no-grad)]
-      (-> X (self.trafo-x) 
-            (self.scale-x) 
-            (np.float32) 
-            (pt.from-numpy) 
-            (self.model) 
-            (.numpy) 
-            (np.float64)
-            (self.scale-y) 
-            (self.trafo-y)))))
+    (try
+      (with [_ (pt.no-grad)]
+        (-> X (np.float64)
+              (self.trafo-x) 
+              (self.scale-x) 
+              (np.float32) 
+              (pt.from-numpy) 
+              (self.model) 
+              (.numpy) 
+              (np.float64)
+              (self.scale-y) 
+              (self.trafo-y)))
+      (except [RuntimeWarning]
+        (print f"POTENTIAL OVERFLOW FOR INPUT:\n\n")
+        (print X)))))
