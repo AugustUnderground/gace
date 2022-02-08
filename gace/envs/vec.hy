@@ -57,7 +57,16 @@
               (self.size-circuit-pool sizings)))))
 
   (defn __len__ [self] 
+    """
+    Returns the number of Environments in the Vector.
+    """
     (len self.gace-envs))
+
+  (defn __iter__ [self]
+  """
+  Make VecEnv Iterable.
+  """
+    (-> self (. gace-envs) (iter)))
 
   (defn random-step [self]
   """
