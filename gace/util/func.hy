@@ -141,8 +141,10 @@
   (let [performance-parameters (list (.keys target))
         p-getter (itemgetter #* performance-parameters)
 
-        perf (-> performance (p-getter) (np.array))
-        targ (-> target      (p-getter) (np.array))
+        ;;perf (-> performance (p-getter) (np.array))
+        ;;targ (-> target      (p-getter) (np.array))
+        perf (-> performance (p-getter) (np.array) (np.abs))
+        targ (-> target      (p-getter) (np.array) (np.abs))
 
         dist (/ (np.abs (- perf targ)) targ)
 
@@ -212,11 +214,7 @@
   (let [(, loss mask _ _) (target-distance curr-perf target condition)
 
         cost (+ (* (np.tanh (np.abs loss)) mask) 
-                (* (- loss) (np.invert mask))) 
-
-        ;cost (+ (* (np.abs loss) mask) 
-        ;        (* (- (** loss 2.0)) (np.invert mask)))
-     ]
+                (* (- loss) (np.invert mask))) ]
 
     (-> cost (np.nan-to-num) (np.sum))))
 

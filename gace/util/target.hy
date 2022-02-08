@@ -183,9 +183,11 @@
          { "a_0"         <=
            "ugbw"        <=
            "pm"          <=
-           "gm"          >=
+           ;;"gm"          >=
+           "gm"          <=
            "sr_r"        <=
-           "sr_f"        >=
+           "sr_f"        <=
+           ;;"sr_f"        >=
            "vn_1Hz"      >=
            "vn_10Hz"     >=
            "vn_100Hz"    >=
@@ -204,7 +206,8 @@
            "overshoot_r" >=
            "overshoot_f" >=
            "voff_stat"   >=
-           "voff_sys"    <=
+           ;; "voff_sys"    <=
+           "voff_sys"    >=
            "A"           >=
            #_/ }]
         [(.startswith ace-id "nand")
