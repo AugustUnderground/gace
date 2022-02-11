@@ -236,30 +236,22 @@
   """
   (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
         (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
+  
+        improv (| (& (np.invert prev-mask) curr-mask)
+                  (& prev-mask curr-mask)
+                  (& (np.invert prev-mask) 
+                     (np.invert curr-mask) 
+                     (< curr-dist prev-dist)))
 
-        curr-rew (+ (* (np.tanh (np.abs curr-dist)) curr-mask) 
-                     (* (- (np.abs curr-dist)) (np.invert curr-mask))) 
-                  
-        prev-rew (+ (* (np.tanh (np.abs prev-dist)) prev-mask) 
-                     (* (- (np.abs prev-dist)) (np.invert prev-mask))) 
+        deprov (& prev-mask (np.invert curr-mask))
 
-        improv-mask (>= curr-rew prev-rew)
+        simple (+ (-> improv (.astype float) (* 1.0)) 
+                  (-> improv (np.invert) (.astype float) (* -1.0))
+                  (-> deprov (.astype float) (* improv-fact) (-))
+                  (-> curr-mask (.astype float (* improv-fact)))) ]
 
-                      ;; Improvement or stayed above spec
-        simple-rew (+ (* (| improv-mask (& curr-mask prev-mask)) 1.0)
-                      ;; Got worse below spec
-                      (* (& (np.invert improv-mask) 
-                            (np.invert curr-mask)
-                            (np.invert prev-mask))
-                         -1.0)
-                      ;; Got worse after reaching spec
-                      (* (& (np.invert improv-mask) 
-                            (np.invert curr-mask)
-                            prev-mask)
-                         (- improv-fact))) ]
-
-    ;(-> simple-rew (.astype float) (np.sum) (np.nan-to-num))))
-    (-> simple-rew (.astype float) (np.sum) (- steps) (np.nan-to-num))))
+    (-> simple (.astype float) (np.sum) (np.nan-to-num))))
+    ;(-> simple (.astype float) (np.sum) (- steps) (np.nan-to-num))))
 
 (defn relative-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
