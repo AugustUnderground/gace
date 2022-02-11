@@ -231,7 +231,8 @@
     curr-perf:  Dictionary with performances.
     prev-perf:  Dictionary with performances.
     target:     Dictionary with target values.
-    condition:  Dictionary with binary conditionals 
+    condition:  Dictionary with binary conditionals .
+    steps:      Number of steps taken in the environment.
   """
   (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
         (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
@@ -272,7 +273,8 @@
                          prev-mask)
                       improv-fact)) ]
 
-    (-> sum-rew (np.sum) (- steps))))
+    ;(-> sum-rew (np.sum) (- steps) (np.nan-to-num))))
+    (-> sum-rew (np.sum) (np.nan-to-num))))
 
 (defn info ^(of dict) [^(of dict str float) performance 
                        ^(of dict str float) target 

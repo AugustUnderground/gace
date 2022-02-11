@@ -131,9 +131,11 @@
           obs (lfor (, cp tp) (zip curr-perfs targets)
                     (observation cp tp))
           
-          rew (lfor (, rf cp pp t c) 
-                    (zip reward-fns curr-perfs prev-perfs targets conds)
-                    (rf cp pp t c))
+          steps (lfor e self.gace-envs e.num-steps)
+
+          rew (lfor (, rf cp pp t c s) 
+                    (zip reward-fns curr-perfs prev-perfs targets conds steps)
+                    (rf cp pp t c s))
 
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
                             (zip curr-perfs targets conds)))
