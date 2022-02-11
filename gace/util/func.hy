@@ -219,6 +219,49 @@
 
     (-> cost (np.nan-to-num) (np.sum))))
 
+(defn simple-reward ^float [^(of dict str float) curr-perf
+                            ^(of dict str float) prev-perf
+                            ^(of dict str float) target
+                            ^(of dict) condition
+                            ^int steps
+                            &optional ^float [improv-fact 3.0]]
+  """
+  Calculates a reward based on the relative improvement, compared to previous
+  performance. Arguments:
+    curr-perf:  Dictionary with performances.
+    prev-perf:  Dictionary with performances.
+    target:     Dictionary with target values.
+    condition:  Dictionary with binary conditionals .
+    steps:      Number of steps taken in the environment.
+  """
+  (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
+        (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
+
+        curr-rew (+ (* (np.tanh (np.abs curr-dist)) curr-mask) 
+                     (* (- (np.abs curr-dist)) (np.invert curr-mask))) 
+                  
+        prev-rew (+ (* (np.tanh (np.abs prev-dist)) prev-mask) 
+                     (* (- (np.abs prev-dist)) (np.invert prev-mask))) 
+
+        improv-mask (>= curr-rew prev-rew)
+
+        simple-rew (+ 
+                      ;; Improvement or stayed above spec
+                      (* (| improv-mask (& curr-mask prev-mask)) 1.0)
+                      ;; Got worse below spec
+                      (* (& (np.invert improv-mask) 
+                            (np.invert curr-mask)
+                            (np.invert prev-mask))
+                         -1.0)
+                      ;; Got worse after reaching spec
+                      (* (& (np.invert improv-mask) 
+                            (np.invert curr-mask)
+                            prev-mask)
+                         (- improv-fact))) ]
+
+    ;(-> sum-rew (.astype float) (np.sum) (np.nan-to-num))))
+    (-> sum-rew (.astype float) (np.sum) (- steps) (np.nan-to-num))))
+
 (defn relative-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target

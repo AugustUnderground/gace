@@ -110,7 +110,8 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          self.reward        (or custom-reward relative-reward)
+          self.reward        (or custom-reward simple-reward)
+          ;self.reward        (or custom-reward relative-reward)
           ;self.reward        (or custom-reward absolute-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
