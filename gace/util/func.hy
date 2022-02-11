@@ -245,9 +245,8 @@
 
         improv-mask (>= curr-rew prev-rew)
 
-        simple-rew (+ 
                       ;; Improvement or stayed above spec
-                      (* (| improv-mask (& curr-mask prev-mask)) 1.0)
+        simple-rew (+ (* (| improv-mask (& curr-mask prev-mask)) 1.0)
                       ;; Got worse below spec
                       (* (& (np.invert improv-mask) 
                             (np.invert curr-mask)
@@ -259,8 +258,8 @@
                             prev-mask)
                          (- improv-fact))) ]
 
-    ;(-> sum-rew (.astype float) (np.sum) (np.nan-to-num))))
-    (-> sum-rew (.astype float) (np.sum) (- steps) (np.nan-to-num))))
+    ;(-> simple-rew (.astype float) (np.sum) (np.nan-to-num))))
+    (-> simple-rew (.astype float) (np.sum) (- steps) (np.nan-to-num))))
 
 (defn relative-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
