@@ -198,7 +198,8 @@
 (defn absolute-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target
-                              ^(of dict) condition]
+                              ^(of dict) condition
+                              ^int steps]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
@@ -214,14 +215,16 @@
   (let [(, loss mask _ _) (target-distance curr-perf target condition)
 
         cost (+ (* (np.tanh (np.abs loss)) mask) 
-                (* (- loss) (np.invert mask))) ]
+                (* (- (np.abs loss)) (np.invert mask))) ]
 
     (-> cost (np.nan-to-num) (np.sum))))
 
 (defn relative-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target
-                              ^(of dict) condition]
+                              ^(of dict) condition
+                              ^int steps
+                              &optional ^float [improv-fact 10.0]]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:
@@ -230,21 +233,46 @@
     target:     Dictionary with target values.
     condition:  Dictionary with binary conditionals 
   """
-  (let [(, curr-loss curr-mask _ _) (target-distance curr-perf target condition)
-        (, prev-loss prev-mask _ _) (target-distance prev-perf target condition)
+  (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
+        (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
 
-        curr-cost (+ (* (np.tanh (np.abs curr-loss)) curr-mask) 
-                     (* (- (** curr-loss 2.0)) (np.invert curr-mask))) 
+        curr-rew (+ (* (np.tanh (np.abs curr-dist)) curr-mask) 
+                     (* (- (np.abs curr-dist)) (np.invert curr-mask))) 
+                  
+        prev-rew (+ (* (np.tanh (np.abs prev-dist)) prev-mask) 
+                     (* (- (np.abs prev-dist)) (np.invert prev-mask))) 
 
-        prev-cost (+ (* (np.tanh (np.abs prev-loss)) prev-mask) 
-                     (* (- (** prev-loss 2.0)) (np.invert prev-mask))) 
+        improv-mask (>= curr-rew prev-rew)
 
-        relative-improvement (- (np.nan-to-num curr-cost) 
-                                (np.nan-to-num prev-cost))
+                   ;; Improvement but not reached target
+        sum-rew (+ (* (- curr-rew prev-rew)
+                      (& improv-mask (np.invert curr-mask)))
 
-        cost (* relative-improvement (np.abs curr-cost)) ]
+                   ;; Improvement above target
+                   (* (- curr-rew prev-rew)
+                      (& improv-mask curr-mask)
+                      improv-fact)
 
-    (-> cost (np.sum))))
+                   ;; Decline before reaching target
+                   (* (- curr-rew prev-rew) 
+                      (& (np.invert improv-mask) 
+                         (np.invert curr-mask) 
+                         (np.invert prev-mask))
+                      improv-fact)
+
+                   ;; Decline after reaching target and still above target
+                   (* (np.abs (- curr-rew prev-rew))
+                      (& (np.invert improv-mask) curr-mask prev-mask)
+                      (/ improv-fact 2))
+
+                   ;; Decline after reaching target and below target now
+                   (* (- curr-rew prev-rew)
+                      (& (np.invert improv-mask) 
+                         (np.invert curr-mask) 
+                         prev-mask)
+                      improv-fact)) ]
+
+    (-> sum-rew (np.sum) (- steps))))
 
 (defn info ^(of dict) [^(of dict str float) performance 
                        ^(of dict str float) target 

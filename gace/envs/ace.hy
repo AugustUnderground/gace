@@ -50,7 +50,7 @@
                        ^str [ckt-path None] ^str [pdk-path None]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
-                       ^int [max-steps 666] ^(of dict str float) [design-constr {}]
+                       ^int [max-steps 100] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 
@@ -110,8 +110,8 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          ;self.reward        (or custom-reward relative-reward)
-          self.reward        (or custom-reward absolute-reward)
+          self.reward        (or custom-reward relative-reward)
+          ;self.reward        (or custom-reward absolute-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -213,9 +213,10 @@
           curr-perf (ac.evaluate-circuit self.ace :params sizing
                                                   :blocklist blocklist) 
           
+          steps (inc self.num-steps)
           obs (observation curr-perf self.target)
-          rew (self.reward curr-perf prev-perf self.target self.condition)
-          don (or (>= (inc self.num-steps) self.max-steps) 
+          rew (self.reward curr-perf prev-perf self.target self.condition steps)
+          don (or (>= steps self.max-steps) 
                   (all (second (target-distance curr-perf 
                                                 self.target 
                                                 self.condition))))
@@ -232,7 +233,7 @@
       (when (and (bool self.data-log-path) don)
         (save-data self.data-log self.data-log-path self.ace-id))
 
-      (setv self.num-steps (inc self.num-steps))
+      (setv self.num-steps steps)
       (, obs rew don inf)))
 
   (defn render [self &optional ^str [mode "human"]]
