@@ -146,13 +146,15 @@
         perf (-> performance (p-getter) (np.array) (np.abs))
         targ (-> target      (p-getter) (np.array) (np.abs))
 
-        dist (/ (np.abs (- perf targ)) targ)
+        ;;dist (/ (np.abs (- perf targ)) targ)
+        dist (/ (- perf targ) targ)
 
         mask (if condition
                  (np.array (lfor (, c p t) 
                     (zip (p-getter condition) perf targ)
                     (c t p)))
-                 (np.full (len performance-parameters) True))]
+                 (np.full (len performance-parameters) True))
+        #_/ ]
       
     (, dist mask perf targ)))
 
@@ -199,7 +201,8 @@
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target
                               ^(of dict) condition
-                              ^int steps]
+                              ^int steps ^int max-steps
+                              &optional ^float [bonus 10.0]]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
@@ -207,24 +210,25 @@
     prev-perf:  Dictionary with performances.
     target:     Dictionary with target values.
     condition:  Dictionary with binary conditionals 
-    
-  **NOTE**: Both dictionaries must include the keys defined in `params`.
-  If no arguments are provided, the current state of the object is used to
-  calculate the reward.
+    steps:      Number of steps taken in the environment.
   """
   (let [(, loss mask _ _) (target-distance curr-perf target condition)
 
         cost (+ (* (np.tanh (np.abs loss)) mask) 
-                (* (- (np.abs loss)) (np.invert mask))) ]
+                (* (- (np.abs loss)) (np.invert mask))) 
 
-    (-> cost (np.nan-to-num) (np.sum))))
+        finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
+      #_/ ]
+
+    (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus))))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
                             ^(of dict str float) prev-perf
                             ^(of dict str float) target
                             ^(of dict) condition
-                            ^int steps
-                            &optional ^float [improv-fact 3.0]]
+                            ^int steps ^int max-steps
+                            &optional ^float [improv-fact 2.0]
+                                      ^float [bonus 10.0]]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:
@@ -237,28 +241,42 @@
   (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
         (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
   
-        improv (| (& (np.invert prev-mask) curr-mask)
-                  (& prev-mask curr-mask)
-                  (& (np.invert prev-mask) 
-                     (np.invert curr-mask) 
+        better (| (& (np.invert prev-mask) curr-mask)
+                  (& (np.invert curr-mask)
+                     (np.invert prev-mask)
                      (< curr-dist prev-dist)))
 
-        deprov (& prev-mask (np.invert curr-mask))
+        stayed (& prev-mask curr-mask)
 
-        simple (+ (-> improv (.astype float) (* 1.0)) 
-                  (-> improv (np.invert) (.astype float) (* -1.0))
-                  (-> deprov (.astype float) (* improv-fact) (-))
-                  (-> curr-mask (.astype float (* improv-fact)))) ]
+        worse (& (np.invert prev-mask) 
+                 (np.invert curr-mask)
+                 (>= curr-dist prev-dist))
 
-    (-> simple (.astype float) (np.sum) (np.nan-to-num))))
+        worst (& prev-mask (np.invert curr-mask))
+
+        ;simple (+ (-> better (.astype float) (* 1.0)) 
+        ;          (-> stayed (.astype float) (* steps) (np.clip 1.0 5.0))
+        ;          (-> worse (.astype float) (* steps) (np.clip 1.0 10.0) (-))
+        ;          (-> worst (.astype float) (* steps) (-))) 
+
+        simple (+ (-> better (.astype float) (* 1.0)) 
+                  (-> stayed (.astype float) (* 2.0))
+                  (-> worse (.astype float) (* -1.0))
+                  (-> worst (.astype float) (* -3.0)))
+        
+        finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
+        #_/ ]
+
+    (-> simple (.astype float) (np.sum) (np.nan-to-num) (+ finish-bonus))))
     ;(-> simple (.astype float) (np.sum) (- steps) (np.nan-to-num))))
 
 (defn relative-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target
                               ^(of dict) condition
-                              ^int steps
-                              &optional ^float [improv-fact 10.0]]
+                              ^int steps ^int max-steps
+                              &optional ^float [improv-fact 10.0]
+                                        ^float [bonus 10.0]]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:
@@ -305,10 +323,13 @@
                       (& (np.invert improv-mask) 
                          (np.invert curr-mask) 
                          prev-mask)
-                      improv-fact)) ]
+                      improv-fact)) 
+
+        finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
+        #_/ ]
 
     ;(-> sum-rew (np.sum) (- steps) (np.nan-to-num))))
-    (-> sum-rew (np.sum) (np.nan-to-num))))
+    (-> sum-rew (np.sum) (np.nan-to-num) (+ finish-bonus))))
 
 (defn info ^(of dict) [^(of dict str float) performance 
                        ^(of dict str float) target 
