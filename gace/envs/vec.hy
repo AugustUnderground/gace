@@ -98,15 +98,17 @@
               :do (setv e.data-log (pd.DataFrame))
 
               ;; Target can be random or close to a known acheivable.
-              :do (setv e.target 
-                          (if e.random-target
-                              (target-specification e.ace-id e.ace-backend 
+              :do (setv e.target (target-specification e.ace-id e.design-constraints ; e.ace-backend 
                                                     :random e.random-target 
-                                                    :noisy e.noisy-target)
-                              (dfor (, p v) (.items e.target) 
-                                 [p (* v (if e.noisy-target 
-                                             (np.random.normal 1.0 0.01) 
-                                             1.0))])))
+                                                    :noisy e.noisy-target))
+                          ;(if e.random-target
+                          ;    (target-specification e.ace-id e.ace-backend 
+                          ;                          :random e.random-target 
+                          ;                          :noisy e.noisy-target)
+                          ;    (dfor (, p v) (.items e.target) 
+                          ;       [p (* v (if e.noisy-target 
+                          ;                   (np.random.normal 1.0 0.01) 
+                          ;                   1.0))]))
 
               ;; Starting parameters are either random or close to a known solution.
               (starting-point e.ace e.random-target e.noisy-target))))
@@ -120,8 +122,8 @@
   (defn size-circuit-pool [self sizings]
     (let [(, prev-perfs targets conds reward-fns inputs) 
           (zip #* (lfor e self.gace-envs (, (ac.current-performance e.ace) 
-                                       e.target e.condition e.reward 
-                                       e.input-parameters)))
+                                         e.target e.condition e.reward 
+                                         e.input-parameters)))
              
           curr-perfs (-> self (. pool) 
                               (ac.evaluate-circuit-pool :pool-params sizings 

@@ -110,9 +110,9 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          self.reward        (or custom-reward simple-reward)
+          ;self.reward        (or custom-reward simple-reward)
           ;self.reward        (or custom-reward relative-reward)
-          ;self.reward        (or custom-reward absolute-reward)
+          self.reward        (or custom-reward absolute-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -195,7 +195,7 @@
 
     ;; Target can be random or close to a known acheivable.
     (setv self.target (if self.random-target
-      (target-specification self.ace-id self.ace-backend 
+      (target-specification self.ace-id self.design-constraints ; self.ace-backend 
                             :random self.random-target 
                             :noisy self.noisy-target)
       (dfor (, p v) (.items self.target) 
@@ -213,10 +213,11 @@
     (let [prev-perf (ac.current-performance self.ace)
           curr-perf (ac.evaluate-circuit self.ace :params sizing
                                                   :blocklist blocklist) 
-          
+
           steps (inc self.num-steps)
           obs (observation curr-perf self.target)
-          rew (self.reward curr-perf prev-perf self.target self.condition steps)
+          rew (self.reward curr-perf prev-perf self.target self.condition 
+                           steps self.max-steps)
           don (or (>= steps self.max-steps) 
                   (all (second (target-distance curr-perf 
                                                 self.target 
