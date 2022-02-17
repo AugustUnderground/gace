@@ -117,10 +117,15 @@
                                                :pool-params parameters 
                                                :npar self.n-proc)]
 
+    (setv self.observation-keys 
+        (lfor (, p (, t i)) (zip (.values performances)
+                                 (lfor e envs (, e.target e.input-parameters)))
+              (get (info p t i) "output-parameters")))
+
     (list (ap-map (observation #* it) (zip (.values performances) 
                                            targets (repeat 0) 
                                            (lfor e envs e.max-steps))))))
-      
+
   (defn size-circuit-pool [self sizings]
     (let [(, prev-perfs targets conds reward-fns inputs) 
           (zip #* (lfor e self.gace-envs (, (ac.current-performance e.ace) 
