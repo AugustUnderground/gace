@@ -45,30 +45,30 @@
                    #_/ }]
                  [(in ace-id ["op2" "op3"])
                   {"a_0"         55.0
-                   "ugbw"        3750000.0
+                   "ugbw"        3500000.0
                    "pm"          65.0
-                   "gm"          -30.0
-                   "sr_r"        3750000.0
-                   "sr_f"        -3750000.0
-                   "vn_1Hz"      5e-06
-                   "vn_10Hz"     2e-06
-                   "vn_100Hz"    5e-07
-                   "vn_1kHz"     1.5e-07
-                   "vn_10kHz"    5e-08
-                   "vn_100kHz"   2.5e-08
-                   "psrr_n"      80.0
-                   "psrr_p"      80.0
+                   ;;"gm"          -20.0
+                   "sr_r"        3500000.0
+                   "sr_f"        -3500000.0
+                   ;; "vn_1Hz"      5e-06
+                   ;; "vn_10Hz"     2e-06
+                   ;; "vn_100Hz"    5e-07
+                   ;; "vn_1kHz"     1.5e-07
+                   ;; "vn_10kHz"    5e-08
+                   ;; "vn_100kHz"   2.5e-08
                    "cmrr"        80.0
-                   "v_il"        (* vdd 0.25) ; 0.9
-                   "v_ih"        (* vdd 0.95) ; 3.2
-                   "v_ol"        (* vdd 0.50) ; 1.65
-                   "v_oh"        (* vdd 0.95) ; 3.2
-                   "i_out_min"   -7e-5
-                   "i_out_max"   7e-5
-                   "overshoot_r" 2.0
-                   "overshoot_f" 2.0
-                   "voff_stat"   3e-3
-                   "voff_sys"    -1.5e-3
+                   ;;"psrr_n"      60.0
+                   "psrr_p"      80.0
+                   ;; "v_il"        (* vdd 0.25) ; 0.9
+                   ;; "v_ih"        (* vdd 0.95) ; 3.2
+                   ;; "v_ol"        (* vdd 0.50) ; 1.65
+                   ;; "v_oh"        (* vdd 0.95) ; 3.2
+                   ;; "i_out_min"   -7e-5
+                   ;; "i_out_max"   7e-5
+                   ;; "overshoot_r" 2.0
+                   ;; "overshoot_f" 2.0
+                   "voff_stat"   0.003
+                   "voff_sys"    -0.003
                    "A"           5.5e-10
                    #_/ }]
                  [(in ace-id ["op4" "op5"])

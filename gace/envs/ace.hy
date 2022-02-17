@@ -110,9 +110,9 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          ;self.reward        (or custom-reward simple-reward)
+          ;self.reward        (or custom-reward absolute-reward)
+          self.reward        (or custom-reward simple-reward)
           ;self.reward        (or custom-reward relative-reward)
-          self.reward        (or custom-reward absolute-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -207,7 +207,7 @@
     ;; Get the current performance for the initial parameters
     (setv performance (ac.evaluate-circuit self.ace :params parameters))
 
-    (observation performance self.target))
+    (observation performance self.target 0 self.max-steps))
 
   (defn size-circuit [self sizing &optional [blocklist []]]
     (let [prev-perf (ac.current-performance self.ace)
@@ -215,7 +215,7 @@
                                                   :blocklist blocklist) 
 
           steps (inc self.num-steps)
-          obs (observation curr-perf self.target)
+          obs (observation curr-perf self.target steps self.max-steps)
           rew (self.reward curr-perf prev-perf self.target self.condition 
                            steps self.max-steps)
           don (or (>= steps self.max-steps) 

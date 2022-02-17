@@ -7,7 +7,6 @@
 (import [itertools [product]])
 (import [collections.abc [Iterable]])
 (import [decimal [Decimal]])
-(import [operator [itemgetter]])
 
 (import [torch :as pt])
 (import [numpy :as np])
@@ -138,22 +137,17 @@
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
                                             ^(of dict str float) target
                                             ^(of dict) condition]
-  (let [performance-parameters (list (.keys target))
-        p-getter (itemgetter #* performance-parameters)
+  (let [performance-parameters    (-> target (.keys) (list) (sorted))
 
-        ;;perf (-> performance (p-getter) (np.array))
-        ;;targ (-> target      (p-getter) (np.array))
-        perf (-> performance (p-getter) (np.array) (np.abs))
-        targ (-> target      (p-getter) (np.array) (np.abs))
+        perf (np.array (lfor pp performance-parameters (get performance pp)))
+        targ (np.array (lfor pp performance-parameters (get target pp)))
+        crit (if condition (lfor pp performance-parameters (get condition pp)) [])
+        
+        ;dist (/ (np.abs (- perf targ)) targ)
+        ;dist (/ (- perf targ) targ)
+        dist (/ (- (np.abs perf) (np.abs targ)) (np.abs targ))
 
-        ;;dist (/ (np.abs (- perf targ)) targ)
-        dist (/ (- perf targ) targ)
-
-        mask (if condition
-                 (np.array (lfor (, c p t) 
-                    (zip (p-getter condition) perf targ)
-                    (c t p)))
-                 (np.full (len performance-parameters) True))
+        mask (np.array (lfor (, c p t) (zip crit perf targ) (c t p)))
         #_/ ]
       
     (, dist mask perf targ)))
@@ -176,21 +170,19 @@
                               ace-id)))])))
 
 (defn observation ^np.array [^(of dict str float) performance 
-                             ^(of dict str float) target]
+                             ^(of dict str float) target
+                             ^int steps
+                             ^int max-steps]
   """
-  Returns observations based on performances and target
+  Returns observations: Performance, Target, Distance, Operating Point
   """
-  (let [performance-parameters (list (.keys target))
-        status-parameters (-> performance (.keys) (set) 
-                                          (.difference performance-parameters) 
-                                          (list))
-        s-getter (if status-parameters (itemgetter #* status-parameters) 
-                                       (fn [&rest _] []))
-        stat (-> performance (s-getter) (np.array))
-
+  (let [operatingpoint-parameters (->> performance (.keys) (filter #%(in ":" %1)) 
+                                                   (list) (sorted))
+        oper (np.array (lfor op operatingpoint-parameters (get performance op)))
         (, dist _ perf targ) (target-distance performance target {})
+        step (np.array [steps max-steps])
 
-        obs (-> (, perf targ dist stat) 
+        obs (-> (, perf targ dist oper step) 
                 (np.hstack) 
                 (np.squeeze) 
                 (np.float32))]
@@ -264,7 +256,7 @@
                   (-> worse (.astype float) (* -1.0))
                   (-> worst (.astype float) (* -3.0)))
         
-        finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
+        finish-bonus (* (and (np.all curr-mask) (<= steps max-steps)) bonus)
         #_/ ]
 
     (-> simple (.astype float) (np.sum) (np.nan-to-num) (+ finish-bonus))))
@@ -325,7 +317,7 @@
                          prev-mask)
                       improv-fact)) 
 
-        finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
+        finish-bonus (* (and (np.all curr-mask) (<= steps max-steps)) bonus)
         #_/ ]
 
     ;(-> sum-rew (np.sum) (- steps) (np.nan-to-num))))
@@ -338,14 +330,14 @@
   Returns very useful information about the current state of the circuit,
   simulator and live in general.
   """
-  {"output-parameters" (+ (list (sum (zip #* (lfor pp (.keys target)
+  {"output-parameters" (+ (list (sum (zip #* (lfor pp (-> target (.keys) (list) (sorted))
                                                       (, f"performance_{pp}"
                                                          f"target_{pp}"
                                                          f"distance_{pp}"))) 
                                      (,)))
-                          (lfor sp (.keys performance) 
-                                   :if (not-in sp (.keys target)) 
-                                sp))
+                          (->> performance (.keys) (filter #%(in ":" %1)) 
+                                           (list) (sorted))
+                          ["steps" "max_steps"])
    "input-parameters" inputs
    #_/ })
 

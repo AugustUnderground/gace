@@ -117,7 +117,9 @@
                                                :pool-params parameters 
                                                :npar self.n-proc)]
 
-    (list (ap-map (observation #* it) (zip (.values performances) targets)))))
+    (list (ap-map (observation #* it) (zip (.values performances) 
+                                           targets (repeat 0) 
+                                           (lfor e envs e.max-steps))))))
       
   (defn size-circuit-pool [self sizings]
     (let [(, prev-perfs targets conds reward-fns inputs) 
@@ -129,12 +131,12 @@
                               (ac.evaluate-circuit-pool :pool-params sizings 
                                                         :npar self.n-proc) 
                               (.values))
-
-          obs (lfor (, cp tp) (zip curr-perfs targets)
-                    (observation cp tp))
           
           steps     (lfor e self.gace-envs e.num-steps)
           max-steps (lfor e self.gace-envs e.max-steps)
+
+          obs (lfor (, cp tp ns ms) (zip curr-perfs targets steps max-steps)
+                    (observation cp tp ns ms))
 
           rew (lfor (, rf cp pp t c s m) 
                     (zip reward-fns curr-perfs prev-perfs targets conds steps max-steps)
@@ -142,6 +144,7 @@
 
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
                             (zip curr-perfs targets conds)))
+
           ss  (lfor e self.gace-envs (>= (inc e.num-steps) e.max-steps))
           don (list (ap-map (or #* it) (zip td ss))) 
 
