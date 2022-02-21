@@ -208,8 +208,9 @@
     (setv performance (ac.evaluate-circuit self.ace :params parameters))
 
     ;; Identifiers for elements in observation
-    (setv self.observation-key (-> performance (info self.target self.input-parameters) 
-                                               (get "output-parameters")))
+    (setv self.info (-> performance (info self.target self.input-parameters)))
+    ;(setv self.observation-key (-> performance (info self.target self.input-parameters) 
+    ;                                           (get "output-parameters")))
 
     (observation performance self.target 0 self.max-steps))
 

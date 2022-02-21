@@ -10,17 +10,91 @@
 (import [hace :as ac])
 (import gym)
 (import gace)
-(import [operator [itemgetter]])
 (require [hy.contrib.walk [let]]) 
 (require [hy.contrib.loop [loop]])
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv n 32)
+(setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
+;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 
 (setv obs (.reset envs))
-(setv obs (.reset envs [7 3 29]))
-(envs.random-step)
+;(setv obs (.reset envs [7 3 29]))
+(setv (, o r _ _) (envs.random-step))
+
+
+(list (zip #* (lfor e envs (, (list (.keys e.target)) e.input-parameters))))
+
+
+(for [_ (range 10)]
+  (setv (, o r _ _) (envs.random-step))
+  (pp r))
+
+
+(pp (setx actions (lfor e envs (e.action-space.sample))))
+
+(envs.step actions)
+
+(setv env (gym.make "gace:op2-xh035-v0"))
+(env.reset)
+(setv (, o r d i) (env.random-step))
+(setv sizing (ac.initial-sizing env.ace))
+(len (env.action-space.sample))
+
+(setv a (* (np.ones 10) 2.0))
+(setv (, o r _ _) (env.step a))
+
+
+(unscale-value (env.action-space.sample) env.action-scale-min env.action-scale-max)
+
+(setv action (np.hstack (, (np.array [10.0 10.0 10.0 10.0]) 
+                           (np.power 10 (np.array [8.0 8.0 8.0 8.0]))
+                           (np.array [3e-6 12e-6]))))
+
+(env.unscale-action (env.scale-action action))
+
+(env.action-space.sample)
+(setv (, _ r _ _) (env.step (env.action-space.sample)))
+
+(-> (/ 3e-6 1.16e-5) (Fraction) (.limit-denominator 16))
+
+(setv (, o r d i) (env.size-circuit sizing))
+(setv (, o r d i) (env.size-circuit (| sizing {"Wn0" 4.7e-6})))
+
+(setv env (gym.make "gace:op2-xh035-v0"))
+(env.reset)
+(setv sizing (ac.initial-sizing env.ace))
+
+(setv (, o r d i) (env.size-circuit sizing))
+(setv (, o r d i) (env.size-circuit (| sizing {"Wd" 3.5e-6})))
+
+
+(-> env (. ace) (ac.current-performance) (get "a_0"))
+
+
+
+
+
+
+
+(setx sizing (ac.random-sizing env.ace))
+(env.size-circuit sizing)
+
+(dfor (, i e) (enumerate (get i "output-parameters")) :if (.startswith e "performance") [e (get o i)])
+
+(dict (env.unscaled-sample))
+
+(setv obs (.reset env))
+(gace.check-env env)
+
+(setx act (.sample env.action-space))
+(pp (.step env act))
+
+(env.random-step)
+
+
+
+
 
 
 (setv tic (.time time))

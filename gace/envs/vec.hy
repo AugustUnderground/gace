@@ -117,10 +117,14 @@
                                                :pool-params parameters 
                                                :npar self.n-proc)]
 
-    (setv self.observation-keys 
+    ;(setv self.observation-keys 
+    ;    (lfor (, p (, t i)) (zip (.values performances)
+    ;                             (lfor e envs (, e.target e.input-parameters)))
+    ;          (get (info p t i) "output-parameters")))
+    (setv self.info 
         (lfor (, p (, t i)) (zip (.values performances)
                                  (lfor e envs (, e.target e.input-parameters)))
-              (get (info p t i) "output-parameters")))
+              (info p t i) ))
 
     (list (ap-map (observation #* it) (zip (.values performances) 
                                            targets (repeat 0) 
