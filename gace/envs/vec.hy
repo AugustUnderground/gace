@@ -125,15 +125,17 @@
                                                         :npar self.n-proc) 
                               (.values))
           
-          steps     (lfor e self.gace-envs e.num-steps)
-          max-steps (lfor e self.gace-envs e.max-steps)
+          steps        (lfor e self.gace-envs e.num-steps)
+          max-steps    (lfor e self.gace-envs e.max-steps)
+          last-actions (lfor e self.gace-envs e.last-action)
 
           obs (lfor (, cp tp ns ms) (zip curr-perfs targets steps max-steps)
                     (observation cp tp ns ms))
 
-          rew (lfor (, rf cp pp t c s m) 
-                    (zip reward-fns curr-perfs prev-perfs targets conds steps max-steps)
-                    (rf cp pp t c s m))
+          rew (lfor (, rf cp pp t c s m a) 
+                    (zip reward-fns curr-perfs prev-perfs targets conds steps 
+                         max-steps last-actions)
+                    (rf cp pp t c s m a))
 
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
                             (zip curr-perfs targets conds)))

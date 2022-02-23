@@ -333,10 +333,10 @@
         (, prev-dist prev-mask) (target-distance prev-perf target condition)
 
         curr-rew (+ (* (np.tanh (np.abs curr-dist)) curr-mask) 
-                     (* (- (np.abs curr-dist)) (np.invert curr-mask))) 
+                    (* (- (np.abs curr-dist)) (np.invert curr-mask))) 
                   
         prev-rew (+ (* (np.tanh (np.abs prev-dist)) prev-mask) 
-                     (* (- (np.abs prev-dist)) (np.invert prev-mask))) 
+                    (* (- (np.abs prev-dist)) (np.invert prev-mask))) 
 
         improv-mask (>= curr-rew prev-rew)
 
