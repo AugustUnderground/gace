@@ -171,7 +171,7 @@
         os (->> performance (filter #%(in "/" %1)) (list) (sorted))
         ;; Node Voltages
         nd (->> performance
-                (filter #%(and (.isupper (first %1)) (!= %1 "A"))) 
+                (filter #%(and (.isupper (first %1)) (!= %1 "A") (<= (len %1) 2))) 
                 (list) (sorted))
         ;; Performance Parameters
         pf (->> performance (filter #%(not-in %1 (+ op os nd))) (list) (sorted))
@@ -185,7 +185,8 @@
   """
   (, (cond [(.startswith ace-id "op")
             (+ (len (ac.performance-identifiers ace))
-               (* 2 (len targets)))]
+               (* 2 (len targets))
+               2)]
            [(or (.startswith ace-id "nand") 
                 (.startswith ace-id "st"))
             (* 3 (len (ac.performance-identifiers ace)))]
@@ -306,10 +307,15 @@
                   (-> worse (.astype float) (* -1.0))
                   (-> worst (.astype float) (* -3.0)))
         
+        act-loss (-> (lfor a (.keys last-action)
+                             (/ (-  (get last-action a) (get curr-perf a)) 
+                                (get curr-perf a)))
+                     (np.array) (np.sum))
+
         finish-bonus (* (and (np.all curr-mask) (<= steps max-steps)) bonus)
         #_/ ]
 
-    (-> simple (.astype float) (np.sum) (np.nan-to-num) (+ finish-bonus))))
+    (-> simple (.astype float) (np.sum) (np.nan-to-num) (+ finish-bonus) (- act-loss))))
     ;(-> simple (.astype float) (np.sum) (- steps) (np.nan-to-num))))
 
 (defn relative-reward ^float [^(of dict str float) curr-perf

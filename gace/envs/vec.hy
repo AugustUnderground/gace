@@ -1,6 +1,7 @@
 (import os)
 (import sys)
 (import errno)
+(import datetime)
 (import [functools [partial]])
 (import [fractions [Fraction]])
 
@@ -49,6 +50,12 @@
     (setv self.action-space (lfor env self.gace-envs env.action-space))
     (setv self.observation-space (lfor env self.gace-envs env.observation-space))
 
+    ;; Multi Env logging
+    (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
+          self.base-log-path f"/tmp/{(.getlogin os)}/gace/{time-stamp}-pool")
+    (for [(, i env) (enumerate self.gace-envs)]
+      (setv env.data-log-path f"{self.base-log-path}/env_{i}"))
+
     (setv self.step 
           (fn [^(of list np.array) actions]
             (let [sizings (->> actions (zip self.gace-envs)
@@ -94,7 +101,7 @@
               :do (setv e.num-steps (int 0))
 
               ;; Target can be random or close to a known acheivable.
-              :do (setv e.target (target-specification e.ace-id e.design-constraints ; e.ace-backend 
+              :do (setv e.target (target-specification e.ace-id e.design-constraints
                                                     :random e.random-target 
                                                     :noisy e.noisy-target))
 

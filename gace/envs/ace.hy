@@ -108,9 +108,9 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          self.reward        (or custom-reward absolute-reward)
+          ;self.reward        (or custom-reward absolute-reward)
           ;self.reward        (or custom-reward simple-reward)
-          ;self.reward        (or custom-reward relative-reward)
+          self.reward        (or custom-reward relative-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -141,9 +141,9 @@
     (setv self.logging-enabled logging-enabled)
     (when self.logging-enabled
       (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
-            self.data-log-path (or data-log-path f"/tmp/gace/{time-stamp}-{ace-id}")
-            self.data-log (initialize-data-log self.ace self.target self.reset-count))
-      (os.makedirs self.data-log-path :exist-ok True))
+            self.data-log-path (or data-log-path 
+                                   f"/tmp/{(.getlogin os)}/gace/{time-stamp}-{ace-id}")
+            self.data-log (initialize-data-log self.ace self.target self.reset-count)))
 
     ;; Override step function
     (setv self.step-fn (cond [(= self.ace-variant 0) self.step-v0] 
@@ -263,13 +263,19 @@
           pd (+ [(pa.array [self.reset-count] :type (.float32 pa))
                  (pa.array [self.num-steps]   :type (.float32 pa))] pd_)
           performance-table (pa.table pd :names pn) ]
+      
+      ;; Create Directory, if it doesn't exist already
+      (os.makedirs self.data-log-path :exist-ok True)
 
+      ;; Append current performance row to table
       (setv (get self.data-log "sizing") 
                 (-> [sizing-table (get self.data-log "sizing")] 
                     (pa.concat-tables) (.combine-chunks))
             (get self.data-log "performance") 
                 (-> [performance-table (get self.data-log "performance")] 
                     (pa.concat-tables) (.combine-chunks)))
+
+      ;; Write Performance and sizing to disk
       (ft.write-feather (get self.data-log "performance") 
                         (+ self.data-log-path "/performance.ft"))
       (ft.write-feather (get self.data-log "sizing") 

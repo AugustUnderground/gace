@@ -24,16 +24,6 @@
 (len (env.action-space.sample))
 
 
-(setv dt1 (pa.table (list (repeat (pa.array (.tolist (np.random.rand 10)) :type (.float32 pa)) 7)) :names ["a" "b" "c" "d" "e" "f" "g"]))
-
-(setv dt2 (pa.table (list (repeat (pa.array (.tolist (np.random.rand 10)) :type (.float32 pa)) 7)) :names ["a" "b" "c" "d" "e" "f" "g"]))
-
-
-(setv dt3 (-> [dt1 dt2] (pa.concat_tables) (.combine-chunks)))
-
-
-(+ [(pa.array [1]) (pa.array [2])] [(pa.array [1]) (pa.array [2])])
-
 
 
 (setv n 5)
