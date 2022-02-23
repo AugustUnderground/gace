@@ -4,7 +4,6 @@
 (import [functools [partial]])
 (import [fractions [Fraction]])
 
-(import [torch :as pt])
 (import [numpy :as np])
 (import [pandas :as pd])
 
