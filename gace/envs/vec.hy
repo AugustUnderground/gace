@@ -93,22 +93,10 @@
               ;; Reset the step counter and increase the reset counter.
               :do (setv e.num-steps (int 0))
 
-              ;; Clear the data log. If self.log-data == True the data will be written to
-              ;; an HDF5 in the `done` function, otherwise it will be discarded.
-              :do (setv e.data-log (pd.DataFrame))
-
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints ; e.ace-backend 
                                                     :random e.random-target 
                                                     :noisy e.noisy-target))
-                          ;(if e.random-target
-                          ;    (target-specification e.ace-id e.ace-backend 
-                          ;                          :random e.random-target 
-                          ;                          :noisy e.noisy-target)
-                          ;    (dfor (, p v) (.items e.target) 
-                          ;       [p (* v (if e.noisy-target 
-                          ;                   (np.random.normal 1.0 0.01) 
-                          ;                   1.0))]))
 
               ;; Starting parameters are either random or close to a known solution.
               (starting-point e.ace e.random-target e.noisy-target))))
@@ -117,10 +105,6 @@
                                                :pool-params parameters 
                                                :npar self.n-proc)]
 
-    ;(setv self.observation-keys 
-    ;    (lfor (, p (, t i)) (zip (.values performances)
-    ;                             (lfor e envs (, e.target e.input-parameters)))
-    ;          (get (info p t i) "output-parameters")))
     (setv self.info 
         (lfor (, p (, t i)) (zip (.values performances)
                                  (lfor e envs (, e.target e.input-parameters)))
@@ -159,17 +143,9 @@
 
           inf (list (ap-map (info #* it) (zip curr-perfs targets inputs)))]
 
-      (for [(, e s p o d) (zip self.gace-envs (.values sizings) curr-perfs obs don)] 
-        (setv e.num-steps (inc e.num-steps))
-        (setv e.data-log (.append e.data-log (| s p) :ignore-index True))
-        
-        (when (and (bool e.param-log-path) 
-                   (or (np.any (np.isnan o)) 
-                       (np.any (np.isinf o))))
-        (save-state e.ace e.ace-id e.param-log-path))
-       
-        (when (and (bool e.data-log-path) d)
-          (save-data e.data-log e.data-log-path e.ace-id)))
+      ;; Data Logging
+      (lfor e self.gace-envs 
+        (when e.logging-enabled (e.log-data)))
 
       (, obs rew don inf)))
 

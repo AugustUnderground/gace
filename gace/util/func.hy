@@ -161,21 +161,20 @@
       
     (, dist mask)))
 
-(defn sorted-parameters [^(of dict str float) performance]
+(defn sorted-parameters [^(of list str ) performance]
   """
   Returns a sorted list of parameters.
   """
   (let [;; Operating Point Parameters
-        op (->> performance (.keys) (filter #%(in ":" %1)) (list) (sorted))
+        op (->> performance (filter #%(in ":" %1)) (list) (sorted))
         ;; Offset Contributions
-        os (->> performance (.keys) (filter #%(in "/" %1)) (list) (sorted))
+        os (->> performance (filter #%(in "/" %1)) (list) (sorted))
         ;; Node Voltages
-        nd (->> performance (.keys) 
+        nd (->> performance
                 (filter #%(and (.isupper (first %1)) (!= %1 "A"))) 
                 (list) (sorted))
         ;; Performance Parameters
-        pf (->> performance (.keys) (filter #%(not-in %1 (+ op os nd))) 
-                            (list) (sorted))
+        pf (->> performance (filter #%(not-in %1 (+ op os nd))) (list) (sorted))
         sp ["operating-point" "offset-contribution" "node-voltages" "performance"]]
     (dict (zip sp [op os nd pf]))))
 
@@ -202,7 +201,7 @@
   """
   Returns observations: Performance, Target, Distance, Operating Point
   """
-  (let [sp (sorted-parameters performance)
+  (let [sp (sorted-parameters (.keys performance))
         (, op os nd pf) (lfor p ["operating-point" "offset-contribution" 
                                  "node-voltages" "performance"] 
                               (get sp p))
@@ -252,8 +251,8 @@
         cost (+ (* (np.tanh (np.abs loss)) mask) 
                 (* (- (np.abs loss)) (np.invert mask))) 
 
-        finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
-        not-finished (* (np.invert mask) (/ bonus 2.0))
+        finish-bonus (np.sum (* (and (np.all mask) (<= steps max-steps)) bonus))
+        not-finished (np.sum (* (np.invert mask) (/ bonus 2.0)))
       #_/ ]
 
     (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished))))
@@ -374,7 +373,7 @@
   Returns very useful information about the current state of the circuit,
   simulator and live in general.
   """
-  (let [sp (sorted-parameters performance)
+  (let [sp (sorted-parameters (.keys performance))
         (, op os nd pf) (lfor p ["operating-point" "offset-contribution" 
                                  "node-voltages" "performance"] 
                               (get sp p))
@@ -383,6 +382,21 @@
         dt (lfor t tg (.format "delta_{}" t))]
   {"observations" (+ pf tg dt op os nd ["steps" "max-steps"])
    "actions" inputs}))
+
+(defn initialize-data-log [ace-env target reset-count]
+  (let [performance (ac.performance-identifiers ace-env)
+        pi (+ ["episode" "step"] (list (reduce + (.values (sorted-parameters performance)))))
+        pv (list (repeat (pa.array [] :type (.float32 pa)) (len pi)))
+        si (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
+        sv (list (repeat (pa.array [] :type (.float32 pa)) (len si)))
+        (, ti_ tv_) (list (map list 
+                               (zip #* (lfor (, i v) (.items target) 
+                                             (, i (pa.array [v] :type (.float32 pa)))))))
+        ti (+ ["episode"] ti_)
+        tv (+ [(pa.array [reset-count] :type (.int16 pa))] tv_)]
+    {"performance" (pa.table pv :names pi)
+     "sizing"      (pa.table sv :names si)
+     "target"      (pa.table tv :names ti) }))
 
 (defn save-state [ace ^str ace-id ^str log-path]
   (ac.dump-state ace :file-name (.format "{}/{}-parameters-{}.json" log-path ace-id

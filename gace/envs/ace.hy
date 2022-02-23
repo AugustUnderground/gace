@@ -60,7 +60,7 @@
                        ^(of np.array)   [custom-action-lo None]
                        ^(of np.array)   [custom-action-hi None]
                        ^str [nmos-path None] ^str [pmos-path None]
-                       ^str [data-log-path None]]
+                       ^str [data-log-path None] ^bool [logging-enabled True]]
 
     ;; ACE Configuration
     (setv self.ace-id          ace-id
@@ -131,10 +131,16 @@
     (setv self.input-parameters (input-parameters self.ace self.ace-id 
                                                   self.ace-variant))
 
-    ;; Data Logginig
-    (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
-          self.data-log-path (or data-log-path f"/tmp/gace/{time-stamp}-{ace-id}"))
-    (os.makedirs self.data-log-path :exist-ok True)
+    ;; Initialize the Reset counter
+    (setv self.reset-count -1)
+
+    ;; Data Logging
+    (setv self.logging-enabled logging-enabled)
+    (when self.logging-enabled
+      (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
+            self.data-log-path (or data-log-path f"/tmp/gace/{time-stamp}-{ace-id}")
+            self.data-log (initialize-data-log self.ace self.target self.reset-count))
+      (os.makedirs self.data-log-path :exist-ok True))
 
     ;; Override step function
     (setv self.step-fn (cond [(= self.ace-variant 0) self.step-v0] 
@@ -163,9 +169,6 @@
 
     ;; Convenience function for taking a step with real (unscaled) action.
     (setv self.unscaled-step #%(-> %1 (self.scale-action) (self.step)))
-
-    ;; Initialize the Reset counter
-    (setv self.reset-count -1)
 
     ;; Call gym.Env constructor
     (.__init__ (super ACE self)))
@@ -213,20 +216,6 @@
     ;; Identifiers for elements in observation
     (setv self.info (info performance self.target self.input-parameters))
 
-    ;; Create Empty Table for data logging of the current run
-    (setv pi (+ ["episode" "step"] (list (reduce + (.values (sorted-parameters performance)))))
-          pv (list (repeat (pa.array [] :type (.float32 pa)) (len pi)))
-          si (+ ["episode" "step"] (sorted (ac.sizing-identifiers self.ace)))
-          sv (list (repeat (pa.array [] :type (.float32 pa)) (len si)))
-          (, ti_ tv_) (list (map list 
-                                 (zip #* (lfor (, i v) (.items self.target) 
-                                               (, i (pa.array [v] :type (.float32 pa)))))))
-          ti (+ ["episode"] ti_)
-          tv (+ [(pa.array [self.reset-count] :type (.int16 pa))] tv_)
-          self.data-log {"performance" (pa.table pv :names pi)
-                         "sizing"      (pa.table sv :names si)
-                         "target"      (pa.table tv :names ti) })
-
     (observation performance self.target 0 self.max-steps))
 
   (defn size-circuit [self sizing &optional [blocklist []]]
@@ -242,24 +231,33 @@
                   (all (second (target-distance curr-perf 
                                                 self.target 
                                                 self.condition))))
-          inf (info curr-perf self.target self.input-parameters) 
+          inf (info curr-perf self.target self.input-parameters) ]
+
+      ;; Data Logging
+      (when self.logging-enabled
+        (self.log-data))
+
+      (setv self.num-steps steps)
+      (, obs rew don inf)))
+
+  (defn log-data [self]
+    (let [sizing (ac.current-sizing self.ace)
+          performance (ac.current-performance self.ace)
 
           (, sn_ sd_) (list (map list (zip #* (lfor (, p s) (.items sizing) 
                                                 (, p (pa.array [s] :type (.float32 pa)))))))
-
           sn (+ ["episode" "step"] (sorted sn_))
           sd (+ [(pa.array [self.reset-count] :type (.float32 pa)) 
-                 (pa.array [steps]            :type (.float32 pa))] sd_)
+                 (pa.array [self.num-steps]   :type (.float32 pa))] sd_)
           sizing-table (pa.table sd :names sn)
 
-          pn_ (list (reduce + (.values (sorted-parameters curr-perf))))
-          pd_ (lfor p pn_ (pa.array [(get curr-perf p)] :type (.float32 pa)))
+          pn_ (list (reduce + (.values (sorted-parameters performance))))
+          pd_ (lfor p pn_ (pa.array [(get performance p)] :type (.float32 pa)))
           pn (+ ["episode" "step"] pn_)
           pd (+ [(pa.array [self.reset-count] :type (.float32 pa))
-                 (pa.array [steps]            :type (.float32 pa))] pd_)
+                 (pa.array [self.num-steps]   :type (.float32 pa))] pd_)
           performance-table (pa.table pd :names pn) ]
 
-      ;; Data Logging
       (setv (get self.data-log "sizing") (-> [sizing-table (get self.data-log "sizing")] 
                                              (pa.concat-tables) (.combine-chunks))
             (get self.data-log "performance") (-> [performance-table (get self.data-log "performance")] 
@@ -267,10 +265,7 @@
       (ft.write-feather (get self.data-log "performance") 
                         (+ self.data-log-path "/performance.ft"))
       (ft.write-feather (get self.data-log "sizing") 
-                        (+ self.data-log-path "/sizing.ft"))
-      
-      (setv self.num-steps steps)
-      (, obs rew don inf)))
+                        (+ self.data-log-path "/sizing.ft"))))
 
   (defn render [self &optional ^str [mode "human"]]
     (print (ascii-schematic self.ace-id)))
