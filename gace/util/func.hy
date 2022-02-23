@@ -236,6 +236,7 @@
                               ^(of dict str float) target
                               ^(of dict) condition
                               ^int steps ^int max-steps
+                              ^(of dict str float) last-action
                               &optional ^float [bonus 10.0]]
   """
   Calculates a reward based on the target and the current perforamnces.
@@ -251,17 +252,23 @@
         cost (+ (* (np.tanh (np.abs loss)) mask) 
                 (* (- (np.abs loss)) (np.invert mask))) 
 
+        act-loss (-> (lfor a (.keys last-action)
+                             (/ (-  (get last-action a) (get curr-perf a)) 
+                                (get curr-perf a)))
+                     (np.array) (np.sum))
+
         finish-bonus (np.sum (* (and (np.all mask) (<= steps max-steps)) bonus))
         not-finished (np.sum (* (np.invert mask) (/ bonus 2.0)))
       #_/ ]
 
-    (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished))))
+    (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished) (- act-loss))))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
                             ^(of dict str float) prev-perf
                             ^(of dict str float) target
                             ^(of dict) condition
                             ^int steps ^int max-steps
+                            ^(of dict str float) last-action
                             &optional ^float [improv-fact 2.0]
                                       ^float [bonus 10.0]]
   """
@@ -310,6 +317,7 @@
                               ^(of dict str float) target
                               ^(of dict) condition
                               ^int steps ^int max-steps
+                              ^(of dict str float) last-action
                               &optional ^float [improv-fact 10.0]
                                         ^float [bonus 10.0]]
   """
@@ -360,11 +368,16 @@
                          prev-mask)
                       improv-fact)) 
 
+        act-loss (-> (lfor a (.keys last-action)
+                             (/ (-  (get last-action a) (get curr-perf a)) 
+                                (get curr-perf a)))
+                     (np.array) (np.sum))
+
         finish-bonus (* (and (np.all curr-mask) (<= steps max-steps)) bonus)
         #_/ ]
 
     ;(-> sum-rew (np.sum) (- steps) (np.nan-to-num))))
-    (-> sum-rew (np.sum) (np.nan-to-num) (+ finish-bonus))))
+    (-> sum-rew (np.sum) (np.nan-to-num) (+ finish-bonus) (- act-loss))))
 
 (defn info ^(of dict) [^(of dict str float) performance 
                        ^(of dict str float) target 

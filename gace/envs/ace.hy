@@ -133,6 +133,9 @@
 
     ;; Initialize the Reset counter
     (setv self.reset-count -1)
+    
+    ;; Empty last action
+    (setv self.last-action {})
 
     ;; Data Logging
     (setv self.logging-enabled logging-enabled)
@@ -210,6 +213,9 @@
     ;; Starting parameters are either random or close to a known solution.
     (setv parameters (starting-point self.ace self.random-target self.noisy-target))
 
+    ;; Empty last action
+    (setv self.last-action {})
+
     ;; Get the current performance for the initial parameters
     (setv performance (ac.evaluate-circuit self.ace :params parameters))
 
@@ -226,7 +232,7 @@
           steps (inc self.num-steps)
           obs (observation curr-perf self.target steps self.max-steps)
           rew (self.reward curr-perf prev-perf self.target self.condition 
-                           steps self.max-steps)
+                           steps self.max-steps self.last-action)
           don (or (>= steps self.max-steps) 
                   (all (second (target-distance curr-perf 
                                                 self.target 
@@ -258,10 +264,12 @@
                  (pa.array [self.num-steps]   :type (.float32 pa))] pd_)
           performance-table (pa.table pd :names pn) ]
 
-      (setv (get self.data-log "sizing") (-> [sizing-table (get self.data-log "sizing")] 
-                                             (pa.concat-tables) (.combine-chunks))
-            (get self.data-log "performance") (-> [performance-table (get self.data-log "performance")] 
-                                             (pa.concat-tables) (.combine-chunks)))
+      (setv (get self.data-log "sizing") 
+                (-> [sizing-table (get self.data-log "sizing")] 
+                    (pa.concat-tables) (.combine-chunks))
+            (get self.data-log "performance") 
+                (-> [performance-table (get self.data-log "performance")] 
+                    (pa.concat-tables) (.combine-chunks)))
       (ft.write-feather (get self.data-log "performance") 
                         (+ self.data-log-path "/performance.ft"))
       (ft.write-feather (get self.data-log "sizing") 

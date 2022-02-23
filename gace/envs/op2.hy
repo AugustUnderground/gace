@@ -40,6 +40,11 @@
              i1 i2 ) (unscale-value action self.action-scale-min 
                                            self.action-scale-max)
 
+          _ (setv self.last-action {"MNCM11:gmoverid" gmid-cm1 "MPCM211:gmoverid" gmid-cm2
+                                    "MNCM31:gmoverid" gmid-cm3 "MND11:gmoverid"   gmid-dp1
+                                    "MNCM11:fug" fug-cm1 "MPCM211:fug" fug-cm2
+                                    "MNCM31:fug" fug-cm3 "MND11:fug"   fug-dp1 })
+
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
           
