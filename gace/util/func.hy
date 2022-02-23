@@ -8,9 +8,9 @@
 (import [collections.abc [Iterable]])
 (import [decimal [Decimal]])
 
-(import [torch :as pt])
 (import [numpy :as np])
-(import [pandas :as pd])
+(import [pyarrow :as pa])
+(import [pyarrow [feather :as ft]])
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
 (import [.prim [*]])
@@ -137,11 +137,20 @@
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
                                             ^(of dict str float) target
                                             ^(of dict) condition]
-  (let [performance-parameters    (-> target (.keys) (list) (sorted))
+  (let [targets    (-> target (.keys) (list) (sorted))
 
-        perf (np.array (lfor pp performance-parameters (get performance pp)))
-        targ (np.array (lfor pp performance-parameters (get target pp)))
-        crit (if condition (lfor pp performance-parameters (get condition pp)) [])
+        ;; Convert Gain from dB into absolute
+        perf (np.array (lfor pp targets 
+                             (if (= pp "a_0")
+                                 (np.power 10 (/ (get performance pp) 20.0))
+                                 (get performance pp))))
+
+        targ (np.array (lfor pp targets 
+                             (if (= pp "a_0")
+                                 (np.power 10 (/ (get target pp) 20.0))
+                                 (get target pp))))
+
+        crit (if condition (lfor pp targets (get condition pp)) [])
         
         ;dist (/ (np.abs (- perf targ)) targ)
         ;dist (/ (- perf targ) targ)
@@ -150,7 +159,25 @@
         mask (np.array (lfor (, c p t) (zip crit perf targ) (c t p)))
         #_/ ]
       
-    (, dist mask perf targ)))
+    (, dist mask)))
+
+(defn sorted-parameters [^(of dict str float) performance]
+  """
+  Returns a sorted list of parameters.
+  """
+  (let [;; Operating Point Parameters
+        op (->> performance (.keys) (filter #%(in ":" %1)) (list) (sorted))
+        ;; Offset Contributions
+        os (->> performance (.keys) (filter #%(in "/" %1)) (list) (sorted))
+        ;; Node Voltages
+        nd (->> performance (.keys) 
+                (filter #%(and (.isupper (first %1)) (!= %1 "A"))) 
+                (list) (sorted))
+        ;; Performance Parameters
+        pf (->> performance (.keys) (filter #%(not-in %1 (+ op os nd))) 
+                            (list) (sorted))
+        sp ["operating-point" "offset-contribution" "node-voltages" "performance"]]
+    (dict (zip sp [op os nd pf]))))
 
 (defn observation-shape ^(of tuple int) [ace ^str ace-id ^(of list str) targets]
   """
@@ -171,22 +198,38 @@
 
 (defn observation ^np.array [^(of dict str float) performance 
                              ^(of dict str float) target
-                             ^int steps
-                             ^int max-steps]
+                             ^int steps ^int max-steps]
   """
   Returns observations: Performance, Target, Distance, Operating Point
   """
-  (let [operatingpoint-parameters (->> performance (.keys) (filter #%(in ":" %1)) 
-                                                   (list) (sorted))
-        oper (np.array (lfor op operatingpoint-parameters (get performance op)))
-        (, dist _ perf targ) (target-distance performance target {})
+  (let [sp (sorted-parameters performance)
+        (, op os nd pf) (lfor p ["operating-point" "offset-contribution" 
+                                 "node-voltages" "performance"] 
+                              (get sp p))
+
+        ;; Target Parameters
+        tg (-> target (.keys) (list) (sorted))
+
+        ;; Get Parameters enuring same order every time
+        oper (np.array (lfor p op (get performance p)))
+        offs (np.array (lfor p os (get performance p)))
+        nods (np.array (lfor p nd (get performance p)))
+        perf (np.array (lfor p pf (get performance p)))
+        targ (np.array (lfor p tg (get target p)))
+
+        ;; Obtain distance to target
+        (, dist _ ) (target-distance performance target {})
+
+        ;; Step count and maximum number of steps
         step (np.array [steps max-steps])
 
-        obs (-> (, perf targ dist oper step) 
+        ;; Join
+        obs (-> (, perf targ dist oper offs nods step) 
                 (np.hstack) 
                 (np.squeeze) 
                 (np.float32))]
       
+    ;; Convert NaNs and +/- Infs
     (np.nan-to-num obs)))
 
 (defn absolute-reward ^float [^(of dict str float) curr-perf
@@ -204,15 +247,16 @@
     condition:  Dictionary with binary conditionals 
     steps:      Number of steps taken in the environment.
   """
-  (let [(, loss mask _ _) (target-distance curr-perf target condition)
+  (let [(, loss mask) (target-distance curr-perf target condition)
 
         cost (+ (* (np.tanh (np.abs loss)) mask) 
                 (* (- (np.abs loss)) (np.invert mask))) 
 
         finish-bonus (* (and (np.all mask) (<= steps max-steps)) bonus)
+        not-finished (* (np.invert mask) (/ bonus 2.0))
       #_/ ]
 
-    (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus))))
+    (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished))))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
                             ^(of dict str float) prev-perf
@@ -230,8 +274,8 @@
     condition:  Dictionary with binary conditionals .
     steps:      Number of steps taken in the environment.
   """
-  (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
-        (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
+  (let [(, curr-dist curr-mask) (target-distance curr-perf target condition)
+        (, prev-dist prev-mask) (target-distance prev-perf target condition)
   
         better (| (& (np.invert prev-mask) curr-mask)
                   (& (np.invert curr-mask)
@@ -278,8 +322,8 @@
     condition:  Dictionary with binary conditionals .
     steps:      Number of steps taken in the environment.
   """
-  (let [(, curr-dist curr-mask _ _) (target-distance curr-perf target condition)
-        (, prev-dist prev-mask _ _) (target-distance prev-perf target condition)
+  (let [(, curr-dist curr-mask) (target-distance curr-perf target condition)
+        (, prev-dist prev-mask) (target-distance prev-perf target condition)
 
         curr-rew (+ (* (np.tanh (np.abs curr-dist)) curr-mask) 
                      (* (- (np.abs curr-dist)) (np.invert curr-mask))) 
@@ -330,16 +374,15 @@
   Returns very useful information about the current state of the circuit,
   simulator and live in general.
   """
-  {"output-parameters" (+ (list (sum (zip #* (lfor pp (-> target (.keys) (list) (sorted))
-                                                      (, f"performance_{pp}"
-                                                         f"target_{pp}"
-                                                         f"distance_{pp}"))) 
-                                     (,)))
-                          (->> performance (.keys) (filter #%(in ":" %1)) 
-                                           (list) (sorted))
-                          ["steps" "max_steps"])
-   "input-parameters" inputs
-   #_/ })
+  (let [sp (sorted-parameters performance)
+        (, op os nd pf) (lfor p ["operating-point" "offset-contribution" 
+                                 "node-voltages" "performance"] 
+                              (get sp p))
+        ;; Target Parameters
+        tg (-> target (.keys) (list) (sorted))
+        dt (lfor t tg (.format "delta_{}" t))]
+  {"observations" (+ pf tg dt op os nd ["steps" "max-steps"])
+   "actions" inputs}))
 
 (defn save-state [ace ^str ace-id ^str log-path]
   (ac.dump-state ace :file-name (.format "{}/{}-parameters-{}.json" log-path ace-id

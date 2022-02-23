@@ -4,9 +4,9 @@
 (import [functools [partial]])
 (import [fractions [Fraction]])
 
-(import [torch :as pt])
 (import [numpy :as np])
-(import [pandas :as pd])
+(import [pyarrow :as pa])
+(import [pyarrow [feather :as ft]])
 
 (import gym)
 

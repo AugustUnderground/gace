@@ -1,12 +1,14 @@
 (import os)
 (import sys)
 (import errno)
+(import datetime)
 (import [functools [partial]])
 (import [fractions [Fraction]])
 
-(import [torch :as pt])
 (import [numpy :as np])
-(import [pandas :as pd])
+
+(import [pyarrow :as pa])
+(import [pyarrow [feather :as ft]])
 
 (import gym)
 
@@ -42,7 +44,6 @@
     custom-reward: function (None)      -> A custom reward function
     reltol: float (1e-3)                -> Relative tolarnce for equaltiy
     data-log-path: str ("")             -> Write a dataframe to HDF5 at this location
-    param-log-path: str ('.')           -> Write a json to this location
   """
   (setv metadata {"render.modes" ["human" "ascii"]})
 
@@ -59,7 +60,7 @@
                        ^(of np.array)   [custom-action-lo None]
                        ^(of np.array)   [custom-action-hi None]
                        ^str [nmos-path None] ^str [pmos-path None]
-                       ^str [data-log-path ""] ^str [param-log-path "."]]
+                       ^str [data-log-path None]]
 
     ;; ACE Configuration
     (setv self.ace-id          ace-id
@@ -96,10 +97,7 @@
 
     ;; Environment Configurations
     (setv self.max-steps max-steps
-          self.num-steps (int 0)
-          self.data-log-path data-log-path
-          self.data-log (pd.DataFrame)
-          self.param-log-path param-log-path)
+          self.num-steps (int 0))
 
     ;; If a target was provided, use it during but add some noise during each iteration.
     (setv self.random-target random-target
@@ -110,9 +108,9 @@
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          ;self.reward        (or custom-reward absolute-reward)
+          self.reward        (or custom-reward absolute-reward)
           ;self.reward        (or custom-reward simple-reward)
-          self.reward        (or custom-reward relative-reward)
+          ;self.reward        (or custom-reward relative-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
     ;; The `Box` type observation space consists of perforamnces, the distance
@@ -132,6 +130,11 @@
     ;; Specify Input Parameter Names
     (setv self.input-parameters (input-parameters self.ace self.ace-id 
                                                   self.ace-variant))
+
+    ;; Data Logginig
+    (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
+          self.data-log-path (or data-log-path f"/tmp/gace/{time-stamp}-{ace-id}"))
+    (os.makedirs self.data-log-path :exist-ok True)
 
     ;; Override step function
     (setv self.step-fn (cond [(= self.ace-variant 0) self.step-v0] 
@@ -161,6 +164,9 @@
     ;; Convenience function for taking a step with real (unscaled) action.
     (setv self.unscaled-step #%(-> %1 (self.scale-action) (self.step)))
 
+    ;; Initialize the Reset counter
+    (setv self.reset-count -1)
+
     ;; Call gym.Env constructor
     (.__init__ (super ACE self)))
 
@@ -187,11 +193,8 @@
       (setv self.ace (eval self.ace-constructor)))
 
     ;; Reset the step counter and increase the reset counter.
-    (setv self.num-steps     (int 0))
-
-    ;; Clear the data log. If self.log-data == True the data will be written to
-    ;; an HDF5 in the `done` function, otherwise it will be discarded.
-    (setv self.data-log (pd.DataFrame))
+    (setv self.num-steps   (int 0)
+          self.reset-count (inc self.reset-count))
 
     ;; Target can be random or close to a known acheivable.
     (setv self.target (if self.random-target
@@ -208,9 +211,21 @@
     (setv performance (ac.evaluate-circuit self.ace :params parameters))
 
     ;; Identifiers for elements in observation
-    (setv self.info (-> performance (info self.target self.input-parameters)))
-    ;(setv self.observation-key (-> performance (info self.target self.input-parameters) 
-    ;                                           (get "output-parameters")))
+    (setv self.info (info performance self.target self.input-parameters))
+
+    ;; Create Empty Table for data logging of the current run
+    (setv pi (+ ["episode" "step"] (list (reduce + (.values (sorted-parameters performance)))))
+          pv (list (repeat (pa.array [] :type (.float32 pa)) (len pi)))
+          si (+ ["episode" "step"] (sorted (ac.sizing-identifiers self.ace)))
+          sv (list (repeat (pa.array [] :type (.float32 pa)) (len si)))
+          (, ti_ tv_) (list (map list 
+                                 (zip #* (lfor (, i v) (.items self.target) 
+                                               (, i (pa.array [v] :type (.float32 pa)))))))
+          ti (+ ["episode"] ti_)
+          tv (+ [(pa.array [self.reset-count] :type (.int16 pa))] tv_)
+          self.data-log {"performance" (pa.table pv :names pi)
+                         "sizing"      (pa.table sv :names si)
+                         "target"      (pa.table tv :names ti) })
 
     (observation performance self.target 0 self.max-steps))
 
@@ -227,19 +242,33 @@
                   (all (second (target-distance curr-perf 
                                                 self.target 
                                                 self.condition))))
-          inf (info curr-perf self.target self.input-parameters) ]
+          inf (info curr-perf self.target self.input-parameters) 
 
-      (setv self.data-log (.append self.data-log (| sizing curr-perf)
-                                   :ignore-index True))
+          (, sn_ sd_) (list (map list (zip #* (lfor (, p s) (.items sizing) 
+                                                (, p (pa.array [s] :type (.float32 pa)))))))
 
-      (when (and (bool self.param-log-path) 
-                 (or (np.any (np.isnan obs)) 
-                     (np.any (np.isinf obs))))
-        (save-state self.ace self.ace-id self.param-log-path))
-       
-      (when (and (bool self.data-log-path) don)
-        (save-data self.data-log self.data-log-path self.ace-id))
+          sn (+ ["episode" "step"] (sorted sn_))
+          sd (+ [(pa.array [self.reset-count] :type (.float32 pa)) 
+                 (pa.array [steps]            :type (.float32 pa))] sd_)
+          sizing-table (pa.table sd :names sn)
 
+          pn_ (list (reduce + (.values (sorted-parameters curr-perf))))
+          pd_ (lfor p pn_ (pa.array [(get curr-perf p)] :type (.float32 pa)))
+          pn (+ ["episode" "step"] pn_)
+          pd (+ [(pa.array [self.reset-count] :type (.float32 pa))
+                 (pa.array [steps]            :type (.float32 pa))] pd_)
+          performance-table (pa.table pd :names pn) ]
+
+      ;; Data Logging
+      (setv (get self.data-log "sizing") (-> [sizing-table (get self.data-log "sizing")] 
+                                             (pa.concat-tables) (.combine-chunks))
+            (get self.data-log "performance") (-> [performance-table (get self.data-log "performance")] 
+                                             (pa.concat-tables) (.combine-chunks)))
+      (ft.write-feather (get self.data-log "performance") 
+                        (+ self.data-log-path "/performance.ft"))
+      (ft.write-feather (get self.data-log "sizing") 
+                        (+ self.data-log-path "/sizing.ft"))
+      
       (setv self.num-steps steps)
       (, obs rew don inf)))
 

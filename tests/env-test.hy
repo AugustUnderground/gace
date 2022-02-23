@@ -7,6 +7,8 @@
 (import [datetime [datetime :as dt]])
 (import [numpy :as np])
 (import [h5py :as h5])
+(import [pyarrow :as pa])
+(import [pyarrow [feather :as ft]])
 (import [hace :as ac])
 (import gym)
 (import gace)
@@ -15,6 +17,25 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+(setv env (gym.make "gace:op2-xh035-v0"))
+(env.reset)
+(setv (, o r d i) (env.random-step))
+(setv sizing (ac.initial-sizing env.ace))
+(len (env.action-space.sample))
+
+
+(setv dt1 (pa.table (list (repeat (pa.array (.tolist (np.random.rand 10)) :type (.float32 pa)) 7)) :names ["a" "b" "c" "d" "e" "f" "g"]))
+
+(setv dt2 (pa.table (list (repeat (pa.array (.tolist (np.random.rand 10)) :type (.float32 pa)) 7)) :names ["a" "b" "c" "d" "e" "f" "g"]))
+
+
+(setv dt3 (-> [dt1 dt2] (pa.concat_tables) (.combine-chunks)))
+
+
+(+ [(pa.array [1]) (pa.array [2])] [(pa.array [1]) (pa.array [2])])
+
+
+
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
 ;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 
@@ -22,6 +43,12 @@
 ;(setv obs (.reset envs [7 3 29]))
 (setv (, o r _ _) (envs.random-step))
 
+(dfor (, i e) (enumerate envs) [i (ac.current-performance e.ace)])
+
+
+(get envs.info 0 "output-parameters")
+
+(lfor e envs.info (len (get e "output-parameters")))
 
 (list (zip #* (lfor e envs (, (list (.keys e.target)) e.input-parameters))))
 
@@ -34,12 +61,6 @@
 (pp (setx actions (lfor e envs (e.action-space.sample))))
 
 (envs.step actions)
-
-(setv env (gym.make "gace:op2-xh035-v0"))
-(env.reset)
-(setv (, o r d i) (env.random-step))
-(setv sizing (ac.initial-sizing env.ace))
-(len (env.action-space.sample))
 
 (setv a (* (np.ones 10) 2.0))
 (setv (, o r _ _) (env.step a))

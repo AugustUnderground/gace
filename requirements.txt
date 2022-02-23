@@ -2,7 +2,7 @@ hy
 gym
 h5py
 numpy
-pandas
+pyarrow
 matplotlib
 torch
 joblib
