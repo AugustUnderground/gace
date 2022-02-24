@@ -45,16 +45,17 @@
   (defn __init__ [self envs ^int n-proc]
     (setv self.n-proc n-proc
           self.gace-envs envs
+          self.num-envs  (len envs)
           self.pool (ac.to-pool (lfor e self.gace-envs e.ace)))
 
     (setv self.action-space (lfor env self.gace-envs env.action-space))
     (setv self.observation-space (lfor env self.gace-envs env.observation-space))
 
-    ;; Multi Env logging
+    ;; Environment Logging
     (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
           self.base-log-path f"/tmp/{(.getlogin os)}/gace/{time-stamp}-pool")
-    (for [(, i env) (enumerate self.gace-envs)]
-      (setv env.data-log-path f"{self.base-log-path}/env_{i}"))
+    ;(for [(, i env) (enumerate self.gace-envs)]
+    ;  (setv env.data-log-path f"{self.base-log-path}/env_{i}"))
 
     (setv self.step 
           (fn [^(of list np.array) actions]
@@ -155,8 +156,10 @@
           inf (list (ap-map (info #* it) (zip curr-perfs targets inputs)))]
 
       ;; Data Logging
-      (lfor e self.gace-envs 
-        (when e.logging-enabled (e.log-data)))
+      (lfor (, i e s p) (zip (-> self.num-envs (range) (list)) 
+                           self.gace-envs curr-sizings curr-perfs)
+            (when e.logging-enabled 
+              (e.log-data s p (.format "{}/env_{}" self.base-log-path i))))
 
       (, obs rew don inf)))
 

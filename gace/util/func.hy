@@ -272,13 +272,13 @@
                                 (/ (-  (get set-sizing s) (get curr-sizing s)) 
                                    (get curr-sizing s)))
                      (np.array) (np.sum))
-
+        step-loss    steps
         finish-bonus (np.sum (* (and (np.all mask) (<= steps max-steps)) bonus))
         not-finished (np.sum (np.invert mask))
       #_/ ]
 
     (-> perf-loss (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished) 
-                  (- action-loss) (- sizing-loss))))
+                  (- action-loss) (- sizing-loss) (- step-loss))))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf

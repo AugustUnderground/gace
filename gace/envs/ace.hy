@@ -247,31 +247,33 @@
 
       ;; Data Logging
       (when self.logging-enabled
-        (self.log-data))
+        (self.log-data sizing curr-perf))
 
       (setv self.num-steps steps)
       (, obs rew don inf)))
 
-  (defn log-data [self]
-    (let [sizing (ac.current-sizing self.ace)
-          performance (ac.current-performance self.ace)
-
-          (, sn_ sd_) (list (map list (zip #* (lfor (, p s) (.items sizing) 
-                                                (, p (pa.array [s] :type (.float32 pa)))))))
+  (defn log-data [self ^(of list (of dict str float)) sizing 
+                       ^(of list (of dict str float)) performance 
+                       &optional ^str [log-path None]]
+    (let [(, sn_ sd_) (list (map list (zip #* 
+              (lfor (, p s) (.items sizing) (, p (pa.array [s] :type (.float32 pa)))))))
           sn (+ ["episode" "step"] (sorted sn_))
           sd (+ [(pa.array [self.reset-count] :type (.float32 pa)) 
                  (pa.array [self.num-steps]   :type (.float32 pa))] sd_)
           sizing-table (pa.table sd :names sn)
+          sizing-path  (.format "{}/sizing.ft" (or log-path self.data-log-path)) 
 
           pn_ (list (reduce + (.values (sorted-parameters performance))))
           pd_ (lfor p pn_ (pa.array [(get performance p)] :type (.float32 pa)))
           pn (+ ["episode" "step"] pn_)
           pd (+ [(pa.array [self.reset-count] :type (.float32 pa))
                  (pa.array [self.num-steps]   :type (.float32 pa))] pd_)
-          performance-table (pa.table pd :names pn) ]
+          performance-table (pa.table pd :names pn) 
+          performance-path  (.format "{}/performance.ft" (or log-path self.data-log-path))
+          #_/ ]
       
       ;; Create Directory, if it doesn't exist already
-      (os.makedirs self.data-log-path :exist-ok True)
+      (os.makedirs (or log-path self.data-log-path) :exist-ok True)
 
       ;; Append current performance row to table
       (setv (get self.data-log "sizing") 
@@ -283,9 +285,9 @@
 
       ;; Write Performance and sizing to disk
       (ft.write-feather (get self.data-log "performance") 
-                        (+ self.data-log-path "/performance.ft"))
+                        performance-path)
       (ft.write-feather (get self.data-log "sizing") 
-                        (+ self.data-log-path "/sizing.ft"))))
+                        sizing-path)))
 
   (defn render [self &optional ^str [mode "human"]]
     (print (ascii-schematic self.ace-id)))
