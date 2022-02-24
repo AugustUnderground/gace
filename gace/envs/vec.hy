@@ -135,14 +135,15 @@
                                                         :npar self.n-proc) 
                               (.values))
           
-          curr-sizings (lfor e self.gace-envs (ac.current-sizing e.ace))
+          curr-sizings (-> self (. pool) (ac.current-sizing-pool) (.values))
+          set-sizings  (.values sizings)
 
           obs (lfor (, cp tp ns ms) (zip curr-perfs targets steps max-steps)
                     (observation cp tp ns ms))
 
           rew (lfor (, rf cp pp t c cs ss a s m) 
                     (zip reward-fns curr-perfs prev-perfs targets conds 
-                         curr-sizings sizings last-actions steps max-steps)
+                         curr-sizings set-sizings last-actions steps max-steps)
                     (rf cp pp t c cs ss a s m))
 
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
