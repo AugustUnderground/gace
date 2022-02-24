@@ -229,10 +229,16 @@
           curr-perf (ac.evaluate-circuit self.ace :params sizing
                                                   :blocklist blocklist) 
 
+          curr-sizing (ac.current-sizing self.ace)
+
           steps (inc self.num-steps)
+
           obs (observation curr-perf self.target steps self.max-steps)
+
           rew (self.reward curr-perf prev-perf self.target self.condition 
-                           steps self.max-steps self.last-action)
+                           curr-sizing sizing self.last-action
+                           steps self.max-steps)
+
           don (or (>= steps self.max-steps) 
                   (all (second (target-distance curr-perf 
                                                 self.target 

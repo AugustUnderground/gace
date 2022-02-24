@@ -137,6 +137,10 @@
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
                                             ^(of dict str float) target
                                             ^(of dict) condition]
+  """
+  Calculates normalized distance between performance and target and retruns a
+  mask, which performances were met.
+  """
   (let [targets    (-> target (.keys) (list) (sorted))
 
         ;; Convert Gain from dB into absolute
@@ -236,17 +240,23 @@
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target
                               ^(of dict) condition
-                              ^int steps ^int max-steps
+                              ^(of dict str float) curr-sizing
+                              ^(of dict str float) set-sizing
                               ^(of dict str float) last-action
+                              ^int steps ^int max-steps
                               &optional ^float [bonus 10.0]]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
-    curr-perf:  Dictionary with performances.
-    prev-perf:  Dictionary with performances.
-    target:     Dictionary with target values.
-    condition:  Dictionary with binary conditionals 
-    steps:      Number of steps taken in the environment.
+    curr-perf:    Dictionary with performances.
+    prev-perf:    Dictionary with performances.
+    target:       Dictionary with target values.
+    condition:    Dictionary with binary conditionals .
+    curr-sizing:  The actual sizing of the netlist.
+    set-sizing:   The sizing set directly or via conversion.
+    last-action:  The last action performed.
+    steps:        Number of steps taken in the environment.
+    max-steps:    Maximum number of steps allowed.
   """
   (let [(, loss mask) (target-distance curr-perf target condition)
 
@@ -265,21 +275,27 @@
     (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished) (- act-loss))))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
-                            ^(of dict str float) prev-perf
-                            ^(of dict str float) target
-                            ^(of dict) condition
-                            ^int steps ^int max-steps
-                            ^(of dict str float) last-action
-                            &optional ^float [improv-fact 2.0]
-                                      ^float [bonus 10.0]]
+                              ^(of dict str float) prev-perf
+                              ^(of dict str float) target
+                              ^(of dict) condition
+                              ^(of dict str float) curr-sizing
+                              ^(of dict str float) set-sizing
+                              ^(of dict str float) last-action
+                              ^int steps ^int max-steps
+                              &optional ^float [bonus 10.0]
+                                        ^float [improv-fact 2.0]]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:
-    curr-perf:  Dictionary with performances.
-    prev-perf:  Dictionary with performances.
-    target:     Dictionary with target values.
-    condition:  Dictionary with binary conditionals .
-    steps:      Number of steps taken in the environment.
+    curr-perf:    Dictionary with performances.
+    prev-perf:    Dictionary with performances.
+    target:       Dictionary with target values.
+    condition:    Dictionary with binary conditionals .
+    curr-sizing:  The actual sizing of the netlist.
+    set-sizing:   The sizing set directly or via conversion.
+    last-action:  The last action performed.
+    steps:        Number of steps taken in the environment.
+    max-steps:    Maximum number of steps allowed.
   """
   (let [(, curr-dist curr-mask) (target-distance curr-perf target condition)
         (, prev-dist prev-mask) (target-distance prev-perf target condition)
@@ -322,18 +338,24 @@
                               ^(of dict str float) prev-perf
                               ^(of dict str float) target
                               ^(of dict) condition
-                              ^int steps ^int max-steps
+                              ^(of dict str float) curr-sizing
+                              ^(of dict str float) set-sizing
                               ^(of dict str float) last-action
-                              &optional ^float [improv-fact 10.0]
-                                        ^float [bonus 10.0]]
+                              ^int steps ^int max-steps
+                              &optional ^float [bonus 10.0]
+                                        ^float [improv-fact 2.0]]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:
-    curr-perf:  Dictionary with performances.
-    prev-perf:  Dictionary with performances.
-    target:     Dictionary with target values.
-    condition:  Dictionary with binary conditionals .
-    steps:      Number of steps taken in the environment.
+    curr-perf:    Dictionary with performances.
+    prev-perf:    Dictionary with performances.
+    target:       Dictionary with target values.
+    condition:    Dictionary with binary conditionals .
+    curr-sizing:  The actual sizing of the netlist.
+    set-sizing:   The sizing set directly or via conversion.
+    last-action:  The last action performed.
+    steps:        Number of steps taken in the environment.
+    max-steps:    Maximum number of steps allowed.
   """
   (let [(, curr-dist curr-mask) (target-distance curr-perf target condition)
         (, prev-dist prev-mask) (target-distance prev-perf target condition)
@@ -450,8 +472,7 @@
   Takes a list of input parameters, lower and upper bounds and an action.
   Un-Scales the action according to bounds and returns a sizing dict.
   """
-    (dict (zip inputs (unscale-value action action-scale-min 
-                                                      action-scale-max))))
+    (dict (zip inputs (unscale-value action action-scale-min action-scale-max))))
 
 (defn sizing-step-relative [^(of list str) inputs 
                ^(of list str) design-constraints
@@ -482,10 +503,9 @@
     DEC[0], NOP[1], INC[2]. The ∆ for each parameter is defined by the
     `design-constraints`' grid.
   """
-  (let [;_ace (if (ac.is-pool-env ace) (first ace.envs) ace)
-        ip (input-parameters ace ace-id ace-variant)
+  (let [ip (input-parameters ace ace-id ace-variant)
 
-        num-params (fn [p ps] (len (list (filter #%(.endswith %1 p) ps))))
+        num-params (fn [p ps] (len (list (filter #%(.endswith %1 (+ ":" p)) ps))))
 
         abs-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
         rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
@@ -539,7 +559,7 @@
                              (np.repeat (get dc "cc" "max")  
                                         (num-params "c" ip))
                              (np.repeat (* (get dc "i0" "init") 5.0) 
-                                        (num-params "i" ip))))]
+                                        (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
                         [(in ace-variant [2 3])   ; relative Electrical and Geometrical
@@ -595,11 +615,11 @@
         [(and (= ace-id "op2") (in ace-variant [0 2])) 
           [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid"
             "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug" 
-            "MCNM12:id"       "MNCM32:id" ]]
+            "MNCM12:id"       "MNCM32:id" ]]
         [(and (= ace-id "op3") (in ace-variant [0 2])) 
           [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid"
             "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug" 
-            "MCNM12:id"       "MNCM32:id" "MNCM31:id" ]]
+            "MNCM12:id"       "MNCM32:id" "MNCM31:id" ]]
         [(and (= ace-id "op4") (in ace-variant [0 2])) 
           [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid" 
             "MPC12:gmoverid"  "MPC1R:gmoverid" 

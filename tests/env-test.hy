@@ -21,8 +21,8 @@
 (env.reset)
 (setv (, o r d i) (env.random-step))
 (setv sizing (ac.initial-sizing env.ace))
-(len (env.action-space.sample))
 
+(len (env.action-space.sample))
 
 
 

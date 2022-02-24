@@ -122,27 +122,28 @@
                                            (lfor e envs e.max-steps))))))
 
   (defn size-circuit-pool [self sizings]
-    (let [(, prev-perfs targets conds reward-fns inputs) 
-          (zip #* (lfor e self.gace-envs (, (ac.current-performance e.ace) 
-                                         e.target e.condition e.reward 
-                                         e.input-parameters)))
+    (let [(, prev-perfs targets conds reward-fns inputs steps max-steps
+            last-actions) 
+                (zip #* (lfor e self.gace-envs (, (ac.current-performance e.ace) 
+                                               e.target e.condition e.reward 
+                                               e.input-parameters
+                                               e.num-steps e.max-steps
+                                               e.last-action)))
              
           curr-perfs (-> self (. pool) 
                               (ac.evaluate-circuit-pool :pool-params sizings 
                                                         :npar self.n-proc) 
                               (.values))
           
-          steps        (lfor e self.gace-envs e.num-steps)
-          max-steps    (lfor e self.gace-envs e.max-steps)
-          last-actions (lfor e self.gace-envs e.last-action)
+          curr-sizings (lfor e self.gace-envs (ac.current-sizing e.ace))
 
           obs (lfor (, cp tp ns ms) (zip curr-perfs targets steps max-steps)
                     (observation cp tp ns ms))
 
-          rew (lfor (, rf cp pp t c s m a) 
-                    (zip reward-fns curr-perfs prev-perfs targets conds steps 
-                         max-steps last-actions)
-                    (rf cp pp t c s m a))
+          rew (lfor (, rf cp pp t c cs ss a s m) 
+                    (zip reward-fns curr-perfs prev-perfs targets conds 
+                         curr-sizings sizings last-actions steps max-steps)
+                    (rf cp pp t c cs ss a s m))
 
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
                             (zip curr-perfs targets conds)))
