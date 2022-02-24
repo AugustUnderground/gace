@@ -96,41 +96,47 @@
           targets (lfor e envs e.target)
           parameters (dict (enumerate (lfor e envs
               ;; If ace does not exist, create it.
-              :do (unless e.ace (setv e.ace (eval e.ace-constructor)))
+              :do (unless e.env.ace (setv e.env.ace (eval e.env.ace-constructor)))
 
               ;; Reset the step counter and increase the reset counter.
-              :do (setv e.num-steps (int 0))
-              :do (setv e.reset-count (inc e.reset-count))
+              :do (setv e.env.num-steps (int 0))
+              :do (setv e.env.reset-count (inc e.reset-count))
 
               ;; Target can be random or close to a known acheivable.
-              :do (setv e.target (target-specification e.ace-id e.design-constraints
-                                                    :random e.random-target 
-                                                    :noisy e.noisy-target))
+              :do (setv e.env.target (target-specification e.env.ace-id e.env.design-constraints
+                                                    :random e.env.random-target 
+                                                    :noisy e.env.noisy-target))
 
               ;; Starting parameters are either random or close to a known solution.
-              (starting-point e.ace e.random-target e.noisy-target))))
+              (starting-point e.env.ace e.env.random-target e.env.noisy-target))))
 
         performances (ac.evaluate-circuit-pool self.pool 
                                                :pool-params parameters 
                                                :npar self.n-proc)]
 
+    ;;Target Logging 
+    (lfor (, i e s p) (zip (-> self.num-envs (range) (list)) 
+                           self.gace-envs curr-sizings curr-perfs)
+            (when e.env.logging-enabled 
+              (e.env.log-data s p (.format "{}/env_{}" self.base-log-path i))))
+
     (setv self.info 
         (lfor (, p (, t i)) (zip (.values performances)
-                                 (lfor e envs (, e.target e.input-parameters)))
+                                 (lfor e envs (, e.env.target e.env.input-parameters)))
               (info p t i) ))
 
     (list (ap-map (observation #* it) (zip (.values performances) 
                                            targets (repeat 0) 
-                                           (lfor e envs e.max-steps))))))
+                                           (lfor e envs e.env.max-steps))))))
 
   (defn size-circuit-pool [self sizings]
     (let [(, prev-perfs targets conds reward-fns inputs steps max-steps
             last-actions) 
                 (zip #* (lfor e self.gace-envs (, (ac.current-performance e.ace) 
-                                               e.target e.condition e.reward 
-                                               e.input-parameters
-                                               e.num-steps e.max-steps
-                                               e.last-action)))
+                                               e.env.target e.env.condition e.env.reward 
+                                               e.env.input-parameters
+                                               e.env.num-steps e.env.max-steps
+                                               e.env.last-action)))
              
           curr-perfs (-> self (. pool) 
                               (ac.evaluate-circuit-pool :pool-params sizings 
@@ -151,19 +157,19 @@
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
                             (zip curr-perfs targets conds)))
 
-          ss  (lfor e self.gace-envs (>= (inc e.num-steps) e.max-steps))
+          ss  (lfor e self.gace-envs (>= (inc e.env.num-steps) e.env.max-steps))
           don (list (ap-map (or #* it) (zip td ss))) 
 
           inf (list (ap-map (info #* it) (zip curr-perfs targets inputs)))]
 
-      ;; Data Logging
-      (lfor (, i e s p) (zip (-> self.num-envs (range) (list)) 
-                           self.gace-envs curr-sizings curr-perfs)
-            (when e.logging-enabled 
-              (e.log-data s p (.format "{}/env_{}" self.base-log-path i))))
-
       ;; Increment step counter
-      (for e self.gace-envs (setv e.num-steps (inc e.num-steps)))
+      (for [e self.gace-envs] (setv e.env.num-steps (inc e.env.num-steps)))
+
+      ;; Data Logging
+      (for [e self.gace-envs]
+        (when e.env.logging-enabled
+
+        ))
 
       (, obs rew don inf)))
 

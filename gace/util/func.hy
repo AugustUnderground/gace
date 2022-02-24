@@ -165,7 +165,7 @@
       
     (, dist mask)))
 
-(defn sorted-parameters [^(of list str ) performance]
+(defn sorted-parameters [^(of list str) performance]
   """
   Returns a sorted list of parameters.
   """
