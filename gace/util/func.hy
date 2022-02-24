@@ -258,21 +258,27 @@
     steps:        Number of steps taken in the environment.
     max-steps:    Maximum number of steps allowed.
   """
-  (let [(, loss mask) (target-distance curr-perf target condition)
+  (let [(, dist mask) (target-distance curr-perf target condition)
 
-        cost (+ (* (np.tanh (np.abs loss)) mask) 
-                (* (- (np.abs loss)) (np.invert mask))) 
+        perf-loss (+ (* (np.tanh (np.abs dist)) mask) 
+                     (* (- (np.abs dist)) (np.invert mask))) 
 
-        act-loss (-> (lfor a (.keys last-action)
-                             (/ (-  (get last-action a) (get curr-perf a)) 
-                                (get curr-perf a)))
+        action-loss (-> (lfor a (.keys last-action)
+                                (/ (-  (get last-action a) (get curr-perf a)) 
+                                   (get curr-perf a)))
+                     (np.array) (np.sum))
+
+        sizing-loss (-> (lfor s (.keys sizing)
+                                (/ (-  (get sizing s) (get curr-sizing s)) 
+                                   (get curr-sizing s)))
                      (np.array) (np.sum))
 
         finish-bonus (np.sum (* (and (np.all mask) (<= steps max-steps)) bonus))
-        not-finished (np.sum (* (np.invert mask) (/ bonus 2.0)))
+        not-finished (np.sum (np.invert mask))
       #_/ ]
 
-    (-> cost (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished) (- act-loss))))
+    (-> perf-loss (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished) 
+                  (- action-loss) (- sizing-loss))))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
