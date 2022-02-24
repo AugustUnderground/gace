@@ -100,6 +100,7 @@
 
               ;; Reset the step counter and increase the reset counter.
               :do (setv e.num-steps (int 0))
+              :do (setv e.reset-count (inc e.reset-count))
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints
@@ -160,6 +161,9 @@
                            self.gace-envs curr-sizings curr-perfs)
             (when e.logging-enabled 
               (e.log-data s p (.format "{}/env_{}" self.base-log-path i))))
+
+      ;; Increment step counter
+      (for e self.gace-envs (setv e.num-steps (inc e.num-steps)))
 
       (, obs rew don inf)))
 

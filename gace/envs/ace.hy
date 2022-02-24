@@ -277,10 +277,10 @@
 
       ;; Append current performance row to table
       (setv (get self.data-log "sizing") 
-                (-> [sizing-table (get self.data-log "sizing")] 
+                (-> [(get self.data-log "sizing") sizing-table ] 
                     (pa.concat-tables) (.combine-chunks))
             (get self.data-log "performance") 
-                (-> [performance-table (get self.data-log "performance")] 
+                (-> [(get self.data-log "performance") performance-table ] 
                     (pa.concat-tables) (.combine-chunks)))
 
       ;; Write Performance and sizing to disk
