@@ -442,7 +442,7 @@
           (get analyses it)
           (.tolist it))))
 
-(defn sizing-step ^(of dict str float) [^(of list str) input-parameters
+(defn sizing-step ^(of dict str float) [^(of list str) inputs
                                     ^np.array action-scale-min 
                                     ^np.array action-scale-max 
                                     ^np.array action]
@@ -450,24 +450,24 @@
   Takes a list of input parameters, lower and upper bounds and an action.
   Un-Scales the action according to bounds and returns a sizing dict.
   """
-    (dict (zip input-parameters (unscale-value action action-scale-min 
+    (dict (zip inputs (unscale-value action action-scale-min 
                                                       action-scale-max))))
 
-(defn sizing-step-relative [^(of list str) input-parameters 
+(defn sizing-step-relative [^(of list str) inputs 
                ^(of list str) design-constraints
                ace ^np.array action]
   """
   Takes an relative geometric action.
   """
   (let [cs (ac.current-sizing ace)
-        ca (np.array (lfor ip input-parameters (get cs ip)))
+        ca (np.array (lfor ip inputs (get cs ip)))
 
-        ga (np.array (lfor ip input-parameters 
+        ga (np.array (lfor ip inputs 
                            (get design-constraints ip "grid")))
 
         sa (+ ca (* (- action 1) ga))]
     
-    (dict (zip input-parameters sa))))
+    (dict (zip inputs sa))))
 
 
 (defn action-space ^(of tuple) [ace ^dict dc ^str ace-id  ^int ace-variant]
@@ -485,7 +485,7 @@
   (let [;_ace (if (ac.is-pool-env ace) (first ace.envs) ace)
         ip (input-parameters ace ace-id ace-variant)
 
-        num-params (fn [p ps] (len (list (filter #%(.startswith %1 p) ps))))
+        num-params (fn [p ps] (len (list (filter #%(.endswith %1 p) ps))))
 
         abs-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
         rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
@@ -508,8 +508,8 @@
 
         scale-min (cond [(in ace-variant [0])   ; Absolute Electrical
                          (np.concatenate 
-                          (, (np.repeat (get dc "gmid" "min") 
-                                        (num-params "gmid" ip))
+                          (, (np.repeat (get dc "gmoverid" "min") 
+                                        (num-params "gmoverid" ip))
                              (np.repeat (get dc "fug" "min")  
                                         (num-params "fug" ip))
                              (np.repeat (get dc "rc" "min")  
@@ -517,7 +517,7 @@
                              (np.repeat (get dc "cc" "min")  
                                         (num-params "c" ip))
                              (np.repeat (/ (get dc "i0" "init") 3.0) 
-                                        (num-params "i" ip))))]
+                                        (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
                         [(in ace-variant [2 3])   ; relative Electrical and Geometrical
@@ -530,8 +530,8 @@
 
         scale-max (cond [(in ace-variant [0])     ; Absolute Electrical
                         (np.concatenate 
-                          (, (np.repeat (get dc "gmid" "max") 
-                                        (num-params "gmid" ip))
+                          (, (np.repeat (get dc "gmoverid" "max") 
+                                        (num-params "gmoverid" ip))
                              (np.repeat (get dc "fug" "max")  
                                         (num-params "fug" ip))
                              (np.repeat (get dc "rc" "max")  
@@ -558,10 +558,10 @@
   """
   (-> ace ;(ac.is-pool-env) (if (first ace.envs) ace)
     (ac.parameter-dict)
-    (| { "gmid" { "init" 10.0
-                  "max"  25.0
-                  "min"  5.0
-                  "grid" 0.1 }
+    (| { "gmoverid" { "init" 10.0
+                      "max"  25.0
+                      "min"  5.0
+                      "grid" 0.1 }
          "fug" { "init" 1.0e8
                  "max"  1.0e9
                  "min"  1.0e6
@@ -576,6 +576,12 @@
                 "grid" 0.2e-12 }
          #_/ })))
 
+(defn op-to-args [^(of dict str float) op]
+  """
+  Converts ACE operating points parametes to args by replacing ':' with '_'.
+  """
+  (dfor (, p v) (.items op) [ (p.replace ":" "_") v]))
+
 (defn input-parameters ^(of list str) [ace ^str ace-id ^int ace-variant]
   """
   Returns a list of input parameter names
@@ -583,37 +589,47 @@
   (cond [(in ace-variant [1 3])
          (ac.sizing-identifiers ace)]
         [(and (= ace-id "op1") (in ace-variant [0 2])) 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1"
-            "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1" 
-            "res" "cap" "i1" "i2" ]]
+          [ "MNCM1R:gmoverid" "MPCM2R:gmoverid" "MPCS1:gmoverid" "MND1A:gmoverid"
+            "MNCM1R:fug"      "MPCM2R:fug"      "MPCS1:fug"      "MND1A:fug" 
+            "res" "cap" "MNCM1A:id" "MNCM1B:id" ]]
         [(and (= ace-id "op2") (in ace-variant [0 2])) 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
-            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1" 
-            "i1" "i2" ]]
+          [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid"
+            "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug" 
+            "MCNM12:id"       "MNCM32:id" ]]
         [(and (= ace-id "op3") (in ace-variant [0 2])) 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1"
-            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"
-            "i1" "i2" "i3" ]]
+          [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid"
+            "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug" 
+            "MCNM12:id"       "MNCM32:id" "MNCM31:id" ]]
         [(and (= ace-id "op4") (in ace-variant [0 2])) 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref" 
-            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref" 
-            "i1" "i2" "i3" ]]
+          [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid" 
+            "MPC12:gmoverid"  "MPC1R:gmoverid" 
+            "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug"  
+            "MPC12:fug"       "MPC1R:fug" 
+            "MNCM13:id"       "MNCM32:id"        "MNCM31:id" ]]
         [(and (= ace-id "op5") (in ace-variant [0 2])) 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-dp1" "gmid-ls1" "gmid-ref"
-            "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-dp1"  "fug-ls1"  "fug-ref"
-            "i1" "i2" "i3" "i4" ]]
+          [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid" 
+            "MPC12:gmoverid"  "MPC1R:gmoverid" 
+            "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug"  
+            "MPC12:fug"       "MPC1R:fug" 
+            "MNCM13:id"       "MNCM32:id"        "MNCM31:id"       "MNCM12:id" ]]
         [(and (= ace-id "op6") (in ace-variant [0 2])) 
-          [ "gmid-cm1" "gmid-cm2" "gmid-cs1" "gmid-dp1" "gmid-res" "gmid-cap"
-            "fug-cm1"  "fug-cm2"  "fug-cs1"  "fug-dp1"  "fug-res"  "fug-cap"
-            "i1" "i2" ]]
+          [ "MNCM11:gmoverid" "MPCM21:gmoverid" "MPCS:gmoverid" "MND11:gmoverid" 
+            "MPR1:gmoverid"   "MPC1:gmoverid"
+            "MNCM11:fug"      "MPCM21:fug"      "MPCS:fug"      "MND11:fug"  
+            "MPR1:fug"        "MPC1:fug"        "MNCM12:id"     "MNCM13:id" ]]
         [(and (= ace-id "op8") (in ace-variant [0 2])) 
-          [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-cm5" 
-            "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-cm5" 
-            "i1" "i2" "i3" "i4" ]]
+          [ "MNCM51:gmoverid" "MPCM41:gmoverid" "MPCM31:gmoverid" "MNCM21:gmoverid" 
+            "MNCM11:gmoverid" "MND11:gmoverid" 
+            "MNCM51:fug"      "MPCM41:fug"      "MPCM31:fug"      "MNCM21:fug" 
+            "MNCM11:fug"      "MND11:fug"
+            "MNCM53:id"       "MNCM52:id"       "MNCM11:id"       "MNCM12:id" ]]
         [(and (= ace-id "op9") (in ace-variant [0 2])) 
-          [ "gmid-dp1" "gmid-cm1" "gmid-cm2" "gmid-cm3" "gmid-cm4" "gmid-ls1" "gmid-re1" "gmid-re2"
-            "fug-dp1"  "fug-cm1"  "fug-cm2"  "fug-cm3"  "fug-cm4"  "fug-ls1"  "fug-re1"  "fug-re2"
-            "i1" "i2" "i3" "i4" "i5" "i6" ]]
+          [ "MNCM41:gmoverid" "MPCM31:gmoverid" "MPCM21:gmoverid" "MNCM11:gmoverid" 
+            "MND11:gmoverid"  "MNLS11:gmoverid" "MNR1:gmoverid"   "MPR2:gmoverid"
+            "MNCM41:fug"      "MPCM31:fug"      "MPCM21:fug"      "MNCM11:fug" 
+            "MND11:fug"       "MNLS11:fug"      "MNR1:fug"        "MPR2:fug"
+            "MNCM43:id"       "MNCM44:id"       "MNCM42:id"       "MPCM32:id" 
+            "MPCM33:id" "MPCM34:id" ]]
         [True 
          (raise (NotImplementedError errno.ENOSYS
                                      (os.strerror errno.ENOSYS) 
