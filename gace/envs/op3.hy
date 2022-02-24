@@ -35,10 +35,12 @@
     converts them to sizing parameters for each parameter specified in the
     netlist. 
     """
-    (let [(, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
+    (let [unscaled-action (unscale-value action self.action-scale-min 
+                                                self.action-scale-max)
+
+          (, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
              fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-             i1 i2 i3 ) (unscale-value action self.action-scale-min 
-                                              self.action-scale-max)
+             i1 i2 i3 ) unscaled-action
 
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
@@ -79,12 +81,14 @@
           Wcm2 (/ i1 2.0 (get cm2-out 0))
           Wcm3 (/ i2     (get cm3-out 0)) ]
 
+    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3 
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3 
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm2x1" Mcm2x1 "Mcm31" Mcm31 
-                             "Mcm12" Mcm12 "Mcm212" Mcm212 "Mcm32" Mcm32 
-                                           "Mcm222" Mcm222 
-                  #_/ })))
+      "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3 
+      "Md" Mdp1 "Mcm11" Mcm11 "Mcm2x1" Mcm2x1 "Mcm31" Mcm31 
+                "Mcm12" Mcm12 "Mcm212" Mcm212 "Mcm32" Mcm32 
+                              "Mcm222" Mcm222 
+      #_/ })))
 
 (defclass OP3XH035V0Env [OP3Env]
   """

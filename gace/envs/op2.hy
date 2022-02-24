@@ -35,15 +35,12 @@
     converts them to sizing parameters for each parameter specified in the
     netlist. 
     """
-    (let [(, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
-             fug-cm1  fug-cm2  fug-cm3  fug-dp1 
-             i1 i2 ) (unscale-value action self.action-scale-min 
-                                           self.action-scale-max)
+    (let [unscaled-action (unscale-value action self.action-scale-min 
+                                                self.action-scale-max)
 
-          _ (setv self.last-action {"MNCM11:gmoverid" gmid-cm1 "MPCM211:gmoverid" gmid-cm2
-                                    "MNCM31:gmoverid" gmid-cm3 "MND11:gmoverid"   gmid-dp1
-                                    "MNCM11:fug" fug-cm1 "MPCM211:fug" fug-cm2
-                                    "MNCM31:fug" fug-cm3 "MND11:fug"   fug-dp1 })
+          (, gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
+             fug-cm1  fug-cm2  fug-cm3  fug-dp1 
+             i1 i2 )    unscaled-action
 
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
@@ -81,10 +78,12 @@
           Wcm2 (/ i1 2.0 (get cm2-out 0))
           Wcm3 (/ i2     (get cm3-out 0)) ]
 
+    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3 
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
-                             "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }))
+      "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 
+      "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
+                "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }))
 
   (defn step-v5 ^(of tuple np.array float bool dict) [self ^tuple action]
     """

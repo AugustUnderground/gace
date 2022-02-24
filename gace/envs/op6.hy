@@ -37,10 +37,12 @@
     converts them to sizing parameters for each parameter specified in the
     netlist. 
     """
-    (let [(, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1 gmid-res gmid-cap
+    (let [unscaled-action (unscale-value action self.action-scale-min 
+                                                self.action-scale-max)
+
+          (, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1 gmid-res gmid-cap
              fug-cm1  fug-cm2  fug-cs1  fug-dp1  fug-res  fug-cap
-             i1 i2 ) (unscale-value action self.action-scale-min 
-                                           self.action-scale-max)
+             i1 i2 ) unscaled-action
 
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
@@ -85,16 +87,16 @@
           Wcm2 (/ i1 2.0 (get cm2-out 0))
           Wcs1 (/ i2     (get cs1-out 0))
           Wcap (/ i2     (get cap-out 0)) 
-          Wres (/ i2     (get res-out 0)) 
-          
-          sizing { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
-                   "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
-                   "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
-                             "Mcm12" Mcm12 "Mcm22" Mcm22
-                             "Mcm13" Mcm13 
-                  #_/ }]
+          Wres (/ i2     (get res-out 0)) ]
 
-    (self.size-circuit sizing))))
+    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+
+    { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
+      "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
+      "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcs" Mcs1 "Mr1" Mres "Mc1" Mcap
+                "Mcm12" Mcm12 "Mcm22" Mcm22
+                "Mcm13" Mcm13 
+      #_/ })))
 
 (defclass OP6XH035V0Env [OP6Env]
   """

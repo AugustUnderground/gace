@@ -37,10 +37,12 @@
     converts them to sizing parameters for each parameter specified in the
     netlist. 
     """
-    (let [(, gmid-dp1 gmid-cm1 gmid-cm2 gmid-cm3 gmid-cm4 gmid-ls1 gmid-re1 gmid-re2
-             fug-dp1  fug-cm1  fug-cm2  fug-cm3  fug-cm4  fug-ls1  fug-re1  fug-re2
-             i1 i2 i3 i4 i5 i6) (unscale-value action self.action-scale-min 
-                                                      self.action-scale-max)
+    (let [unscaled-action (unscale-value action self.action-scale-min 
+                                                self.action-scale-max)
+
+          (, gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1 gmid-ls1 gmid-re1 gmid-re2
+             fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1  fug-ls1  fug-re1  fug-re2
+             i1 i2 i3 i4 i5 i6) unscaled-action
 
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
@@ -103,13 +105,15 @@
           Wre1 (/ i2     (get re1-out 0))
           Wre2 (/ i4     (get re2-out 0)) ]
 
+    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+
     { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3"  Lcm3  "Lcm4"  Lcm4  "Lls1" Lls1 "Lr1" Lre1 "Lr2" Lre2
-                   "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wre1 "Wr1" Wre2
-                   "Md1" Mdp1 "Mcm1" Mcm1 "Mcm2" Mcm2 "Mcm31" Mcm31 "Mcm41" Mcm41 "Mls1" Mls1  
-                                                      "Mcm32" Mcm32 "Mcm42" Mcm42
-                                                      "Mcm33" Mcm33 "Mcm43" Mcm43
-                                                      "Mcm34" Mcm34 "Mcm44" Mcm44
-                   #_/ })))
+      "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wre1 "Wr1" Wre2
+      "Md1" Mdp1 "Mcm1" Mcm1 "Mcm2" Mcm2 "Mcm31" Mcm31 "Mcm41" Mcm41 "Mls1" Mls1  
+                                         "Mcm32" Mcm32 "Mcm42" Mcm42
+                                         "Mcm33" Mcm33 "Mcm43" Mcm43
+                                         "Mcm34" Mcm34 "Mcm44" Mcm44
+      #_/ })))
 
 (defclass OP9XH035V0Env [OP9Env]
   """
