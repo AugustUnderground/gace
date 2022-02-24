@@ -268,8 +268,8 @@
                                    (get curr-perf a)))
                      (np.array) (np.sum))
 
-        sizing-loss (-> (lfor s (.keys sizing)
-                                (/ (-  (get sizing s) (get curr-sizing s)) 
+        sizing-loss (-> (lfor s (.keys set-sizing)
+                                (/ (-  (get set-sizing s) (get curr-sizing s)) 
                                    (get curr-sizing s)))
                      (np.array) (np.sum))
 
