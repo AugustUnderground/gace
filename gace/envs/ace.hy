@@ -274,7 +274,7 @@
                   &optional ^str [log-path None]]
     (let [(, sn_ sd_) (list (map list (zip #* 
               (lfor (, p s) (.items sizing) (, p (pa.array [s] :type (.float32 pa)))))))
-          sn (+ ["episode" "step"] (sorted sn_))
+          sn (+ ["episode" "step"] sn_)
           sd (+ [(pa.array [self.reset-count] :type (.float32 pa)) 
                  (pa.array [self.num-steps]   :type (.float32 pa))] sd_)
           sizing-table (pa.table sd :names sn)
