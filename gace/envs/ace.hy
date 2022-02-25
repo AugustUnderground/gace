@@ -51,7 +51,7 @@
                        ^str [ckt-path None] ^str [pdk-path None]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
-                       ^int [max-steps 100] ^(of dict str float) [design-constr {}]
+                       ^int [max-steps 1000] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 
@@ -273,7 +273,8 @@
   (defn log-data [self ^(of dict str float) sizing ^(of dict str float) performance 
                   &optional ^str [log-path None]]
     (let [(, sn_ sd_) (list (map list (zip #* 
-              (lfor (, p s) (.items sizing) (, p (pa.array [s] :type (.float32 pa)))))))
+              (lfor s (-> sizing (.keys) (sorted)) 
+                    (, s (pa.array [(get sizing s)] :type (.float32 pa)))))))
           sn (+ ["episode" "step"] sn_)
           sd (+ [(pa.array [self.reset-count] :type (.float32 pa)) 
                  (pa.array [self.num-steps]   :type (.float32 pa))] sd_)
