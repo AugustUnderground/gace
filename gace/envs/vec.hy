@@ -115,10 +115,9 @@
                                                :npar self.n-proc)]
 
     ;;Target Logging 
-    (lfor (, i e s p) (zip (-> self.num-envs (range) (list)) 
-                           self.gace-envs curr-sizings curr-perfs)
-            (when e.env.logging-enabled 
-              (e.env.log-data s p (.format "{}/env_{}" self.base-log-path i))))
+    (for [(, i e) (enumerate self.gace-envs)]
+      (when e.env.logging-enabled 
+        (e.env.log-target :log-path (.format "{}/env_{}" self.base-log-path i))))
 
     (setv self.info 
         (lfor (, p (, t i)) (zip (.values performances)
@@ -166,10 +165,10 @@
       (for [e self.gace-envs] (setv e.env.num-steps (inc e.env.num-steps)))
 
       ;; Data Logging
-      (for [e self.gace-envs]
-        (when e.env.logging-enabled
-
-        ))
+      (for [(, i e s p) (zip (-> self.num-envs (range) (list)) 
+                             self.gace-envs curr-sizings curr-perfs)]
+        (when e.env.logging-enabled 
+          (e.env.log-data s p (.format "{}/env_{}" self.base-log-path i))))
 
       (, obs rew don inf)))
 

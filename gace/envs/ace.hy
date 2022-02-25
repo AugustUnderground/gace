@@ -142,7 +142,7 @@
     (when self.logging-enabled
       (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
             self.data-log-path (or data-log-path 
-                                   f"/tmp/{(.getlogin os)}/gace/{time-stamp}-{ace-id}")
+                                   f"/tmp/{(.getlogin os)}/gace/{time-stamp}-{ace-id}/env_0")
             self.data-log (initialize-data-log self.ace self.target self.reset-count)))
 
     ;; Override step function
@@ -204,7 +204,7 @@
 
     ;; Target can be random or close to a known acheivable.
     (setv self.target (if self.random-target
-      (target-specification self.ace-id self.design-constraints ; self.ace-backend 
+      (target-specification self.ace-id self.design-constraints
                             :random self.random-target 
                             :noisy self.noisy-target)
       (dfor (, p v) (.items self.target) 
@@ -221,6 +221,10 @@
 
     ;; Identifiers for elements in observation
     (setv self.info (info performance self.target self.input-parameters))
+
+    ;; Data Logging
+    (when self.logging-enabled
+      (self.log-target self.target))
 
     (observation performance self.target 0 self.max-steps))
 
@@ -247,14 +251,27 @@
 
       ;; Data Logging
       (when self.logging-enabled
-        (self.log-data sizing curr-perf))
+        (self.log-data curr-sizing curr-perf))
 
       (setv self.num-steps steps)
       (, obs rew don inf)))
 
-  (defn log-data [self ^(of list (of dict str float)) sizing 
-                       ^(of list (of dict str float)) performance 
-                       &optional ^str [log-path None]]
+  (defn log-target [self &optional ^(of dict str float) [target None] ^str [log-path None]]
+    (let [(, tn td) (list (map list (zip #* 
+            (lfor (, n t) (.items (or target self.target)) 
+                  (, n (pa.array [t] :type (.float32 pa)))))))
+          target-table (pa.table td :names tn) 
+          target-path  (.format "{}/target.ft" (or log-path self.data-log-path)) 
+          #_/ ]
+
+      ;; Create Directory, if it doesn't exist already
+      (os.makedirs (or log-path self.data-log-path) :exist-ok True)
+
+      ;; Write Performance and sizing to disk
+      (ft.write-feather (get self.data-log "target") target-path)))
+
+  (defn log-data [self ^(of dict str float) sizing ^(of dict str float) performance 
+                  &optional ^str [log-path None]]
     (let [(, sn_ sd_) (list (map list (zip #* 
               (lfor (, p s) (.items sizing) (, p (pa.array [s] :type (.float32 pa)))))))
           sn (+ ["episode" "step"] (sorted sn_))
