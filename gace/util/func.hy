@@ -434,6 +434,8 @@
   (let [performance (ac.performance-identifiers ace-env)
         pi (+ ["episode" "step"] (list (reduce + (.values (sorted-parameters performance)))))
         pv (list (repeat (pa.array [] :type (.float32 pa)) (len pi)))
+        ei ["episode" "step" "reward"]
+        ev (list (repeat (pa.array [] :type (.float32 pa)) (len ei)))
         si (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
         sv (list (repeat (pa.array [] :type (.float32 pa)) (len si)))
         (, ti_ tv_) (list (map list 
@@ -442,6 +444,7 @@
         ti (+ ["episode"] ti_)
         tv (+ [(pa.array [reset-count] :type (.int16 pa))] tv_)]
     {"performance" (pa.table pv :names pi)
+     "environment" (pa.table ev :names ei)
      "sizing"      (pa.table sv :names si)
      "target"      (pa.table tv :names ti) }))
 

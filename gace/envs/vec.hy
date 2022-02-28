@@ -176,10 +176,10 @@
       (for [e self.gace-envs] (setv e.num-steps (inc e.num-steps)))
 
       ;; Data Logging
-      (for [(, i e s p) (zip (-> self.num-envs (range) (list)) 
-                             self.gace-envs curr-sizings curr-perfs)]
+      (for [(, i e s p r) (zip (-> self.num-envs (range) (list)) 
+                             self.gace-envs curr-sizings curr-perfs rew)]
         (when e.logging-enabled 
-          (e.log-data s p (.format "{}/env_{}" self.base-log-path i))))
+          (e.log-data s p r (.format "{}/env_{}" self.base-log-path i))))
 
       (, obs rew don inf)))
 

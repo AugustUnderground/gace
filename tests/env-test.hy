@@ -36,6 +36,11 @@
 (for [_ (range 10)] (envs.step (dfor (, i a) (enumerate envs.action-space) [i (a.sample)])))
 
 
+(setv env (get (list envs) 3))
+
+(get env.data-log "performance")
+
+
 
 
 

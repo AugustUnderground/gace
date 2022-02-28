@@ -41,7 +41,7 @@
     random-target: bool (False)         -> Randomize Target each episode
     noisy-target: bool  (True)          -> Add some noise after each reset
     train-mode: bool (True)             -> Whether this is training or eval
-    restart-intervall: int (10)         -> Restart intervall of ace
+    restart-intervall: int (3)          -> Restart intervall of ace
     custom-reward: function (None)      -> A custom reward function
     reltol: float (1e-3)                -> Relative tolarnce for equaltiy
     data-log-path: str ("")             -> Write a dataframe to HDF5 at this location
@@ -56,7 +56,7 @@
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 
-                       ^int [restart-intervall 10]
+                       ^int [restart-intervall 3]
                        ^(of Callable)   [custom-reward None]
                        ^(of gym.spaces) [custom-action None]
                        ^(of np.array)   [custom-action-lo None]
@@ -259,7 +259,7 @@
 
       ;; Data Logging
       (when self.logging-enabled
-        (self.log-data curr-sizing curr-perf))
+        (self.log-data curr-sizing curr-perf rew))
 
       (setv self.num-steps steps)
       (, obs rew don inf)))
@@ -279,7 +279,7 @@
       (ft.write-feather (get self.data-log "target") target-path)))
 
   (defn log-data [self ^(of dict str float) sizing ^(of dict str float) performance 
-                  &optional ^str [log-path None]]
+                  ^float reward &optional ^str [log-path None]]
     (let [(, sn_ sd_) (list (map list (zip #* 
               (lfor s (-> sizing (.keys) (sorted)) 
                     (, s (pa.array [(get sizing s)] :type (.float32 pa)))))))
@@ -296,24 +296,35 @@
                  (pa.array [self.num-steps]   :type (.float32 pa))] pd_)
           performance-table (pa.table pd :names pn) 
           performance-path  (.format "{}/performance.ft" (or log-path self.data-log-path))
+          en ["episode" "step" "reward"]
+          ed [(pa.array [self.reset-count] :type (.float32 pa))
+              (pa.array [self.num-steps]   :type (.float32 pa))
+              (pa.array [reward]           :type (.float32 pa)) ]
+          environment-table (pa.table ed :names en)
+          environment-path  (.format "{}/environment.ft" (or log-path self.data-log-path))
           #_/ ]
       
       ;; Create Directory, if it doesn't exist already
       (os.makedirs (or log-path self.data-log-path) :exist-ok True)
 
       ;; Append current performance row to table
-      (setv (get self.data-log "sizing") 
+      (setv (get self.data-log "sizing")
                 (-> [(get self.data-log "sizing") sizing-table ] 
                     (pa.concat-tables) (.combine-chunks))
-            (get self.data-log "performance") 
+            (get self.data-log "performance")
                 (-> [(get self.data-log "performance") performance-table ] 
+                    (pa.concat-tables) (.combine-chunks))
+            (get self.data-log "environment")
+                (-> [(get self.data-log "environment") environment-table ] 
                     (pa.concat-tables) (.combine-chunks)))
 
       ;; Write Performance and sizing to disk
       (ft.write-feather (get self.data-log "performance") 
                         performance-path)
       (ft.write-feather (get self.data-log "sizing") 
-                        sizing-path)))
+                        sizing-path)
+      (ft.write-feather (get self.data-log "environment") 
+                        environment-path)))
 
   (defn render [self &optional ^str [mode "human"]]
     (print (ascii-schematic self.ace-id)))
