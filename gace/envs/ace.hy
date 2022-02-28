@@ -41,6 +41,7 @@
     random-target: bool (False)         -> Randomize Target each episode
     noisy-target: bool  (True)          -> Add some noise after each reset
     train-mode: bool (True)             -> Whether this is training or eval
+    restart-intervall: int (10)         -> Restart intervall of ace
     custom-reward: function (None)      -> A custom reward function
     reltol: float (1e-3)                -> Relative tolarnce for equaltiy
     data-log-path: str ("")             -> Write a dataframe to HDF5 at this location
@@ -55,6 +56,7 @@
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 
+                       ^int [restart-intervall 10]
                        ^(of Callable)   [custom-reward None]
                        ^(of gym.spaces) [custom-action None]
                        ^(of np.array)   [custom-action-lo None]
@@ -131,8 +133,9 @@
     (setv self.input-parameters (input-parameters self.ace self.ace-id 
                                                   self.ace-variant))
 
-    ;; Initialize the Reset counter
-    (setv self.reset-count -1)
+    ;; Initialize the Reset counter and Restart Intervall
+    (setv self.reset-count -1
+          self.restart-intervall restart-intervall)
     
     ;; Empty last action
     (setv self.last-action {})
@@ -193,14 +196,19 @@
 
     Finally, a simulation is run and the observed perforamnce returned.
     """
-
-    ;; If ace does not exist, create it.
-    (unless self.ace
-      (setv self.ace (eval self.ace-constructor)))
-
     ;; Reset the step counter and increase the reset counter.
     (setv self.num-steps   (int 0)
           self.reset-count (inc self.reset-count))
+
+    ;; If ace does not exist, create it.
+    ;(unless self.ace
+    ;  (setv self.ace (eval self.ace-constructor)))
+
+    ;; If ace does not exist or reset intervall is reached, create a new env.
+    (when (or (not self.ace) (= 0 (% self.reset-count self.restart-intervall)))
+      (self.ace.stop)
+      (del self.ace)
+      (setv self.ace (eval self.ace-constructor)))
 
     ;; Target can be random or close to a known acheivable.
     (setv self.target (if self.random-target

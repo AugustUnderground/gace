@@ -95,12 +95,17 @@
     (let [envs (if env-ids (lfor i env-ids (get self.gace-envs i)) self.gace-envs)
           targets (lfor e envs e.target)
           parameters (dict (enumerate (lfor e envs
-              ;; If ace does not exist, create it.
-              :do (unless e.env.ace (setv e.env.ace (eval e.env.ace-constructor)))
-
               ;; Reset the step counter and increase the reset counter.
               :do (setv e.env.num-steps (int 0))
               :do (setv e.env.reset-count (inc e.reset-count))
+
+              ;; If ace does not exist, create it.
+              ;:do (unless e.env.ace (setv e.env.ace (eval e.env.ace-constructor)))
+              :do (when (or (not e.env.ace) 
+                            (= 0 (% e.env.reset-count e.env.restart-intervall)))
+                    (e.env.ace.stop)
+                    (del e.env.ace)
+                    (setv e.env.ace (eval e.env.ace-constructor)))
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.env.target (target-specification e.env.ace-id e.env.design-constraints
