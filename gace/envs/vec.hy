@@ -39,14 +39,18 @@
   environemnt, with n times the given id. 
     Short hand for: `vector_make([gym.make(env_id) for _ range(num_envs)])`
   """
-  (vector-make (list (take num-envs (repeatedly #%(gym.make env-id #** kwargs)))) n-proc))
+  ;(vector-make (list (take num-envs (repeatedly #%(gym.make env-id #** kwargs)))) n-proc))
+  (vector-make (lfor _ (range num-envs) 
+                       (-> env-id (gym.make #** kwargs) (. unwrapped))) 
+               n-proc))
 
 (defclass VecACE []
   (defn __init__ [self envs ^int n-proc]
     (setv self.n-proc    n-proc
           self.gace-envs envs
           self.num-envs  (len envs)
-          self.pool      (ac.to-pool (lfor e self.gace-envs e.ace)))
+          ;self.pool      (ac.to-pool (lfor e self.gace-envs e.ace)))
+          self.pool      None)
 
     (setv self.action-space      (lfor e self.gace-envs e.action-space))
     (setv self.observation-space (lfor e self.gace-envs e.observation-space))
@@ -60,7 +64,7 @@
     (setv self.step 
           (fn [^(of list np.array) actions]
             (let [sizings (->> actions (zip self.gace-envs)
-                                       (ap-map (-> it (first) (.env.step-fn (second it))))
+                                       (ap-map (-> it (first) (.step-fn (second it))))
                                        (enumerate) (dict))]
               (self.size-circuit-pool sizings)))))
 
@@ -100,11 +104,11 @@
               :do (setv e.reset-count (inc e.reset-count))
 
               ;; If ace does not exist, create it.
-              ;:do (unless e.ace (setv e.ace (eval e.ace-constructor)))
-              :do (when (or (not e.ace) (= 0 (% e.reset-count e.restart-intervall)))
-                    (e.ace.stop)
-                    (setv e.ace None)
-                    (setv e.ace (eval e.ace-constructor)))
+              :do (unless e.ace (setv e.ace (eval e.ace-constructor)))
+              ;:do (when (or (not e.ace) (= 0 (% e.reset-count e.restart-intervall)))
+              ;      (e.ace.stop)
+              ;      (setv e.ace None)
+              ;      (setv e.ace (eval e.ace-constructor)))
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints
@@ -113,6 +117,8 @@
 
               ;; Starting parameters are either random or close to a known solution.
               (starting-point e.ace e.random-target e.noisy-target))))
+
+        _ (setv self.pool (ac.to-pool (lfor e self.gace-envs e.ace)))
 
         performances (ac.evaluate-circuit-pool self.pool 
                                                :pool-params parameters 

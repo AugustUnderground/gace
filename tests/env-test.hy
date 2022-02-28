@@ -33,7 +33,11 @@
 ;(setv obs (.reset envs [7 3 29]))
 (setv (, o r _ _) (envs.random-step))
 
-(dfor (, i e) (enumerate envs) [i (ac.current-performance e.ace)])
+(for [_ (range 10)] (envs.step (dfor (, i a) (enumerate envs.action-space) [i (a.sample)])))
+
+
+
+
 
 
 (get envs.info 0 "output-parameters")
