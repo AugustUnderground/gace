@@ -22,7 +22,9 @@
 (setv (, o r d i) (env.random-step))
 (setv sizing (ac.initial-sizing env.ace))
 
-(len (env.action-space.sample))
+(setx act (env.action-space.sample))
+(setv (, o r d i) (env.step act))
+
 
 
 

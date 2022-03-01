@@ -263,8 +263,13 @@
         perf-loss (+ (* (np.tanh (np.abs dist)) mask) 
                      (* (- (np.abs dist)) (np.invert mask))) 
 
-        action-loss (-> (lfor a (.keys last-action)
-                                (/ (-  (get last-action a) (get curr-perf a)) 
+        last-act    (dfor (, k v) (.items last-action) 
+                          [k (cond [(.endswith k ":fug") (np.power 10 v)]
+                                   [(.endswith k ":id") (* v 1e-6)] 
+                                   [True v])])
+
+        action-loss (-> (lfor a (.keys last-act)
+                                (/ (-  (get last-act a) (get curr-perf a)) 
                                    (get curr-perf a)))
                      (np.array) (np.sum))
 
@@ -329,8 +334,13 @@
                   (-> worse (.astype float) (* -1.0))
                   (-> worst (.astype float) (* -3.0)))
         
-        act-loss (-> (lfor a (.keys last-action)
-                             (/ (-  (get last-action a) (get curr-perf a)) 
+        last-act    (dfor (, k v) (.items last-action) 
+                          [k (cond [(.endswith k ":fug") (np.power 10 v)]
+                                   [(.endswith k ":id") (* v 1e-6)] 
+                                   [True v])])
+
+        act-loss (-> (lfor a (.keys last-act)
+                             (/ (-  (get last-act a) (get curr-perf a)) 
                                 (get curr-perf a)))
                      (np.array) (np.sum))
 
@@ -402,8 +412,13 @@
                          prev-mask)
                       improv-fact)) 
 
-        act-loss (-> (lfor a (.keys last-action)
-                             (/ (-  (get last-action a) (get curr-perf a)) 
+        last-act    (dfor (, k v) (.items last-action) 
+                          [k (cond [(.endswith k ":fug") (np.power 10 v)]
+                                   [(.endswith k ":id") (* v 1e-6)] 
+                                   [True v])])
+
+        act-loss (-> (lfor a (.keys last-act)
+                             (/ (-  (get last-act a) (get curr-perf a)) 
                                 (get curr-perf a)))
                      (np.array) (np.sum))
 
