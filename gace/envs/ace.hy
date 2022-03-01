@@ -73,7 +73,7 @@
           self.ace             (eval self.ace-constructor))
 
     ;; Obtain design constraints from ACE backend and override if given
-    (setv dc (design-constraints self.ace)
+    (setv dc (design-constraints self.ace self.ace-id)
           self.design-constraints (dfor k (.keys dc) 
                                           [k (.get design-constr k 
                                                    (get dc k))]))

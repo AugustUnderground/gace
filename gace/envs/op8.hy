@@ -40,9 +40,21 @@
     (let [unscaled-action (unscale-value action self.action-scale-min 
                                                 self.action-scale-max)
       
-          (, gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1 
-             fug-cm5  fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1  
-             i1 i2 i3 i4 ) unscaled-action
+          ;(, gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1 
+          ;   fug-cm5  fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1  
+          ;   i1 i2 i3 i4 ) unscaled-action
+
+          (, gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2
+             gmid-cm1 gmid-dp1)                   (as-> unscaled-action it
+                                                      (get it (slice None 6)))
+          (, fug-cm5  fug-cm4  fug-cm3  fug-cm2
+             fug-cm1  fug-dp1)                    (as-> unscaled-action it
+                                                      (get it (slice 6 12))
+                                                      (np.power 10 it))
+          (, i1 i2 i3 i4)                         (as-> unscaled-action it
+                                                      (get it (slice -4 None))
+                                                      (np.array it)
+                                                      (* it 1e-6))
 
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")

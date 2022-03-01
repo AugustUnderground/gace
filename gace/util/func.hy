@@ -545,7 +545,7 @@
                                         (num-params "r" ip))
                              (np.repeat (get dc "cc" "min")  
                                         (num-params "c" ip))
-                             (np.repeat (/ (get dc "i0" "init") 3.0) 
+                             (np.repeat (* (get dc "i0" "init") 0.3 1e6)
                                         (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
@@ -567,7 +567,7 @@
                                         (num-params "r" ip))
                              (np.repeat (get dc "cc" "max")  
                                         (num-params "c" ip))
-                             (np.repeat (* (get dc "i0" "init") 5.0) 
+                             (np.repeat (* (get dc "i0" "init") 5.0 1e6) 
                                         (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
@@ -581,7 +581,7 @@
 
     (, space scale-min scale-max)))
 
-(defn design-constraints ^dict [ace]
+(defn design-constraints ^dict [ace ^str ace-id]
   """
   Returns a dictionary containing technology constraints.
   """
@@ -591,10 +591,10 @@
                       "max"  25.0
                       "min"  5.0
                       "grid" 0.1 }
-         "fug" { "init" 1.0e8
-                 "max"  1.0e9
-                 "min"  1.0e6
-                 "grid" 1e4 }
+         "fug" { "init" 7.5 ;; 1.0e8
+                 "max"  9.5 ;; 1.0e9
+                 "min"  5.5 ;; 1.0e6
+                 "grid" 0.1 }
          "rc"  { "init" 5e3
                  "max"  50e3
                  "min"  0.5e3
