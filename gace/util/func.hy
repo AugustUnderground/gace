@@ -588,7 +588,7 @@
   (-> ace ;(ac.is-pool-env) (if (first ace.envs) ace)
     (ac.parameter-dict)
     (| { "gmoverid" { "init" 10.0
-                      "max"  25.0
+                      "max"  15.0
                       "min"  5.0
                       "grid" 0.1 }
          "fug" { "init" 7.5 ;; 1.0e8
