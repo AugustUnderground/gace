@@ -17,6 +17,19 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+(setv env (gym.make "gace:nand4-xh035-v1"))
+(env.reset)
+;; Wp=10e-6 Wn0=3.755e-6 Wn1=6.6e-06 Wn2=12.0e-06 Wn3=19.65e-06
+(setx action (gace.scale-value (np.array [3.755e-6 10e-6 12.0e-6 6.6e-6 19.65e-6]) env.action-scale-min env.action-scale-max))
+
+
+(setv (, o r d i) (env.step action))
+
+
+
+
+
+
 (setv env (gym.make "gace:op2-xh035-v0"))
 (env.reset)
 (setv (, o r d i) (env.random-step))
@@ -26,6 +39,48 @@
 (setv (, o r d i) (env.step act))
 
 
+
+
+(setv p (ac.current-performance env.ace))
+
+(pp (setx ra (dfor k (get env.info "actions") 
+    [k (cond [(.endswith k ":fug") (np.log10 (get p k))]
+             [(.endswith k ":id") (* (get p k) 1e6)]
+             [True (get p k)])])))
+
+(setx sa (gace.scale-value (np.array (list (.values ra))) env.action-scale-min env.action-scale-max))
+
+(setv (, o r d i) (env.step sa))
+
+(setv p1 (ac.current-performance env.ace))
+(setx ra1 (dfor k (get env.info "actions") [k (get p1 k)]))
+
+(pp (setx ra1 (dfor k (get env.info "actions") 
+    [k (cond [(.endswith k ":fug") (np.log10 (get p1 k))]
+             [(.endswith k ":id") (* (get p1 k) 1e6)]
+             [True (get p1 k)])])))
+
+(pp ra)
+(pp ra1)
+
+(pp (dfor k (.keys ra) [k (round (abs (/ (- (get ra k) (get ra1 k)) (get ra k))) :ndigits 2)] ))
+
+(setv vs ["MNCM11:vgs" "MNCM11:vds" "MNCM11:vbs" 
+       "MPCM221:vgs" "MPCM221:vds" "MPCM221:vbs" 
+       "MNCM31:vgs" "MNCM31:vds" "MNCM31:vbs"
+       "MND11:vgs" "MND11:vds" "MND11:vbs"])
+
+(pp (setx va (dfor v vs [v (get p1 v)])))
+
+
+(setv (, idoverw l gdsoverw vgs) (.tolist (.squeeze (env.pmos.predict (np.array [[ 9.97 (np.power 10 7.645) 1.0 0.0 ]])))))
+
+(setv ids ["MNCM11:id" "MPCM221:id" "MNCM31:id" "MND11:id"])
+(pp (setx ia (dfor i ids [i (get p1 i)])))
+
+(setv w (/ 3e-6 idoverw))
+
+(pp  (ac.current-sizing env.ace))
 
 
 (setv n 5)

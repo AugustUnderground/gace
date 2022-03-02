@@ -282,8 +282,13 @@
         not-finished (np.sum (np.invert mask))
       #_/ ]
 
-    (-> perf-loss (np.nan-to-num) (np.sum) (+ finish-bonus) (- not-finished) 
-                  (- action-loss) (- sizing-loss))))
+    (-> perf-loss (np.nan-to-num) (np.sum) 
+                 (+ finish-bonus) 
+                 (- not-finished) 
+                 (- action-loss) 
+                 ;(- sizing-loss)
+                 ;(- step-loss)
+    #_/ )))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
