@@ -17,6 +17,18 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+(setv env (gym.make "gace:op2-xh035-v0"))
+(setv o (env.reset))
+(setv (, o r d i) (env.random-step))
+(setv sizing (ac.initial-sizing env.ace))
+
+(setx act (env.action-space.sample))
+(setv (, o r d i) (env.step act))
+
+
+
+
+
 (setv env (gym.make "gace:nand4-xh035-v1"))
 (env.reset)
 ;; Wp=10e-6 Wn0=3.755e-6 Wn1=6.6e-06 Wn2=12.0e-06 Wn3=19.65e-06
@@ -28,15 +40,6 @@
 
 
 
-
-
-(setv env (gym.make "gace:op2-xh035-v0"))
-(env.reset)
-(setv (, o r d i) (env.random-step))
-(setv sizing (ac.initial-sizing env.ace))
-
-(setx act (env.action-space.sample))
-(setv (, o r d i) (env.step act))
 
 
 

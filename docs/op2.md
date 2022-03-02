@@ -8,11 +8,11 @@ Registered as `gace:op2-<tech>-<variant>`.
 
 | Technology | Dimensions     |
 |------------|----------------|
-| `xh035`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
-| `xh018`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
-| `xt018`    | `ℝ²⁰⁶∈(-∞ ;∞)` |
-| `sky130`   | `ℝ²⁶⁶∈(-∞ ;∞)` |
-| `gpdk180`  | `ℝ³⁰⁶∈(-∞ ;∞)` |
+| `xh035`    | `ℝ²¹⁴∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²¹⁴∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²¹⁴∈(-∞ ;∞)` |
+| `sky130`   | `ℝ²⁷⁴∈(-∞ ;∞)` |
+| `gpdk180`  | `ℝ³¹⁴∈(-∞ ;∞)` |
 
 For details see the `output-parameters` field of the `info` dictionary
 returned by `step()`.
@@ -21,21 +21,21 @@ returned by `step()`.
 # xh035
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (206 , )
+              , shape = (214 , )
               , dtype = np.float32
               , )
 
 # sky130
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (266 , )
+              , shape = (274 , )
               , dtype = np.float32
               , )
 
 # gpdk180
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (306 , )
+              , shape = (314 , )
               , dtype = np.float32
               , )
 ```
