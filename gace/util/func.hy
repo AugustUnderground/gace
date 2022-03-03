@@ -446,7 +446,7 @@
                               (get sp p))
         ;; Target Parameters
         tg (->> target (.keys) (map #%(.format "target_{}" %1)) (list) (sorted))
-        dt (lfor t tg (.format "delta_{}" t))]
+        dt (lfor t (.keys target) (.format "delta_{}" t))]
   {"observations" (+ pf tg dt op os nd ["steps" "max-steps"])
    "actions" inputs}))
 
