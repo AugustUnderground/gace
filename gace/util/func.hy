@@ -445,7 +445,7 @@
                                  "node-voltages" "performance"] 
                               (get sp p))
         ;; Target Parameters
-        tg (-> target (.keys) (list) (sorted))
+        tg (->> target (.keys) (map #%(.format "target_{}" %1)) (list) (sorted))
         dt (lfor t tg (.format "delta_{}" t))]
   {"observations" (+ pf tg dt op os nd ["steps" "max-steps"])
    "actions" inputs}))
