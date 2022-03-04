@@ -49,8 +49,8 @@
     (setv self.n-proc    n-proc
           self.gace-envs envs
           self.num-envs  (len envs)
-          ;self.pool      (ac.to-pool (lfor e self.gace-envs e.ace)))
-          self.pool      None)
+          self.pool      (ac.to-pool (lfor e self.gace-envs e.ace)))
+          ;self.pool      None)
 
     (setv self.action-space      (lfor e self.gace-envs e.action-space))
     (setv self.observation-space (lfor e self.gace-envs e.observation-space))
@@ -87,7 +87,8 @@
   """
     (self.step (lfor as self.action-space (-> as (.sample)))))
 
-  (defn reset ^np.array [self &optional ^(of list int) [env-ids []]]
+  (defn reset ^np.array [self &optional ^(of list int) [env-ids []]
+                                        ^(of list bool) [done-mask None]]
     """
     If not running, this creates a new spectre session. The `moves` counter is
     reset, while the reset counter is increased. If `same-target` is false, a
@@ -95,9 +96,12 @@
 
     Finally, a simulation is run and the observed perforamnce returned.
     """
-    (let [envs (if env-ids (lfor i env-ids (get self.gace-envs i)) self.gace-envs)
-          targets (lfor e envs e.target)
-          ;_ (lfor e envs (print e.ace))
+    (let [envs (cond [env-ids (lfor i env-ids (get self.gace-envs i))]
+                     [(and done-mask (= (len done-mask) self.num-envs))
+                      (lfor (, i d) (enumerate done-mask) :if d
+                            (get self.gace-envs i))]
+                     [True self.gace-envs])
+
           parameters (dict (enumerate (lfor e envs
               ;; Reset the step counter and increase the reset counter.
               :do (setv e.num-steps (int 0))
@@ -105,10 +109,6 @@
 
               ;; If ace does not exist, create it.
               :do (unless e.ace (setv e.ace (eval e.ace-constructor)))
-              ;:do (when (or (not e.ace) (= 0 (% e.reset-count e.restart-intervall)))
-              ;      (e.ace.stop)
-              ;      (setv e.ace None)
-              ;      (setv e.ace (eval e.ace-constructor)))
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints
@@ -118,11 +118,13 @@
               ;; Starting parameters are either random or close to a known solution.
               (starting-point e.ace e.random-target e.noisy-target))))
 
-        _ (setv self.pool (ac.to-pool (lfor e self.gace-envs e.ace)))
+        ;; Only simulate sub-pool of reset envs
+        sub-pool (ac.to-pool (lfor e envs e.ace))
+        _ (ac.evaluate-circuit-pool sub-pool :pool-params parameters 
+                                             :npar self.n-proc)
 
-        performances (ac.evaluate-circuit-pool self.pool 
-                                               :pool-params parameters 
-                                               :npar self.n-proc)]
+        ;; Get the current performance from all envs in entire pool
+        performances (ac.current-performance-pool self.pool)]
 
     ;;Target Logging 
     (for [(, i e) (enumerate self.gace-envs)]
@@ -131,12 +133,14 @@
 
     (setv self.info 
         (lfor (, p (, t i)) (zip (.values performances)
-                                 (lfor e envs (, e.target e.input-parameters)))
+                                 (lfor e self.gace-envs (, e.target e.input-parameters)))
               (info p t i) ))
 
-    (list (ap-map (observation #* it) (zip (.values performances) 
-                                           targets (repeat 0) 
-                                           (lfor e envs e.max-steps))))))
+    (list (ap-map (observation #* it) 
+                  (zip (.values performances) 
+                       #* (zip #* (lfor e self.gace-envs (, e.target 
+                                                      e.num-steps 
+                                                      e.max-steps))))))))
 
   (defn size-circuit-pool [self sizings]
     (let [(, targets conds reward-fns inputs steps max-steps last-actions) 
@@ -156,7 +160,7 @@
           curr-sizings (-> self (. pool) (ac.current-sizing-pool) (.values))
           set-sizings  (.values sizings)
 
-          obs (lfor (, cp tp ns ms) (zip curr-perfs targets steps max-steps)
+          obs (lfor (, cp tp ns ms) (zip curr-perfs targets (map inc steps) max-steps)
                     (observation cp tp ns ms))
 
           rew (lfor (, rf cp pp t c cs ss a s m) 

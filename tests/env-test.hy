@@ -17,6 +17,31 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+(setv n 5)
+(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
+;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 
+(setv obs (.reset envs))
+;(setv obs (.reset envs [7 3 29]))
+(setv (, o0 r d _) (envs.random-step))
+
+(setv o1 (envs.reset :done-mask d))
+
+
+(setv o2 (envs.reset :done-mask [True False False False False]))
+
+(for [_ (range 10)] (envs.step (dfor (, i a) (enumerate envs.action-space) [i (a.sample)])))
+
+
+(setv env (get (list envs) 3))
+
+(get env.data-log "performance")
+
+
+
+
+
+
+
 (setv env (gym.make "gace:op2-xh035-v0"))
 (setv o (env.reset))
 (setv (, o r d i) (env.random-step))
@@ -29,7 +54,7 @@
 
 
 
-(setv env (gym.make "gace:nand4-xh035-v1"))
+(setv env (gym.make "gace:nand4-xh035-v1" :reltol 0.01 :noisy-target False :random-target False))
 (env.reset)
 ;; Wp=10e-6 Wn0=3.755e-6 Wn1=6.6e-06 Wn2=12.0e-06 Wn3=19.65e-06
 (setx action (gace.scale-value (np.array [3.755e-6 10e-6 12.0e-6 6.6e-6 19.65e-6]) env.action-scale-min env.action-scale-max))
@@ -85,20 +110,6 @@
 
 (pp  (ac.current-sizing env.ace))
 
-
-(setv n 5)
-(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
-;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 
-(setv obs (.reset envs))
-;(setv obs (.reset envs [7 3 29]))
-(setv (, o r _ _) (envs.random-step))
-
-(for [_ (range 10)] (envs.step (dfor (, i a) (enumerate envs.action-space) [i (a.sample)])))
-
-
-(setv env (get (list envs) 3))
-
-(get env.data-log "performance")
 
 
 
