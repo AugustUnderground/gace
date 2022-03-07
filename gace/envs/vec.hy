@@ -26,10 +26,11 @@
 
 (setv DEFAULT_N_PROC (-> 0 (os.sched-getaffinity) (len) (// 2)))
 
-(defn vector-make [envs &optional ^int [n-proc DEFAULT_N_PROC]]
+(defn vector-make [^list envs &optional ^int [n-proc DEFAULT_N_PROC]]
   """
   Takes a list of gace environments and returns a 'vectorized' version thereof.
   """
+  ;(-> envs (enumerate) (dict) (VecACE n-proc)))
   (VecACE envs n-proc))
 
 (defn vector-make-same [^str env-id ^int num-envs 
@@ -39,18 +40,17 @@
   environemnt, with n times the given id. 
     Short hand for: `vector_make([gym.make(env_id) for _ range(num_envs)])`
   """
-  ;(vector-make (list (take num-envs (repeatedly #%(gym.make env-id #** kwargs)))) n-proc))
   (vector-make (lfor _ (range num-envs) 
-                       (-> env-id (gym.make #** kwargs) (. unwrapped))) 
-               n-proc))
+                     (-> env-id (gym.make #** kwargs) (. unwrapped))) 
+               :n-proc n-proc))
 
 (defclass VecACE []
-  (defn __init__ [self envs ^int n-proc]
+  (defn __init__ [self ^list envs ^int n-proc]
     (setv self.n-proc    n-proc
           self.gace-envs envs
           self.num-envs  (len envs)
-          self.pool      (ac.to-pool (lfor e self.gace-envs e.ace)))
-          ;self.pool      None)
+          self.ace-envs  (dfor (, i e) (enumerate self.gace-envs) [i e.ace])
+          #_/ )
 
     (setv self.action-space      (lfor e self.gace-envs e.action-space))
     (setv self.observation-space (lfor e self.gace-envs e.observation-space))
@@ -58,8 +58,6 @@
     ;; Environment Logging
     (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
           self.base-log-path f"/tmp/{(.getlogin os)}/gace/{time-stamp}-pool")
-    ;(for [(, i env) (enumerate self.gace-envs)]
-    ;  (setv env.data-log-path f"{self.base-log-path}/env_{i}"))
 
     (setv self.step 
           (fn [^(of list np.array) actions]
@@ -96,13 +94,13 @@
 
     Finally, a simulation is run and the observed perforamnce returned.
     """
-    (let [envs (cond [env-ids (lfor i env-ids (get self.gace-envs i))]
+    (let [envs (cond [env-ids (dfor i env-ids [i (get self.gace-envs i)])]
                      [(and done-mask (= (len done-mask) self.num-envs))
-                      (lfor (, i d) (enumerate done-mask) :if d
-                            (get self.gace-envs i))]
-                     [True self.gace-envs])
+                      (dfor (, i d) (enumerate done-mask) :if d
+                            [i (get self.gace-envs i)])]
+                     [True (dict (enumerate self.gace-envs))])
 
-          parameters (dict (enumerate (lfor e envs
+          parameters (dfor (, i e) (.items envs)
               ;; Reset the step counter and increase the reset counter.
               :do (setv e.num-steps (int 0))
               :do (setv e.reset-count (inc e.reset-count))
@@ -116,19 +114,19 @@
                                                     :noisy e.noisy-target))
 
               ;; Starting parameters are either random or close to a known solution.
-              (starting-point e.ace e.random-target e.noisy-target))))
+              [i (starting-point e.ace e.random-target e.noisy-target)])
 
-        ;; Only simulate sub-pool of reset envs
-        sub-pool (ac.to-pool (lfor e envs e.ace))
-        _ (ac.evaluate-circuit-pool sub-pool :pool-params parameters 
-                                             :npar self.n-proc)
-
-        ;; Get the current performance from all envs in entire pool
-        performances (ac.current-performance-pool self.pool)]
+          ;; Only simulate sub-pool of reset envs
+          performances (if parameters
+                           (ac.evaluate-circuit-pool self.ace-envs
+                                                     :pool-params parameters
+                                                     :pool-ids env-ids
+                                                     :npar self.n-proc)
+                           (ac.current-performance-pool self.ace-envs)) ]
 
     ;;Target Logging 
     (for [(, i e) (enumerate self.gace-envs)]
-      (when e.logging-enabled 
+      (when e.logging-enabled
         (e.log-target :log-path (.format "{}/env_{}" self.base-log-path i))))
 
     (setv self.info 
@@ -138,9 +136,8 @@
 
     (list (ap-map (observation #* it) 
                   (zip (.values performances) 
-                       #* (zip #* (lfor e self.gace-envs (, e.target 
-                                                      e.num-steps 
-                                                      e.max-steps))))))))
+                       #* (zip #* (lfor e self.gace-envs 
+                                        (, e.target e.num-steps e.max-steps))))))))
 
   (defn size-circuit-pool [self sizings]
     (let [(, targets conds reward-fns inputs steps max-steps last-actions) 
@@ -150,14 +147,14 @@
                                                   e.num-steps e.max-steps
                                                   e.last-action)))
 
-          prev-perfs (-> self (. pool) (ac.current-performance-pool) (.values))
+          prev-perfs (-> self (. ace-envs) (ac.current-performance-pool) (.values))
              
-          curr-perfs (-> self (. pool) 
-                              (ac.evaluate-circuit-pool :pool-params sizings 
-                                                        :npar self.n-proc) 
-                              (.values))
+          curr-perfs (-> self (. ace-envs) 
+                             (ac.evaluate-circuit-pool :pool-params sizings 
+                                                       :npar self.n-proc) 
+                             (.values))
           
-          curr-sizings (-> self (. pool) (ac.current-sizing-pool) (.values))
+          curr-sizings (-> self (. ace-envs) (ac.current-sizing-pool) (.values))
           set-sizings  (.values sizings)
 
           obs (lfor (, cp tp ns ms) (zip curr-perfs targets (map inc steps) max-steps)

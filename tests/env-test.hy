@@ -24,10 +24,26 @@
 ;(setv obs (.reset envs [7 3 29]))
 (setv (, o0 r d _) (envs.random-step))
 
+(first o0)
+(second o0)
+
 (setv o1 (envs.reset :done-mask d))
 
+(first o1)
+(second o1)
 
-(setv o2 (envs.reset :done-mask [True False False False False]))
+(setv o2 (envs.reset :done-mask [True False True False False]))
+
+(first o2)
+(second o2)
+
+(get o0 1)
+(get o1 1)
+(get o2 1)
+
+(get o0 2)
+(get o1 2)
+(get o2 2)
 
 (for [_ (range 10)] (envs.step (dfor (, i a) (enumerate envs.action-space) [i (a.sample)])))
 
