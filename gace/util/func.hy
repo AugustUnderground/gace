@@ -144,15 +144,20 @@
   (let [targets    (-> target (.keys) (list) (sorted))
 
         ;; Convert Gain from dB into absolute
-        perf (np.array (lfor pp targets 
-                             (if (= pp "a_0")
-                                 (np.power 10 (/ (get performance pp) 20.0))
-                                 (get performance pp))))
+        ;perf (np.array (lfor pp targets 
+        ;                     (if (= pp "a_0")
+        ;                         (np.power 10 (/ (get performance pp) 20.0))
+        ;                         (get performance pp))))
 
-        targ (np.array (lfor pp targets 
-                             (if (= pp "a_0")
-                                 (np.power 10 (/ (get target pp) 20.0))
-                                 (get target pp))))
+        ;targ (np.array (lfor pp targets 
+        ;                     (if (= pp "a_0")
+        ;                         (np.power 10 (/ (get target pp) 20.0))
+        ;                         (get target pp))))
+
+        ;perf (np.nan-to-num (np.array (lfor pp targets (get performance pp))))
+        ;targ (np.nan-to-num (np.array (lfor pp targets (get target pp))))
+        perf (np.array (lfor pp targets (get performance pp)))
+        targ (np.array (lfor pp targets (get target pp)))
 
         crit (if condition (lfor pp targets (get condition pp)) [])
         
@@ -244,7 +249,7 @@
                               ^(of dict str float) set-sizing
                               ^(of dict str float) last-action
                               ^int steps ^int max-steps
-                              &optional ^float [bonus 10.0]]
+                              &optional ^float [bonus 100.0]]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
@@ -260,8 +265,12 @@
   """
   (let [(, dist mask) (target-distance curr-perf target condition)
 
-        perf-loss (+ (* (np.tanh (np.abs dist)) mask) 
-                     (* (- (np.abs dist)) (np.invert mask))) 
+        d         (+ (* (np.abs dist) mask) 
+                     (* (- (np.abs dist)) (np.invert mask)))
+        perf-loss (+ (- (np.exp (- d))) 1.0)
+
+        ;perf-loss   (+ (* (np.tanh (np.abs dist)) mask) 
+        ;               (* (- (np.abs dist)) (np.invert mask))) 
 
         last-act    (dfor (, k v) (.items last-action) 
                           [k (cond [(.endswith k ":fug") (np.power 10 v)]
@@ -271,35 +280,46 @@
         action-loss (-> (lfor a (.keys last-act)
                                 (/ (-  (get last-act a) (get curr-perf a)) 
                                    (get curr-perf a)))
-                     (np.array) (np.sum))
+                        (np.array) (np.sum))
 
         sizing-loss (-> (lfor s (.keys curr-sizing)
-                                (/ (-  (get set-sizing s) (get curr-sizing s)) 
+                                (/ (- (get set-sizing s) (get curr-sizing s)) 
                                    (get curr-sizing s)))
-                     (np.array) (np.sum))
-        step-loss    steps
-        finish-bonus (np.sum (* (and (np.all mask) (<= steps max-steps)) bonus))
-        not-finished (np.sum (np.invert mask))
-      #_/ ]
+                        (np.array) (np.sum))
 
-    (-> perf-loss (np.nan-to-num) (np.sum) 
-                 (+ finish-bonus) 
-                 (- not-finished) 
-                 (- action-loss) 
-                 ;(- sizing-loss)
-                 ;(- step-loss)
-    #_/ )))
+        step-loss    (* steps 0.0666)
+
+        finish-bonus (np.sum (* (np.all mask) bonus))
+
+        finish-fail  (* (or (np.all (np.invert mask)) (> steps max-steps)) 
+                           bonus)
+        reward (if (> finish-fail 0.0)
+                   (- finish-fail)
+                   (-> perf-loss (np.sum) (- action-loss)
+                                (+ finish-bonus)
+                                (- finish-fail)
+                                (- step-loss)
+                                #_/ ))
+        #_/ ]
+    (when (np.isnan reward) 
+      (setv tk    (-> target (.keys) (list) (sorted))
+        perf (dfor pp tk [ pp (get curr-perf pp) ]))
+      (print "")
+      (pp perf)
+      (print last-action)
+      (print ""))
+    reward))
 
 (defn simple-reward ^float [^(of dict str float) curr-perf
-                              ^(of dict str float) prev-perf
-                              ^(of dict str float) target
-                              ^(of dict) condition
-                              ^(of dict str float) curr-sizing
-                              ^(of dict str float) set-sizing
-                              ^(of dict str float) last-action
-                              ^int steps ^int max-steps
-                              &optional ^float [bonus 10.0]
-                                        ^float [improv-fact 2.0]]
+                            ^(of dict str float) prev-perf
+                            ^(of dict str float) target
+                            ^(of dict) condition
+                            ^(of dict str float) curr-sizing
+                            ^(of dict str float) set-sizing
+                            ^(of dict str float) last-action
+                            ^int steps ^int max-steps
+                            &optional ^float [bonus 10.0]
+                                      ^float [improv-fact 2.0]]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:

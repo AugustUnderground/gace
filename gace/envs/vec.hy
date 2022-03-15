@@ -124,6 +124,9 @@
                                                      :npar self.n-proc)
                            (ac.current-performance-pool self.ace-envs)) ]
 
+    ;; Targets of pooled envs
+    (setv self.targets (lfor e self.gace-envs e.target))
+
     ;;Target Logging 
     (for [(, i e) (enumerate self.gace-envs)]
       (when e.logging-enabled
@@ -147,14 +150,16 @@
                                                   e.num-steps e.max-steps
                                                   e.last-action)))
 
-          prev-perfs (-> self (. ace-envs) (ac.current-performance-pool) (.values))
+          prev-perfs (-> self (. ace-envs) (ac.current-performance-pool) 
+                              (.values))
              
           curr-perfs (-> self (. ace-envs) 
-                             (ac.evaluate-circuit-pool :pool-params sizings 
-                                                       :npar self.n-proc) 
-                             (.values))
+                              (ac.evaluate-circuit-pool :pool-params sizings 
+                                                        :npar self.n-proc) 
+                              (.values))
           
           curr-sizings (-> self (. ace-envs) (ac.current-sizing-pool) (.values))
+
           set-sizings  (.values sizings)
 
           obs (lfor (, cp tp ns ms) (zip curr-perfs targets (map inc steps) max-steps)
@@ -169,6 +174,7 @@
                             (zip curr-perfs targets conds)))
 
           ss  (lfor e self.gace-envs (>= (inc e.num-steps) e.max-steps))
+
           don (list (ap-map (or #* it) (zip td ss))) 
 
           inf (list (ap-map (info #* it) (zip curr-perfs targets inputs)))]
