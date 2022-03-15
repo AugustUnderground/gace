@@ -295,10 +295,12 @@
                            bonus)
         reward (if (> finish-fail 0.0)
                    (- finish-fail)
-                   (-> perf-loss (np.sum) (- action-loss)
+                   (-> perf-loss (np.sum)
+                                (- action-loss)
                                 (+ finish-bonus)
                                 (- finish-fail)
                                 (- step-loss)
+                                (.item) 
                                 #_/ ))
         #_/ ]
     (when (np.isnan reward) 
