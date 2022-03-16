@@ -17,6 +17,11 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+
+(setv foo (ft.read-table "/tmp/uhlmanny/gace/20220315-180914-pool/env_0/performance.ft"))
+(setv writer (f))
+
+
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
 ;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 

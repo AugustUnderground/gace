@@ -113,6 +113,11 @@
                                                     :random e.random-target 
                                                     :noisy e.noisy-target))
 
+              ;; Reset / Clear data log
+              :do (when e.logging-enabled
+                    (setv e.data-log (initialize-data-log e.ace e.target e.reset-count))
+                    (e.log-target e.target))
+
               ;; Starting parameters are either random or close to a known solution.
               [i (starting-point e.ace e.random-target e.noisy-target)])
 

@@ -143,10 +143,9 @@
     ;; Data Logging
     (setv self.logging-enabled logging-enabled)
     (when self.logging-enabled
-      (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
-            self.data-log-path (or data-log-path 
-                                   f"/tmp/{(.getlogin os)}/gace/{time-stamp}-{ace-id}/env_0")
-            self.data-log (initialize-data-log self.ace self.target self.reset-count)))
+      (setv ts (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
+            dlp f"/tmp/{(.getlogin os)}/gace/{ts}-{ace-id}/env_0"
+            self.data-log-path (or data-log-path dlp)))
 
     ;; Override step function
     (setv self.step-fn (cond [(= self.ace-variant 0) self.step-v0] 
@@ -232,6 +231,7 @@
 
     ;; Data Logging
     (when self.logging-enabled
+      (setv self.data-log (initialize-data-log self.ace self.target self.reset-count))
       (self.log-target self.target))
 
     (observation performance self.target 0 self.max-steps))
