@@ -6,8 +6,6 @@
 (import [fractions [Fraction]])
 
 (import [numpy :as np])
-(import [pyarrow :as pa])
-(import [pyarrow [feather :as ft]])
 
 (import gym)
 
@@ -30,7 +28,6 @@
   """
   Takes a list of gace environments and returns a 'vectorized' version thereof.
   """
-  ;(-> envs (enumerate) (dict) (VecACE n-proc)))
   (VecACE envs n-proc))
 
 (defn vector-make-same [^str env-id ^int num-envs 
@@ -58,6 +55,11 @@
     ;; Environment Logging
     (setv time-stamp (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
           self.base-log-path f"/tmp/{(.getlogin os)}/gace/{time-stamp}-pool")
+    (for [(, i e) (enumerate self.gace-envs)]
+      (when e.logging-enabled
+        (os.system f"rm -rf {e.data-log-path}")
+        (setv e.data-log-path (.format "{}/env_{}" self.base-log-path i)
+              e.data-logger (initialize-data-logger e.ace e.target e.data-log-path))))
 
     (setv self.step 
           (fn [^(of list np.array) actions]
@@ -113,9 +115,9 @@
                                                     :random e.random-target 
                                                     :noisy e.noisy-target))
 
-              ;; Reset / Clear data log
+              ;; Log new target
               :do (when e.logging-enabled
-                    (setv e.data-log (initialize-data-log e.ace e.target e.reset-count))
+                    ;(setv e.data-log (initialize-data-log e.ace e.target e.reset-count))
                     (e.log-target e.target))
 
               ;; Starting parameters are either random or close to a known solution.
@@ -132,15 +134,10 @@
     ;; Targets of pooled envs
     (setv self.targets (lfor e self.gace-envs e.target))
 
-    ;;Target Logging 
-    (for [(, i e) (enumerate self.gace-envs)]
-      (when e.logging-enabled
-        (e.log-target :log-path (.format "{}/env_{}" self.base-log-path i))))
-
     (setv self.info 
         (lfor (, p (, t i)) (zip (.values performances)
                                  (lfor e self.gace-envs (, e.target e.input-parameters)))
-              (info p t i) ))
+              (info p t i)))
 
     (list (ap-map (observation #* it) 
                   (zip (.values performances) 
@@ -191,7 +188,8 @@
       (for [(, i e s p r) (zip (-> self.num-envs (range) (list)) 
                              self.gace-envs curr-sizings curr-perfs rew)]
         (when e.logging-enabled 
-          (e.log-data s p r (.format "{}/env_{}" self.base-log-path i))))
+          (e.log-data s p r)))
+          ;(e.log-data s p r (.format "{}/env_{}" self.base-log-path i))))
 
       (, obs rew don inf)))
 

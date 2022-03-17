@@ -9,8 +9,7 @@
 (import [decimal [Decimal]])
 
 (import [numpy :as np])
-(import [pyarrow :as pa])
-(import [pyarrow [feather :as ft]])
+(import [csv [DictWriter]])
 (import [gym.spaces [Dict Box Discrete MultiDiscrete Tuple]])
 
 (import [.prim [*]])
@@ -472,23 +471,33 @@
   {"observations" (+ pf tg dt op os nd ["steps" "max-steps"])
    "actions" inputs}))
 
-(defn initialize-data-log [ace-env target reset-count]
-  (let [performance (ac.performance-identifiers ace-env)
-        pi (+ ["episode" "step"] (list (reduce + (.values (sorted-parameters performance)))))
-        pv (list (repeat (pa.array [] :type (.float32 pa)) (len pi)))
-        ei ["episode" "step" "reward"]
-        ev (list (repeat (pa.array [] :type (.float32 pa)) (len ei)))
-        si (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
-        sv (list (repeat (pa.array [] :type (.float32 pa)) (len si)))
-        (, ti_ tv_) (list (map list 
-                               (zip #* (lfor (, i v) (.items target) 
-                                             (, i (pa.array [v] :type (.float32 pa)))))))
-        ti (+ ["episode"] ti_)
-        tv (+ [(pa.array [reset-count] :type (.int16 pa))] tv_)]
-    {"performance" (pa.table pv :names pi)
-     "environment" (pa.table ev :names ei)
-     "sizing"      (pa.table sv :names si)
-     "target"      (pa.table tv :names ti) }))
+(defn initialize-data-logger ^(of dict str str) [ace-env ^(of dict str float) target 
+                                                ^str log-path]
+  (let [p  (ac.performance-identifiers ace-env) 
+        ph (+ ["episode" "step"] (sorted (list (reduce + (.values (sorted-parameters p))))))
+        eh ["episode" "step" "reward"]
+        sh (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
+        th (+ ["episode"] (sorted (list (.keys target))))
+        pp (.format "{}/performance.csv" log-path)
+        ep (.format "{}/environment.csv" log-path)
+        sp (.format "{}/sizing.csv"      log-path)
+        tp (.format "{}/target.csv"      log-path) 
+        pk "performance"
+        ek "environment"
+        sk "sizing"
+        tk "target"
+        hs [ph eh sh th]
+        ps [pp ep sp tp]
+        ks [pk ek sk tk]
+        #_/ ]
+
+    (os.makedirs log-path :exist-ok True)
+
+    (dfor (, k p h) (zip ks ps hs )
+      :do (with [f (open p "w" :newline "\n")]
+            (setv dw (DictWriter f :fieldnames h))
+            (.writeheader dw))
+        [k p])))
 
 (defn save-state [ace ^str ace-id ^str log-path]
   (ac.dump-state ace :file-name (.format "{}/{}-parameters-{}.json" log-path ace-id

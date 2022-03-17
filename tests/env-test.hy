@@ -9,6 +9,7 @@
 (import [h5py :as h5])
 (import [pyarrow :as pa])
 (import [pyarrow [feather :as ft]])
+(import [pyarrow [parquet :as pq]])
 (import [hace :as ac])
 (import gym)
 (import gace)
@@ -17,10 +18,8 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-
 (setv foo (ft.read-table "/tmp/uhlmanny/gace/20220315-180914-pool/env_0/performance.ft"))
 (setv writer (f))
-
 
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 

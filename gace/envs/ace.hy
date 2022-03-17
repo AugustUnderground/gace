@@ -6,10 +6,7 @@
 (import [fractions [Fraction]])
 
 (import [numpy :as np])
-
-(import [pyarrow :as pa])
-(import [pyarrow [feather :as ft]])
-
+(import [csv [DictWriter]])
 (import gym)
 
 (import [gace.util.func [*]])
@@ -145,7 +142,9 @@
     (when self.logging-enabled
       (setv ts (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
             dlp f"/tmp/{(.getlogin os)}/gace/{ts}-{ace-id}/env_0"
-            self.data-log-path (or data-log-path dlp)))
+            self.data-log-path (or data-log-path dlp)
+            self.data-logger (initialize-data-logger self.ace self.target 
+                                                     self.data-log-path)))
 
     ;; Override step function
     (setv self.step-fn (cond [(= self.ace-variant 0) self.step-v0] 
@@ -231,7 +230,7 @@
 
     ;; Data Logging
     (when self.logging-enabled
-      (setv self.data-log (initialize-data-log self.ace self.target self.reset-count))
+      ;(setv self.data-log (initialize-data-log self.ace self.target self.reset-count))
       (self.log-target self.target))
 
     (observation performance self.target 0 self.max-steps))
@@ -264,67 +263,41 @@
       (setv self.num-steps steps)
       (, obs rew don inf)))
 
-  (defn log-target [self &optional ^(of dict str float) [target None] ^str [log-path None]]
-    (let [(, tn td) (list (map list (zip #* 
-            (lfor (, n t) (.items (or target self.target)) 
-                  (, n (pa.array [t] :type (.float32 pa)))))))
-          target-table (pa.table td :names tn) 
-          target-path  (.format "{}/target.ft" (or log-path self.data-log-path)) 
+  (defn log-target [self ^(of dict str float) target]
+    (let [td (| {"episode" self.reset-count} 
+                (dfor k (sorted target) [k (get target k)]))
+          tp (get self.data-logger "target")
           #_/ ]
+      (with [tf (open tp "a" :newline "\n")]
+        (setv dw (DictWriter tf :fieldnames (list (.keys td))))
+        (dw.writerow td))))
 
-      ;; Create Directory, if it doesn't exist already
-      (os.makedirs (or log-path self.data-log-path) :exist-ok True)
+  (defn log-data [self ^(of dict str float) sizing 
+                       ^(of dict str float) performance 
+                       ^float reward ]
+    (let [sd (| {"episode" self.reset-count "step" self.num-steps} 
+                (dfor k (sorted sizing) [k (get sizing k)]))
+          pd (| {"episode" self.reset-count "step" self.num-steps} 
+                (dfor k (sorted performance) [k (get performance k)]))
+          ed {"episode" self.reset-count
+              "step"    self.num-steps
+              "reward"  reward}
 
-      ;; Write Performance and sizing to disk
-      (ft.write-feather (get self.data-log "target") target-path)))
-
-  (defn log-data [self ^(of dict str float) sizing ^(of dict str float) performance 
-                  ^float reward &optional ^str [log-path None]]
-    (let [(, sn_ sd_) (list (map list (zip #* 
-              (lfor s (-> sizing (.keys) (sorted)) 
-                    (, s (pa.array [(get sizing s)] :type (.float32 pa)))))))
-          sn (+ ["episode" "step"] sn_)
-          sd (+ [(pa.array [self.reset-count] :type (.float32 pa)) 
-                 (pa.array [self.num-steps]   :type (.float32 pa))] sd_)
-          sizing-table (pa.table sd :names sn)
-          sizing-path  (.format "{}/sizing.ft" (or log-path self.data-log-path)) 
-
-          pn_ (list (reduce + (.values (sorted-parameters performance))))
-          pd_ (lfor p pn_ (pa.array [(get performance p)] :type (.float32 pa)))
-          pn (+ ["episode" "step"] pn_)
-          pd (+ [(pa.array [self.reset-count] :type (.float32 pa))
-                 (pa.array [self.num-steps]   :type (.float32 pa))] pd_)
-          performance-table (pa.table pd :names pn) 
-          performance-path  (.format "{}/performance.ft" (or log-path self.data-log-path))
-          en ["episode" "step" "reward"]
-          ed [(pa.array [self.reset-count] :type (.float32 pa))
-              (pa.array [self.num-steps]   :type (.float32 pa))
-              (pa.array [reward]           :type (.float32 pa)) ]
-          environment-table (pa.table ed :names en)
-          environment-path  (.format "{}/environment.ft" (or log-path self.data-log-path))
+          sp (get self.data-logger "sizing")
+          pp (get self.data-logger "performance")
+          ep (get self.data-logger "environment")
           #_/ ]
       
-      ;; Create Directory, if it doesn't exist already
-      (os.makedirs (or log-path self.data-log-path) :exist-ok True)
-
-      ;; Append current performance row to table
-      (setv (get self.data-log "sizing")
-                (-> [(get self.data-log "sizing") sizing-table ] 
-                    (pa.concat-tables) (.combine-chunks))
-            (get self.data-log "performance")
-                (-> [(get self.data-log "performance") performance-table ] 
-                    (pa.concat-tables) (.combine-chunks))
-            (get self.data-log "environment")
-                (-> [(get self.data-log "environment") environment-table ] 
-                    (pa.concat-tables) (.combine-chunks)))
-
-      ;; Write Performance and sizing to disk
-      (ft.write-feather (get self.data-log "performance") 
-                        performance-path)
-      (ft.write-feather (get self.data-log "sizing") 
-                        sizing-path)
-      (ft.write-feather (get self.data-log "environment") 
-                        environment-path)))
+      (with [sf (open sp "a" :newline "\n")]
+        (setv dw (DictWriter sf :fieldnames (list (.keys sd))))
+        (dw.writerow sd))
+      (with [pf (open pp "a" :newline "\n")]
+        (setv dw (DictWriter pf :fieldnames (list (.keys pd))))
+        (dw.writerow pd))
+      (with [ef (open ep "a" :newline "\n")]
+        (setv dw (DictWriter ef :fieldnames (list (.keys ed))))
+        (dw.writerow ed))
+      #_/ ))
 
   (defn render [self &optional ^str [mode "human"]]
     (print (ascii-schematic self.ace-id)))
