@@ -9,7 +9,7 @@ from gace.envs.op1 import ( OP1XH035V0Env, OP1XH035V1Env, OP1XH035V3Env
                           , )
 
 # Symmetrical Amplifier
-from gace.envs.op2 import ( OP2XH035V0Env, OP2XH035V1Env, OP2XH035V3Env
+from gace.envs.op2 import ( OP2XH035V0Env, OP2XH035V1Env, OP2XH035V2Env, OP2XH035V3Env
                           #, OP2XH018V0Env, OP2XH018V1Env, OP2XH018V3Env
                           #, OP2XT018V0Env, OP2XT018V1Env, OP2XT018V3Env
                           , OP2SKY130V0Env, OP2SKY130V1Env, OP2SKY130V3Env

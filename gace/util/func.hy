@@ -588,7 +588,7 @@
                                (.format "No action space for {}-v{}."
                                ace-id ace-variant)))])
 
-        scale-min (cond [(in ace-variant [0])   ; Absolute Electrical
+        scale-min (cond [(in ace-variant [0 2])   ; Electrical
                          (np.concatenate 
                           (, (np.repeat (get dc "gmoverid" "min") 
                                         (num-params "gmoverid" ip))
@@ -602,7 +602,7 @@
                                         (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
-                        [(in ace-variant [2 3])   ; relative Electrical and Geometrical
+                        [(in ace-variant [3])   ; relative Geometrical
                          None]
                         [True
                           (raise (NotImplementedError errno.ENOSYS
@@ -610,7 +610,7 @@
                                     (.format "No action space for {}-v{}."
                                      ace-id ace-variant)))])
 
-        scale-max (cond [(in ace-variant [0])     ; Absolute Electrical
+        scale-max (cond [(in ace-variant [0 2])     ; Electrical
                         (np.concatenate 
                           (, (np.repeat (get dc "gmoverid" "max") 
                                         (num-params "gmoverid" ip))
@@ -624,7 +624,7 @@
                                         (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
-                        [(in ace-variant [2 3])   ; relative Electrical and Geometrical
+                        [(in ace-variant [3])   ; relative Geometrical
                          None]
                         [True
                           (raise (NotImplementedError errno.ENOSYS
@@ -638,8 +638,7 @@
   """
   Returns a dictionary containing technology constraints.
   """
-  (-> ace ;(ac.is-pool-env) (if (first ace.envs) ace)
-    (ac.parameter-dict)
+  (-> ace (ac.parameter-dict)
     (| { "gmoverid" { "init" 10.0
                       "max"  15.0
                       "min"  5.0

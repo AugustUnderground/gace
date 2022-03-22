@@ -91,6 +91,32 @@
       "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
                 "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }))
 
+  (defn step-v2 ^(of tuple np.array float bool dict) [self ^np.array action 
+          &optional ^(of list str) [blocklist []]]
+    """
+    Takes an array of descrete electric parameters for each building block and 
+    converts them to sizing parameters for each parameter specified in the
+    netlist. 
+    """
+    (let [current-performance (ac.current-performance self.ace)
+
+          current-params (np.array (lfor p self.input-parameters
+                                         (cond [(.endswith p ":fug") 
+                                                (np.log10 (get current-performance p))]
+                                               [(.endswith p ":id") 
+                                                (* (get current-performance p) 1.0e6)]
+                                               [True (get current-performance p)])))
+
+          grid-action (np.array 
+                        (+ (-> self.design-constraints (get "gmoverid" "grid") (repeat 4) (list))
+                           (-> self.design-constraints (get "fug" "grid") (repeat 4) (list))
+                           (-> 0.1 (repeat 2) (list))))
+
+          absolute-action (+ current-params (* grid-action (- 1.0 action))) 
+          scaled-action (scale-value absolute-action self.action-scale-min 
+                                                     self.action-scale-max) ]
+      (self.step-v0 scaled-action :blocklist blocklist)))
+
   (defn step-v5 ^(of tuple np.array float bool dict) [self ^tuple action]
     """
     Same step as v0, but with the option to block certain simulation analyses.
@@ -129,6 +155,14 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH035V1Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 1}))))
+
+(defclass OP2XH035V2Env [OP2Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP2XH035V2Env self) #**
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 2}))))
 
 (defclass OP2XH035V3Env [OP2Env]
   """

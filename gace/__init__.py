@@ -94,6 +94,10 @@ register( id          = 'op2-xh035-v1'
         , entry_point = 'gace.envs:OP2XH035V1Env'
         , )
 
+register( id          = 'op2-xh035-v2'
+        , entry_point = 'gace.envs:OP2XH035V2Env'
+        , )
+
 register( id          = 'op2-xh035-v3'
         , entry_point = 'gace.envs:OP2XH035V3Env'
         , )
