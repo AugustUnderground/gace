@@ -91,31 +91,39 @@
       "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
                 "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }))
 
-  (defn step-v2 ^(of tuple np.array float bool dict) [self ^np.array action 
+  (defn step-v2 ^(of tuple np.array float bool dict) [self ^int action-idx
           &optional ^(of list str) [blocklist []]]
     """
     Takes an array of descrete electric parameters for each building block and 
     converts them to sizing parameters for each parameter specified in the
     netlist. 
     """
-    (let [current-performance (ac.current-performance self.ace)
+    (if (= 0 action-idx)
+        (ac.current-sizing self.ace)
+        (let [current-performance (ac.current-performance self.ace)
 
-          current-params (np.array (lfor p self.input-parameters
-                                         (cond [(.endswith p ":fug") 
-                                                (np.log10 (get current-performance p))]
-                                               [(.endswith p ":id") 
-                                                (* (get current-performance p) 1.0e6)]
-                                               [True (get current-performance p)])))
+              current-params (np.array (lfor p self.input-parameters
+                                             (cond [(.endswith p ":fug") 
+                                                    (np.log10 (get current-performance p))]
+                                                   [(.endswith p ":id") 
+                                                    (* (get current-performance p) 1.0e6)]
+                                                   [True (get current-performance p)])))
 
-          grid-action (np.array 
-                        (+ (-> self.design-constraints (get "gmoverid" "grid") (repeat 4) (list))
-                           (-> self.design-constraints (get "fug" "grid") (repeat 4) (list))
-                           (-> 0.1 (repeat 2) (list))))
+              grid-action (np.array 
+                            (+ (-> self.design-constraints (get "gmoverid" "grid") (repeat 4) (list))
+                               (-> self.design-constraints (get "fug" "grid") (repeat 4) (list))
+                               (-> 0.1 (repeat 2) (list))))
 
-          absolute-action (+ current-params (* grid-action (- 1.0 action))) 
-          scaled-action (scale-value absolute-action self.action-scale-min 
-                                                     self.action-scale-max) ]
-      (self.step-v0 scaled-action :blocklist blocklist)))
+
+              (, up dn) (np.array-split (get (np.eye (* 2 (len self.input-parameters))) 
+                                             (- action-idx 1)) 2)
+              
+              absolute-action (+ current-params (* grid-action (- up dn))) 
+
+              scaled-action (scale-value absolute-action self.action-scale-min 
+                                                         self.action-scale-max) ]
+
+          (self.step-v0 scaled-action :blocklist blocklist))))
 
   (defn step-v5 ^(of tuple np.array float bool dict) [self ^tuple action]
     """

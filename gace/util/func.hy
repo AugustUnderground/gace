@@ -561,16 +561,16 @@
     the minimum and maximum are defined by the `design-constraints`' min and max
     values.
 
-    For variants 2 and 3 the action space is discrete (MultiDiscrete) ∈ [0;2]:
-    DEC[0], NOP[1], INC[2]. The ∆ for each parameter is defined by the
-    `design-constraints`' grid.
+    For variants 2 and 3 the action is `Discrete` with num-inputs * 2 + 1
+    actions. The first one is always `Do nothing` the rest ist +1 -1.
   """
   (let [ip (input-parameters ace ace-id ace-variant)
 
         num-params (fn [p ps] (len (list (filter #%(.endswith %1 (+ ":" p)) ps))))
 
         abs-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
-        rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
+        ;rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
+        rel-space (Discrete (-> ip (len) (* 2) (+ 1) (int)))
 
         space (cond [(in ace-variant [0 1]) abs-space]
                     [(in ace-variant [2 3]) rel-space]

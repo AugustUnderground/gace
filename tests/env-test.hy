@@ -23,8 +23,6 @@
 
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
 
-
-
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n :sim-path "/dev/null")) 
 ;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 
