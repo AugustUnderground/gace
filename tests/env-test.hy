@@ -18,10 +18,17 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op2-xh035-v2"))
+(setv env (gym.make "gace:op2-xh035-v0"))
 (setv obs (.reset env))
 
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
+
+(setv n 5)
+(setv envs (gace.vector-make-same "gace:op2-xh035-v2" n)) 
+(setv obs (.reset envs))
+(for [i (range 10)] (setv (, o r d _) (envs.random-step)) (print f"{i}: {d} -> {r}"))
+
+
 
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n :sim-path "/dev/null")) 
