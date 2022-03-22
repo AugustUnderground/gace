@@ -49,7 +49,7 @@
                        ^str [ckt-path None] ^str [pdk-path None] ^str [sim-path None]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
-                       ^int [max-steps 100] ^(of dict str float) [design-constr {}]
+                       ^int [max-steps 50] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 

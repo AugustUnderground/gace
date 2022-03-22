@@ -249,7 +249,7 @@
                               ^(of dict str float) set-sizing
                               ^(of dict str float) last-action
                               ^int steps ^int max-steps
-                              &optional ^float [bonus 100.0]]
+                              &optional ^float [bonus 10.0]]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
