@@ -46,10 +46,10 @@
   (setv metadata {"render.modes" ["human" "ascii"]})
 
   (defn __init__ [self ^str ace-id ^str ace-backend ^int ace-variant &optional 
-                       ^str [ckt-path None] ^str [pdk-path None]
+                       ^str [ckt-path None] ^str [pdk-path None] ^str [sim-path None]
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
-                       ^int [max-steps 150] ^(of dict str float) [design-constr {}]
+                       ^int [max-steps 100] ^(of dict str float) [design-constr {}]
                        ^(of dict str float) [target {}] ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 
@@ -66,7 +66,8 @@
           self.ace-backend     ace-backend
           self.ace-variant     ace-variant
           self.ace-constructor (ace-constructor self.ace-id self.ace-backend 
-                                                :ckt ckt-path :pdk [pdk-path])
+                                                :ckt ckt-path :pdk [pdk-path]
+                                                :sim sim-path)
           self.ace             (eval self.ace-constructor))
 
     ;; Obtain design constraints from ACE backend and override if given

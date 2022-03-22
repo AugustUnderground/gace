@@ -18,15 +18,13 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv foo (ft.read-table "/tmp/uhlmanny/gace/20220315-180914-pool/env_0/performance.ft"))
-(setv writer (f))
-
 (setv n 5)
-(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
+(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n :sim-path "/dev/null")) 
 ;(setv envs (gace.vector-make-same "gace:nand4-xh035-v1" n)) 
 (setv obs (.reset envs))
 ;(setv obs (.reset envs [7 3 29]))
-(setv (, o0 r d _) (envs.random-step))
+
+(for [i (range 105)] (setv (, o0 r d _) (envs.random-step)) (print f"{i}: {d} -> {r}"))
 
 (first o0)
 (second o0)
@@ -62,7 +60,7 @@
 
 
 
-(setv env (gym.make "gace:op2-xh035-v0"))
+(setv env (gym.make "gace:op2-xh035-v0" :sim-path "/dev/null/"))
 (setv o (env.reset))
 (setv (, o r d i) (env.random-step))
 (setv sizing (ac.initial-sizing env.ace))

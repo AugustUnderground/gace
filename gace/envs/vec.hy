@@ -108,7 +108,11 @@
               :do (setv e.reset-count (inc e.reset-count))
 
               ;; If ace does not exist, create it.
-              :do (unless e.ace (setv e.ace (eval e.ace-constructor)))
+              :do (when (or (not e.ace) (= 0 (% e.reset-count e.restart-intervall)))
+                    (.stop e.ace)
+                    (del e.ace)
+                    (setv e.ace (eval e.ace-constructor)))
+              ;:do (unless e.ace (setv e.ace (eval e.ace-constructor)))
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints
@@ -175,7 +179,7 @@
           td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
                             (zip curr-perfs targets conds)))
 
-          ss  (lfor e self.gace-envs (>= (inc e.num-steps) e.max-steps))
+          ss  (lfor e self.gace-envs (>= e.num-steps e.max-steps))
 
           don (list (ap-map (or #* it) (zip td ss))) 
 

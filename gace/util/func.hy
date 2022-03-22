@@ -95,13 +95,14 @@
          (- (er x))))))
 
 (defn ace-constructor [^str ace-id ^str ace-backend
-        &optional ^(of list str) [pdk []] ^str [ckt None] ^int [num-envs 1]]
+        &optional ^(of list str) [pdk []] ^str [ckt None] ^str [sim None]
+                  ^int [num-envs 1]]
   """
   Meta function for (re-)creating environments.
   """
   (if (> num-envs 1)
-      `(ac.make-same-env-pool ~num-envs ~ace-id ~ace-backend :pdk ~pdk :ckt ~ckt)
-      `(ac.make-env ~ace-id ~ace-backend :pdk ~pdk :ckt ~ckt)))
+      `(ac.make-same-env-pool ~num-envs ~ace-id ~ace-backend :pdk ~pdk :ckt ~ckt :sims ~sim)
+      `(ac.make-env ~ace-id ~ace-backend :pdk ~pdk :ckt ~ckt :sim ~sim)))
 
 (defn load-primitive [^str dev-type ^str ace-backend &optional ^str [dev-path ""]]
   (let [device-path (or dev-path (.format "{}/.ace/{}/{}" (os.path.expanduser "~") 
