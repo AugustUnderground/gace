@@ -127,7 +127,7 @@
 
               #_/ ]
 
-          (self.step-v0 scaled-action :blocklist blocklist))))
+          (self.step-v0 action :blocklist blocklist))))
 
   (defn step-v5 ^(of tuple np.array float bool dict) [self ^tuple action]
     """
