@@ -199,10 +199,6 @@
     (setv self.num-steps   (int 0)
           self.reset-count (inc self.reset-count))
 
-    ;; If ace does not exist, create it.
-    ;(unless self.ace
-    ;  (setv self.ace (eval self.ace-constructor)))
-
     ;; If ace does not exist or reset intervall is reached, create a new env.
     (when (or (not self.ace) (= 0 (% self.reset-count self.restart-intervall)))
       (self.ace.stop)
@@ -218,7 +214,8 @@
             [p (* v (if self.noisy-target (np.random.normal 1.0 0.01) 1.0))])))
 
     ;; Starting parameters are either random or close to a known solution.
-    (setv parameters (starting-point self.ace self.random-target self.noisy-target))
+    (setv parameters (starting-point self.ace self.ace-variant self.reset-count 
+                                     self.random-target self.noisy-target))
 
     ;; Empty last action
     (setv self.last-action {})

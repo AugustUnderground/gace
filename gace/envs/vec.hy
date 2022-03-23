@@ -125,7 +125,8 @@
                     (e.log-target e.target))
 
               ;; Starting parameters are either random or close to a known solution.
-              [i (starting-point e.ace e.random-target e.noisy-target)])
+              [i (starting-point e.ace e.ace-variant e.reset-count 
+                                 e.random-target e.noisy-target)])
 
           ace-envs (dfor (, i e) (enumerate self.gace-envs) [i e.ace])
           ;; Only simulate sub-pool of reset envs

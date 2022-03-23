@@ -118,21 +118,27 @@
                             (.format "No Primitive Device models found at {}."
                                      device-path))))))
 
-(defn starting-point ^(of dict str float) [ace ^bool random ^bool noise]
+(defn starting-point ^(of dict str float) [ace ^int ace-variant ^int reset-count
+      ^bool random ^bool noise]
     """
     Generate a starting point for the agent.
     Arguments:
-      ace:        ACE
-      [random]:   Random starting point. (default = False)
-      [noise]:    Add noise to found starting point. (default = True)
-    Returns:      Starting point sizing.
+      ace:     ACE
+      variant:     ace varaint [0 .. 4]
+      reset-count: Determines the random-ness
+      random:      Random starting point. (default = False)
+      noise:       Add noise to found starting point. (default = True)
+    Returns: Starting point sizing.
     """
-    (let [sizing (if random (ac.random-sizing ace) (ac.initial-sizing ace))]
-      (if noise
-          (dfor (, p s) (.items sizing) 
-                [p (if (or (.startswith p "W") (.startswith p "L")) 
-                       (+ s (np.random.normal 0 1e-7)) s)])
-          sizing)))
+    (if (in variant [0 2]) ;; contionous action spaces don't need starting point
+        (ac.initial-sizing ace)
+        (let [sizing (if random (ac.random-sizing ace) (ac.initial-sizing ace))]
+          (if noise
+              (dfor (, p s) (.items sizing) 
+                    [p (if (or (.startswith p "W") (.startswith p "L")) 
+                           (+ s (np.random.normal 1 (* reset-count 1e-7))) 
+                           s)])
+              sizing))))
 
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
                                             ^(of dict str float) target
