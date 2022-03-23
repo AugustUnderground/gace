@@ -130,7 +130,7 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (if (in variant [0 2]) ;; contionous action spaces don't need starting point
+    (if (in ace-variant [0 2]) ;; contionous action spaces don't need starting point
         (ac.initial-sizing ace)
         (let [sizing (if random (ac.random-sizing ace) (ac.initial-sizing ace))]
           (if noise
