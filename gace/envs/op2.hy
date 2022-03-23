@@ -118,12 +118,12 @@
                                              (- action-idx 1)) 2)
               
               action (-> (- up dn)
-                        (* grid-action action)
-                        (+ current-params) 
-                        (np.maximum self.action-scale-min)
-                        (np.minimum self.action-scale-max)
-                        (scale-value self.action-scale-min 
-                                     self.action-scale-max))
+                         (* grid-action)
+                         (+ current-params) 
+                         (np.maximum self.action-scale-min)
+                         (np.minimum self.action-scale-max)
+                         (scale-value self.action-scale-min 
+                                      self.action-scale-max))
 
               #_/ ]
 
