@@ -648,7 +648,7 @@
     (| { "gmoverid" { "init" 10.0
                       "max"  15.0
                       "min"  5.0
-                      "grid" 0.1 }
+                      "grid" 0.5 }
          "fug" { "init" 7.5 ;; 1.0e8
                  "max"  9.0 ;; 1.0e9
                  "min"  6.0 ;; 1.0e6

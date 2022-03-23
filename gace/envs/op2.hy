@@ -112,16 +112,20 @@
               grid-action (np.array 
                             (+ (-> self.design-constraints (get "gmoverid" "grid") (repeat 4) (list))
                                (-> self.design-constraints (get "fug" "grid") (repeat 4) (list))
-                               (-> 0.1 (repeat 2) (list))))
-
+                               (-> 1.0 (repeat 2) (list))))
 
               (, up dn) (np.array-split (get (np.eye (* 2 (len self.input-parameters))) 
                                              (- action-idx 1)) 2)
               
-              absolute-action (+ current-params (* grid-action (- up dn))) 
+              action (-> (- up dn)
+                        (* grid-action action)
+                        (+ current-params) 
+                        (np.maximum self.action-scale-min)
+                        (np.minimum self.action-scale-max)
+                        (scale-value self.action-scale-min 
+                                     self.action-scale-max))
 
-              scaled-action (scale-value absolute-action self.action-scale-min 
-                                                         self.action-scale-max) ]
+              #_/ ]
 
           (self.step-v0 scaled-action :blocklist blocklist))))
 
