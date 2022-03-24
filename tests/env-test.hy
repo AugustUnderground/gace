@@ -21,6 +21,8 @@
 (setv env (gym.make "gace:op2-xh035-v2"))
 (setv obs (.reset env))
 
+(for [i (range 10)] (env.reset) (pp (ac.current-sizing env.ace)))
+
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
 
 (setv n 5)

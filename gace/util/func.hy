@@ -132,22 +132,31 @@
     """
     (if (in ace-variant [0 1])
         (ac.initial-sizing ace)
-        (let [sizing (if (or (> reset-count 25) random) 
+        (let [sizing (if (or (> reset-count 5000) random) 
                          (ac.random-sizing ace) 
                          (ac.initial-sizing ace))]
           (if noise
               (dfor (, p s) (.items sizing) 
                     [p (cond [(or (.startswith p "W") (.startswith p "L"))
-                              (as-> p it (get constraints it "grid") 
-                                         (* reset-count it) 
-                                         (np.random.normal s it) 
-                                         (np.abs it))]
+                              (let [l (/ (get constraints p "grid") 2.0)
+                                    m (* l (np.tanh (- (/ reset-count 350.0) 2.0))) 
+                                    n (np.random.normal m (np.abs m))]
+                                (np.abs (+ s n)))]
                              [(.startswith p "M")
-                              (as-> p it (get constraints it "grid") 
-                                         (* reset-count it) 
-                                         (np.random.normal s it) 
-                                         (np.abs it)
-                                         (np.round it))]
+                              (let [vals (np.arange (get constraints p "min")
+                                                    (get constraints p "max")
+                                                    (get constraints p "grid"))
+                                    choices (if (not vals.size)
+                                                (np.array [s]) vals)
+                                    weights (+ (np.full (len vals) 
+                                                        (+ (- (np.exp (/ (- reset-count) 
+                                                                         250.0))) 
+                                                           1.0))
+                                               (* (np.random.rand (len vals)) 1e-3))
+                                    w       (np.where (= vals s) 1.0 weights)
+                                    probs   (/ w (.sum w)) ]
+                                (if (not vals.size) s
+                                  (-> vals (np.random.choice 1 :p probs) (.item))))]
                              [True s])])
               sizing))))
 
