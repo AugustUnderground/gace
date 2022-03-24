@@ -282,45 +282,44 @@
   """
   (let [(, dist mask) (target-distance curr-perf target condition)
 
-        d         (+ (* (np.abs dist) mask) 
-                     (* (- (np.abs dist)) (np.invert mask)))
-        perf-loss (+ (- (np.exp (- d))) 1.0)
+        d             (+ (* (np.abs dist) mask) 
+                         (* (- (np.abs dist)) (np.invert mask)))
+        perf-loss     (+ (- (np.exp (- d))) 1.0)
 
-        ;perf-loss   (+ (* (np.tanh (np.abs dist)) mask) 
-        ;               (* (- (np.abs dist)) (np.invert mask))) 
+        ;perf-loss     (+ (* (np.tanh (np.abs dist)) mask) 
+        ;                 (* (- (np.abs dist)) (np.invert mask))) 
 
-        last-act    (dfor (, k v) (.items last-action) 
-                          [k (cond [(.endswith k ":fug") (np.power 10 v)]
-                                   [(.endswith k ":id") (* v 1e-6)] 
-                                   [True v])])
+        last-act      (dfor (, k v) (.items last-action) 
+                            [k (cond [(.endswith k ":fug") (np.power 10 v)]
+                                     [(.endswith k ":id") (* v 1e-6)] 
+                                     [True v])])
 
-        action-loss (-> (lfor a (.keys last-act)
-                                (/ (-  (get last-act a) (get curr-perf a)) 
-                                   (get curr-perf a)))
-                        (np.array) (np.sum))
+        action-loss   (-> (lfor a (.keys last-act)
+                                  (/ (-  (get last-act a) (get curr-perf a)) 
+                                     (get curr-perf a)))
+                          (np.array) (np.sum))
 
-        sizing-loss (-> (lfor s (.keys curr-sizing)
-                                (/ (- (get set-sizing s) (get curr-sizing s)) 
-                                   (get curr-sizing s)))
-                        (np.array) (np.sum))
+        sizing-loss   (-> (lfor s (.keys curr-sizing)
+                                  (/ (- (get set-sizing s) (get curr-sizing s)) 
+                                     (get curr-sizing s)))
+                          (np.array) (np.sum))
 
-        step-loss    (* steps 0.0666)
+        step-loss     (* steps 0.0666)
 
-        finish-bonus (np.sum (* (np.all mask) bonus))
+        finish-bonus  (np.sum (* (np.all mask) bonus))
 
-        finish-fail  (* (or (np.all (np.invert mask)) (>= steps max-steps)) 
-                           bonus)
+        finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) 
+                            bonus)
 
-        reward (if (> finish-fail 0.0)
-                   (- finish-fail)
-                   (-> perf-loss (np.sum)
-                                (- action-loss)
-                                (+ finish-bonus)
-                                (- finish-fail)
-                                (- step-loss)
-                                (.item) 
-                                #_/ ))
-        #_/ ]
+        reward        (if (> finish-fail 0.0) (- finish-fail)
+                          (-> perf-loss (np.sum)
+                                       (- action-loss)
+                                       (+ finish-bonus)
+                                       (- finish-fail)
+                                       (- step-loss)
+                                       (np.maximum (- (* 2.0 bonus)))
+                                       (np.minimum (* 2.0 bonus))
+                                       (.item)))]
     (when (np.isnan reward) 
       (setv tk   (-> target (.keys) (list) (sorted))
             perf (dfor pp tk [ pp (get curr-perf pp) ]))
