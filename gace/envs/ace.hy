@@ -215,7 +215,8 @@
 
     ;; Starting parameters are either random or close to a known solution.
     (setv parameters (starting-point self.ace self.ace-variant self.reset-count 
-                                     self.random-target self.noisy-target))
+                                     self.design-constraints self.random-target 
+                                     self.noisy-target))
 
     ;; Empty last action
     (setv self.last-action {})

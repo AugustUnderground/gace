@@ -119,7 +119,7 @@
                                      device-path))))))
 
 (defn starting-point ^(of dict str float) [ace ^int ace-variant ^int reset-count
-      ^bool random ^bool noise]
+      ^dict constraints ^bool random ^bool noise]
     """
     Generate a starting point for the agent.
     Arguments:
@@ -130,14 +130,23 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (if (in ace-variant [0 2]) ;; contionous action spaces don't need starting point
+    (if (in ace-variant [0 2])
         (ac.initial-sizing ace)
         (let [sizing (if random (ac.random-sizing ace) (ac.initial-sizing ace))]
           (if noise
               (dfor (, p s) (.items sizing) 
-                    [p (if (or (.startswith p "W") (.startswith p "L")) 
-                           (+ s (np.random.normal 1 (* reset-count 1e-7))) 
-                           s)])
+                    [p (cond [(or (.startswith p "W") (.startswith p "L"))
+                              (as-> s it (get constraints it "grid") 
+                                         (* reset-count it) 
+                                         (np.random.normal s it) 
+                                         (np.abs it))]
+                             [(.startswith p "M")
+                              (as-> s it (get constraints it "grid") 
+                                         (* reset-count it) 
+                                         (np.random.normal s it) 
+                                         (np.abs it)
+                                         (np.round it))]
+                             [True s])])
               sizing))))
 
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
