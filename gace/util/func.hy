@@ -130,18 +130,20 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (if (in ace-variant [0 2])
+    (if (in ace-variant [0 1])
         (ac.initial-sizing ace)
-        (let [sizing (if random (ac.random-sizing ace) (ac.initial-sizing ace))]
+        (let [sizing (if (or (> reset-count 25) random) 
+                         (ac.random-sizing ace) 
+                         (ac.initial-sizing ace))]
           (if noise
               (dfor (, p s) (.items sizing) 
                     [p (cond [(or (.startswith p "W") (.startswith p "L"))
-                              (as-> s it (get constraints it "grid") 
+                              (as-> p it (get constraints it "grid") 
                                          (* reset-count it) 
                                          (np.random.normal s it) 
                                          (np.abs it))]
                              [(.startswith p "M")
-                              (as-> s it (get constraints it "grid") 
+                              (as-> p it (get constraints it "grid") 
                                          (* reset-count it) 
                                          (np.random.normal s it) 
                                          (np.abs it)
