@@ -506,7 +506,7 @@
               (lfor k (sorted (lfor k (sorted-parameters p) 
                     :if (any (lfor t target (in t k))) k)))
               (if (in self.ace-variant [0 2])
-                  (sorted self.input-parameters) [])
+                  (sorted self.input-parameters) []))
         eh ["episode" "step" "reward"]
         sh (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
         th (+ ["episode"] (sorted (list (.keys target))))
