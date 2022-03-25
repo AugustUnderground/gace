@@ -59,7 +59,9 @@
       (when e.logging-enabled
         (os.system f"rm -rf {e.data-log-path}")
         (setv e.data-log-path (.format "{}/env_{}" self.base-log-path i)
-              e.data-logger (initialize-data-logger e.ace e.target e.data-log-path))))
+              e.data-logger (initialize-data-logger e.ace e.ace-variant e.target 
+                                                    e.input-parameters 
+                                                    e.data-log-path))))
 
     (setv self.step 
           (fn [^(of list np.array) actions]

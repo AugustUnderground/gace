@@ -498,15 +498,14 @@
   {"observations" (+ pf tg dt op os nd ["steps" "max-steps"])
    "actions" inputs}))
 
-(defn initialize-data-logger ^(of dict str str) [ace-env ^(of dict str float) target 
-                                                ^str log-path]
+(defn initialize-data-logger ^(of dict str str) [ace-env ^int ace-variant 
+        ^(of dict str float) target ^(of list str) inputs ^str log-path]
   (let [p  (ac.performance-identifiers ace-env) 
         ;ph (+ ["episode" "step"] (sorted (list (reduce + (.values (sorted-parameters p))))))
         ph (+ ["episode" "step"] 
-              (lfor k (sorted (lfor k (sorted-parameters p) 
-                    :if (any (lfor t target (in t k))) k)))
-              (if (in self.ace-variant [0 2])
-                  (sorted self.input-parameters) []))
+              (sorted (lfor k (sorted-parameters p) :if (any (lfor t target (in t k))) k))
+              (if (in ace-variant [0 2])
+                  (sorted inputs) []))
         eh ["episode" "step" "reward"]
         sh (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
         th (+ ["episode"] (sorted (list (.keys target))))

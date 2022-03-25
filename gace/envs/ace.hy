@@ -144,7 +144,8 @@
       (setv ts (-> datetime (. datetime) (.now) (.strftime "%Y%m%d-%H%M%S"))
             dlp f"/tmp/{(.getlogin os)}/gace/{ts}-{ace-id}/env_0"
             self.data-log-path (or data-log-path dlp)
-            self.data-logger (initialize-data-logger self.ace self.target 
+            self.data-logger (initialize-data-logger self.ace self.ace-variant 
+                                                     self.target self.input-parameters
                                                      self.data-log-path)))
 
     ;; Override step function
