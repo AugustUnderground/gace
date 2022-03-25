@@ -501,7 +501,12 @@
 (defn initialize-data-logger ^(of dict str str) [ace-env ^(of dict str float) target 
                                                 ^str log-path]
   (let [p  (ac.performance-identifiers ace-env) 
-        ph (+ ["episode" "step"] (sorted (list (reduce + (.values (sorted-parameters p))))))
+        ;ph (+ ["episode" "step"] (sorted (list (reduce + (.values (sorted-parameters p))))))
+        ph (+ ["episode" "step"] 
+              (lfor k (sorted (lfor k (sorted-parameters p) 
+                    :if (any (lfor t target (in t k))) k)))
+              (if (in self.ace-variant [0 2])
+                  (sorted self.input-parameters) [])
         eh ["episode" "step" "reward"]
         sh (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))
         th (+ ["episode"] (sorted (list (.keys target))))
