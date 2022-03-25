@@ -104,7 +104,7 @@
 
           parameters (dfor (, i e) (.items envs)
               ;; Reset the step counter and increase the reset counter.
-              :do (setv e.num-steps (int 0))
+              ;:do (setv e.num-steps (int 0))
               :do (setv e.reset-count (inc e.reset-count))
 
               ;; If ace does not exist, create it.
@@ -125,11 +125,12 @@
                     (e.log-target e.target))
 
               ;; Starting parameters are either random or close to a known solution.
-              [i (starting-point e.ace e.ace-variant e.reset-count
-                                 e.design-constraints e.random-target
-                                 e.noisy-target)])
+              [i (starting-point e.ace e.ace-variant e.reset-count e.num-steps 
+                                 e.max-steps e.design-constraints 
+                                 e.random-target e.noisy-target)])
 
           ace-envs (dfor (, i e) (enumerate self.gace-envs) [i e.ace])
+
           ;; Only simulate sub-pool of reset envs
           performances (if parameters
                            (ac.evaluate-circuit-pool ace-envs
@@ -137,6 +138,9 @@
                                                      :pool-ids env-ids
                                                      :npar self.n-proc)
                            (ac.current-performance-pool ace-envs)) ]
+
+    ;; Reset Step counters
+    (for [(, i e) (.items envs)] (setv e.num-steps (int 0)) )
 
     ;; Targets of pooled envs
     (setv self.targets (lfor e self.gace-envs e.target))

@@ -195,9 +195,9 @@
 
     Finally, a simulation is run and the observed perforamnce returned.
     """
-    ;; Reset the step counter and increase the reset counter.
-    (setv self.num-steps   (int 0)
-          self.reset-count (inc self.reset-count))
+
+    ;; Increase the reset counter.
+    (setv self.reset-count (inc self.reset-count))
 
     ;; If ace does not exist or reset intervall is reached, create a new env.
     (when (or (not self.ace) (= 0 (% self.reset-count self.restart-intervall)))
@@ -215,8 +215,12 @@
 
     ;; Starting parameters are either random or close to a known solution.
     (setv parameters (starting-point self.ace self.ace-variant self.reset-count 
+                                     self.num-steps self.max-steps
                                      self.design-constraints self.random-target 
                                      self.noisy-target))
+
+    ;; Reset the step counter 
+    (setv self.num-steps   (int 0))
 
     ;; Empty last action
     (setv self.last-action {})
@@ -277,7 +281,12 @@
     (let [sd (| {"episode" self.reset-count "step" self.num-steps} 
                 (dfor k (sorted sizing) [k (get sizing k)]))
           pd (| {"episode" self.reset-count "step" self.num-steps} 
-                (dfor k (sorted performance) [k (get performance k)]))
+                ;(dfor k (sorted performance) [k (get performance k)]))
+                (dfor k (sorted self.target) [k (get performance k)])
+                (if (in self.ace-variant [0 2])
+                  (dfor k (sorted self.input-parameters) 
+                          [k (get performance k)])
+                  {}))
           ed {"episode" self.reset-count
               "step"    self.num-steps
               "reward"  reward}
@@ -287,13 +296,13 @@
           ep (get self.data-logger "environment")
           #_/ ]
       
-      (with [sf (open sp "a" :newline "\n")]
+      (with [sf (open sp "a" :newline "")]
         (setv dw (DictWriter sf :fieldnames (list (.keys sd))))
         (dw.writerow sd))
-      (with [pf (open pp "a" :newline "\n")]
+      (with [pf (open pp "a" :newline "")]
         (setv dw (DictWriter pf :fieldnames (list (.keys pd))))
         (dw.writerow pd))
-      (with [ef (open ep "a" :newline "\n")]
+      (with [ef (open ep "a" :newline "")]
         (setv dw (DictWriter ef :fieldnames (list (.keys ed))))
         (dw.writerow ed))
       #_/ ))

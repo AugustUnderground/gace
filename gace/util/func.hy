@@ -119,7 +119,7 @@
                                      device-path))))))
 
 (defn starting-point ^(of dict str float) [ace ^int ace-variant ^int reset-count
-      ^dict constraints ^bool random ^bool noise]
+      ^int num-steps ^int max-steps ^dict constraints ^bool random ^bool noise]
     """
     Generate a starting point for the agent.
     Arguments:
@@ -130,17 +130,17 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (if (in ace-variant [0 1])
+    (if (or (in ace-variant [0 1]) (<= num-steps 0) (>= num-steps max-steps))
         (ac.initial-sizing ace)
-        (let [sizing (if (or (> reset-count 5000) random) 
+        (let [sizing (if (or (> reset-count 150) random) 
                          (ac.random-sizing ace) 
                          (ac.initial-sizing ace))]
           (if noise
               (dfor (, p s) (.items sizing) 
                     [p (cond [(or (.startswith p "W") (.startswith p "L"))
-                              (let [l (/ (get constraints p "grid") 2.0)
-                                    m (* l (np.tanh (- (/ reset-count 350.0) 2.0))) 
-                                    n (np.random.normal m (np.abs m))]
+                              (let [l (* (get constraints p "grid") 3.5)
+                                    m (+ (* l (np.tanh (- (/ reset-count 35.0) 2.0))) l)
+                                    n (np.random.normal 0.0 (np.abs m))]
                                 (np.abs (+ s n)))]
                              [(.startswith p "M")
                               (let [vals (np.arange (get constraints p "min")
@@ -150,7 +150,7 @@
                                                 (np.array [s]) vals)
                                     weights (+ (np.full (len vals) 
                                                         (+ (- (np.exp (/ (- reset-count) 
-                                                                         250.0))) 
+                                                                         25.0))) 
                                                            1.0))
                                                (* (np.random.rand (len vals)) 1e-3))
                                     w       (np.where (= vals s) 1.0 weights)
