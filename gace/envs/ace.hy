@@ -283,7 +283,7 @@
           pd (| {"episode" self.reset-count "step" self.num-steps} 
                 ;(dfor k (sorted performance) [k (get performance k)]))
                 (dfor k (sorted (lfor k (.keys performance) 
-                                      :if (lfor t self.target (any (in t k))) 
+                                      :if (any (lfor t self.target (in t k))) 
                                       k))
                     [k (get performance k)])
                 (if (in self.ace-variant [0 2])
