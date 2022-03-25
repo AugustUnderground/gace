@@ -282,7 +282,10 @@
                 (dfor k (sorted sizing) [k (get sizing k)]))
           pd (| {"episode" self.reset-count "step" self.num-steps} 
                 ;(dfor k (sorted performance) [k (get performance k)]))
-                (dfor k (sorted self.target) [k (get performance k)])
+                (dfor k (sorted (lfor k (.keys performance) 
+                                      :if (lfor t self.target (any (in t k))) 
+                                      k))
+                    [k (get performance k)])
                 (if (in self.ace-variant [0 2])
                   (dfor k (sorted self.input-parameters) 
                           [k (get performance k)])
