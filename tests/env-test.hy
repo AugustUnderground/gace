@@ -23,7 +23,13 @@
 
 (setv env (gym.make "gace:op2-xh035-v2" :target-filter ["a_0" "ugbw"]))
 
-(for [i (range 10)] (env.reset) (pp (ac.current-sizing env.ace)) (for [i (range 10)] (env.random-step)))
+(for [i (range 50)] 
+  (setv (, o r d _) (env.random-step))
+  (print f"{env.num-steps}: {d} -> {r}")
+  (when d 
+    (print "RESET")
+    (env.reset)))
+
 
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
 

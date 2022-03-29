@@ -256,11 +256,9 @@
           rew (self.reward curr-perf prev-perf self.target self.condition 
                            curr-sizing sizing self.last-action
                            steps self.max-steps)
+          td  (target-distance curr-perf self.target self.condition)
 
-          don (or (>= steps self.max-steps) 
-                  (all (second (target-distance curr-perf 
-                                                self.target 
-                                                self.condition))))
+          don (or (>= steps self.max-steps) (all (second td)))
           inf (info curr-perf self.target self.input-parameters) ]
 
       ;; Data Logging

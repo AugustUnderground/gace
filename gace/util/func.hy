@@ -317,18 +317,17 @@
 
         finish-bonus  (np.sum (* (np.all mask) bonus))
 
-        finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) 
-                            bonus)
+        finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) bonus)
 
-        reward        (if (> finish-fail 0.0) (- finish-fail)
-                          (-> perf-loss (np.sum)
-                                       (- action-loss)
-                                       (+ finish-bonus)
-                                       (- finish-fail)
-                                       (- step-loss)
-                                       (np.maximum (- (* 2.0 bonus)))
-                                       (np.minimum (* 2.0 bonus))
-                                       (.item)))]
+        reward        (-> perf-loss (np.sum)
+                                    (- action-loss)
+                                    (+ finish-bonus)
+                                    ;(- finish-fail)
+                                    (- step-loss)
+                                    (np.maximum (- (* 2.0 bonus)))
+                                    (np.minimum (* 2.0 bonus))
+                                    (.item))
+        #_/ ]
     (when (np.isnan reward) 
       (setv tk   (-> target (.keys) (list) (sorted))
             perf (dfor pp tk [ pp (get curr-perf pp) ]))
