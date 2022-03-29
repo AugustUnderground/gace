@@ -118,6 +118,7 @@
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints
+                                                    e.target-filter
                                                     :random e.random-target 
                                                     :noisy e.noisy-target))
 

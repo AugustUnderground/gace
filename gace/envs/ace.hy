@@ -50,7 +50,8 @@
                        ^(of Union float np.array) [obs-lo (- Inf)]
                        ^(of Union float np.array) [obs-hi Inf]
                        ^int [max-steps 100] ^(of dict str float) [design-constr {}]
-                       ^(of dict str float) [target {}] ^float [reltol 1e-3]
+                       ^(of dict str float) [target {}] ^(of list str) [target-filter []]
+                       ^float [reltol 1e-3]
                        ^bool [random-target False] ^bool [noisy-target True]
                        ^bool [train-mode True] 
                        ^int [restart-intervall 3]
@@ -59,7 +60,7 @@
                        ^(of np.array)   [custom-action-lo None]
                        ^(of np.array)   [custom-action-hi None]
                        ^str [nmos-path None] ^str [pmos-path None]
-                       ^str [data-log-path None] ^bool [logging-enabled True]]
+                       ^str [data-log-path None] ^bool [logging-enabled False]]
 
     ;; ACE Configuration
     (setv self.ace-id          ace-id
@@ -102,9 +103,11 @@
     ;; If a target was provided, use it during but add some noise during each iteration.
     (setv self.random-target random-target
           self.noisy-target  noisy-target
+          self.target-filter target-filter
           self.target        (or target 
                                  (target-specification self.ace-id 
                                                        self.design-constraints
+                                                       self.target-filter
                                                        :random self.random-target
                                                        :noisy self.noisy-target))
           self.reltol        reltol
@@ -208,7 +211,7 @@
 
     ;; Target can be random or close to a known acheivable.
     (setv self.target (if self.random-target
-      (target-specification self.ace-id self.design-constraints
+      (target-specification self.ace-id self.design-constraints self.target-filter
                             :random self.random-target 
                             :noisy self.noisy-target)
       (dfor (, p v) (.items self.target) 
@@ -283,13 +286,9 @@
                 (dfor k (sorted sizing) [k (get sizing k)]))
           pd (| {"episode" self.reset-count "step" self.num-steps} 
                 ;(dfor k (sorted performance) [k (get performance k)]))
-                (dfor k (sorted (lfor k (.keys performance) 
-                                      :if (any (lfor t self.target (in t k))) 
-                                      k))
-                    [k (get performance k)])
+                (dfor k (sorted (.keys self.target)) [k (get performance k)])
                 (if (in self.ace-variant [0 2])
-                  (dfor k (sorted self.input-parameters) 
-                          [k (get performance k)])
+                  (dfor k (sorted self.input-parameters) [k (get performance k)])
                   {}))
           ed {"episode" self.reset-count
               "step"    self.num-steps

@@ -502,7 +502,7 @@
         ^(of dict str float) target ^(of list str) inputs ^str log-path]
   (let [p  (ac.performance-identifiers ace-env) 
         ;ph (+ ["episode" "step"] (sorted (list (reduce + (.values (sorted-parameters p))))))
-        ph (+ ["episode" "step"] (list (.keys target)) 
+        ph (+ ["episode" "step"] (sorted (list (.keys target)))
               (if (in ace-variant [0 2]) (sorted inputs) []))
         eh ["episode" "step" "reward"]
         sh (+ ["episode" "step"] (sorted (ac.sizing-identifiers ace-env)))

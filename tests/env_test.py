@@ -25,3 +25,7 @@ obs_ace = ac.current_performance(env.ace)
 
 pp({p: (obs_env[p],obs_ace[p]) for p in obs_ace.keys() })
 
+
+env = gym.make( "gace:op2-sky130-v1" )
+
+
