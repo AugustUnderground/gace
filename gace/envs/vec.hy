@@ -111,7 +111,7 @@
 
               ;; If ace does not exist, create it.
               :do (when (or (not e.ace) (= 0 (% e.reset-count e.restart-intervall)))
-                    (.stop e.ace)
+                    (.clear e.ace)
                     (del e.ace)
                     (setv e.ace (eval e.ace-constructor)))
               ;:do (unless e.ace (setv e.ace (eval e.ace-constructor)))

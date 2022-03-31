@@ -275,7 +275,7 @@
                               ^(of dict str float) set-sizing
                               ^(of dict str float) last-action
                               ^int steps ^int max-steps
-                              &optional ^float [bonus 10.0]]
+                              &optional ^float [bonus 1.5]]
   """
   Calculates a reward based on the target and the current perforamnces.
   Arguments:
@@ -313,19 +313,20 @@
                                      (get curr-sizing s)))
                           (np.array) (np.sum))
 
-        step-loss     (* steps 0.0666)
+        step-loss     (* steps bonus 1.0e-4)
 
-        finish-bonus  (np.sum (* (np.all mask) bonus))
+        ;finish-bonus  (np.sum (* (np.all mask) bonus))
+        finish-bonus  (* (np.all mask) bonus)
 
         finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) bonus)
 
         reward        (-> perf-loss (np.sum)
                                     (- action-loss)
                                     (+ finish-bonus)
-                                    ;(- finish-fail)
+                                    (- finish-fail)
                                     (- step-loss)
                                     (np.maximum (- (* 2.0 bonus)))
-                                    (np.minimum (* 2.0 bonus))
+                                    (np.minimum    bonus)
                                     (.item))
         #_/ ]
     (when (np.isnan reward) 

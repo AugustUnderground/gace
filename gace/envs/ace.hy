@@ -205,7 +205,7 @@
 
     ;; If ace does not exist or reset intervall is reached, create a new env.
     (when (or (not self.ace) (= 0 (% self.reset-count self.restart-intervall)))
-      (self.ace.stop)
+      (self.ace.clear)
       (del self.ace)
       (setv self.ace (eval self.ace-constructor)))
 
@@ -323,6 +323,6 @@
     """
     Closes the spectre session.
     """
-    (.stop self.ace)
+    (.clear self.ace)
     (del self.ace)
     (setv self.ace None)))
