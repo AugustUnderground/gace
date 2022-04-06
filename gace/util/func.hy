@@ -139,7 +139,7 @@
           (if noise
               (dfor (, p s) (.items sizing) 
                     [p (cond [(or (.startswith p "W") (.startswith p "L"))
-                              (let [l (* (get constraints p "grid") 3.5)
+                              (let [l (* (get constraints p "grid") 10.0)
                                     m (+ (* l (np.tanh (- (/ reset-count 35.0) 2.0))) l)
                                     n (np.random.normal 0.0 (np.abs m))]
                                 (np.abs (+ s n)))]
@@ -221,11 +221,12 @@
   """
   (, (cond [(.startswith ace-id "op")
             (+ (len (ac.performance-identifiers ace))
-               (* 2 (len targets))
+               (* 2 (len targets)) 
                2)]
            [(or (.startswith ace-id "nand") 
                 (.startswith ace-id "st"))
-            (* 3 (len (ac.performance-identifiers ace)))]
+            (+ (* 3 (len (ac.performance-identifiers ace))) 
+               2)]
            [True 
             (raise (NotImplementedError errno.ENOSYS
                      (os.strerror errno.ENOSYS) 
@@ -322,7 +323,7 @@
         step-loss     (* steps 1.0e-2)
         step-bonus    (* (- max-steps steps) bonus 1.0e-1)
 
-        finish-bonus  (* (np.all mask) bonus)
+        finish-bonus  (* (np.all mask) 2.0 bonus)
 
         ;finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) bonus)
         finish-fail   (* (and (np.any (np.invert mask)) (>= steps max-steps)) bonus)
