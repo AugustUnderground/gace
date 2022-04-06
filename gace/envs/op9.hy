@@ -29,6 +29,9 @@
   Base class for OP9
   """
   (defn __init__ [self &kwargs kwargs]
+    (setv self.num-gmid 8
+          self.num-fug 8
+          self.num-ib 6)
     (.__init__ (super OP9Env self) #** (| kwargs {"ace_id" "op9"})))
 
   (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -39,10 +42,6 @@
     """
     (let [unscaled-action (unscale-value action self.action-scale-min 
                                                 self.action-scale-max)
-
-          ;(, gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1 gmid-ls1 gmid-re1 gmid-re2
-          ;   fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1  fug-ls1  fug-re1  fug-re2
-          ;   i1 i2 i3 i4 i5 i6) unscaled-action
 
           (, gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 
              gmid-dp1 gmid-ls1 gmid-re1 gmid-re2) (as-> unscaled-action it

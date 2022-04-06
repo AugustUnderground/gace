@@ -26,7 +26,9 @@
   Base class for OP1
   """
   (defn __init__ [self &kwargs kwargs]
-
+    (setv self.num-gmid 4
+          self.num-fug 4
+          self.num-ib 2)
     (.__init__ (super OP1Env self) #** (| kwargs {"ace_id" "op1"})))
 
   (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -37,10 +39,6 @@
     """
     (let [unscaled-action (unscale-value action self.action-scale-min 
                                                 self.action-scale-max)
-
-          ;(, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1
-          ;   fug-cm1  fug-cm2  fug-cs1  fug-dp1 
-          ;   res cap i1 i2 ) unscaled-action
 
           (, gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1) (as-> unscaled-action it
                                                       (get it (slice None 4)))

@@ -29,6 +29,9 @@
   Base class for OP8
   """
   (defn __init__ [self &kwargs kwargs]
+    (setv self.num-gmid 6
+          self.num-fug 6
+          self.num-ib 4)
     (.__init__ (super OP8Env self) #** (| kwargs {"ace_id" "op8"})))
 
   (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action]
@@ -40,10 +43,6 @@
     (let [unscaled-action (unscale-value action self.action-scale-min 
                                                 self.action-scale-max)
       
-          ;(, gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1 
-          ;   fug-cm5  fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1  
-          ;   i1 i2 i3 i4 ) unscaled-action
-
           (, gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2
              gmid-cm1 gmid-dp1)                   (as-> unscaled-action it
                                                       (get it (slice None 6)))

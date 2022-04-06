@@ -26,6 +26,9 @@
   Base class for OP2
   """
   (defn __init__ [self &kwargs kwargs]
+    (setv self.num-gmid 4
+          self.num-fug 4
+          self.num-ib 2)
     (.__init__ (super OP2Env self) #** (| kwargs {"ace_id" "op2"})))
 
   (defn step-v0 ^(of tuple np.array float bool dict) [self ^np.array action 
@@ -90,44 +93,6 @@
       "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 
       "Md" Mdp1 "Mcm11" Mcm11 "Mcm21" Mcm21 "Mcm31" Mcm31 
                 "Mcm12" Mcm12 "Mcm22" Mcm22 "Mcm32" Mcm32 }))
-
-  (defn step-v2 ^(of tuple np.array float bool dict) [self ^int action-idx
-          &optional ^(of list str) [blocklist []]]
-    """
-    Takes an array of descrete electric parameters for each building block and 
-    converts them to sizing parameters for each parameter specified in the
-    netlist. 
-    """
-    (if (= 0 action-idx)
-        (ac.current-sizing self.ace)
-        (let [current-performance (ac.current-performance self.ace)
-
-              current-params (np.array (lfor p self.input-parameters
-                                             (cond [(.endswith p ":fug") 
-                                                    (np.log10 (get current-performance p))]
-                                                   [(.endswith p ":id") 
-                                                    (* (get current-performance p) 1.0e6)]
-                                                   [True (get current-performance p)])))
-
-              grid-action (np.array 
-                            (+ (-> self.design-constraints (get "gmoverid" "grid") (repeat 4) (list))
-                               (-> self.design-constraints (get "fug" "grid") (repeat 4) (list))
-                               (-> 1.0 (repeat 2) (list))))
-
-              (, up dn) (np.array-split (get (np.eye (* 2 (len self.input-parameters))) 
-                                             (- action-idx 1)) 2)
-              
-              action (-> (- up dn)
-                         (* grid-action)
-                         (+ current-params) 
-                         (np.maximum self.action-scale-min)
-                         (np.minimum self.action-scale-max)
-                         (scale-value self.action-scale-min 
-                                      self.action-scale-max))
-
-              #_/ ]
-
-          (self.step-v0 action :blocklist blocklist))))
 
   (defn step-v5 ^(of tuple np.array float bool dict) [self ^tuple action]
     """
