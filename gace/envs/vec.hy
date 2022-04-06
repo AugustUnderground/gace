@@ -112,14 +112,15 @@
               ;; If ace does not exist, create it.
               :do (when (or (not e.ace) (= 0 (% e.reset-count e.restart-intervall)))
                     (.clear e.ace)
-                    (del e.ace)
+                    ;(del e.ace)
                     (setv e.ace (eval e.ace-constructor)))
               ;:do (unless e.ace (setv e.ace (eval e.ace-constructor)))
 
               ;; Target can be random or close to a known acheivable.
               :do (setv e.target (target-specification e.ace-id e.design-constraints
                                                     e.target-filter
-                                                    :random e.random-target 
+                                                    :random (or e.random-target 
+                                                                (> e.reset-count 100))
                                                     :noisy e.noisy-target))
 
               ;; Log new target

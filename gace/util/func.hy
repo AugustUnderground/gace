@@ -130,7 +130,8 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (if (or (in ace-variant [0 1]) (<= num-steps 0) (>= num-steps max-steps))
+    (if (and (not-in ace-variant [0 1]) 
+             (or (<= num-steps 0) (>= num-steps max-steps)))
         (ac.initial-sizing ace)
         (let [sizing (if (or (> reset-count 150) random) 
                          (ac.random-sizing ace) 
@@ -293,7 +294,11 @@
 
         d             (+ (* (np.abs dist) mask) 
                          (* (- (np.abs dist)) (np.invert mask)))
-        perf-loss     (+ (- (np.exp (- d))) 1.0)
+
+        l             (+ (- (np.exp (- (np.sum d)))) 1.0)
+        perf-loss     (np.where (< l 0.0) (- (np.log (np.abs l))) l)
+
+        ;perf-loss     (+ (- (np.exp (- d))) 1.0)
 
         ;perf-loss     (+ (* (np.tanh (np.abs dist)) mask) 
         ;                 (* (- (np.abs dist)) (np.invert mask))) 
@@ -306,28 +311,40 @@
         action-loss   (-> (lfor a (.keys last-act)
                                   (/ (-  (get last-act a) (get curr-perf a)) 
                                      (get curr-perf a)))
-                          (np.array) (np.sum))
+                          (np.array) (np.sum) (* 1.0e-4))
 
         sizing-loss   (-> (lfor s (.keys curr-sizing)
                                   (/ (- (get set-sizing s) (get curr-sizing s)) 
                                      (get curr-sizing s)))
-                          (np.array) (np.sum))
+                          (np.array) (np.sum) (* 1.0e-4))
 
-        step-loss     (* steps bonus 1.0e-4)
+        ;step-loss     (* steps bonus 1.0e-1)
+        step-loss     (* steps 1.0e-2)
+        step-bonus    (* (- max-steps steps) bonus 1.0e-1)
 
-        ;finish-bonus  (np.sum (* (np.all mask) bonus))
         finish-bonus  (* (np.all mask) bonus)
 
-        finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) bonus)
+        ;finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) bonus)
+        finish-fail   (* (and (np.any (np.invert mask)) (>= steps max-steps)) bonus)
 
-        reward        (-> perf-loss (np.sum)
-                                    (- action-loss)
+        reward        (-> perf-loss (- action-loss)
+                                    ;(- sizing-loss)
+                                    (- step-loss)
+                                    ;(+ step-bonus)
                                     (+ finish-bonus)
                                     (- finish-fail)
-                                    (- step-loss)
-                                    (np.maximum (- (* 2.0 bonus)))
-                                    (np.minimum    bonus)
+                                    (np.maximum (- 25.0))
+                                    ;(np.minimum 2.0)
                                     (.item))
+
+                                ;(-> perf-loss 
+                                ;    (- action-loss)
+                                ;    (- sizing-loss)
+                                ;    (+ finish-bonus)
+                                ;    (- finish-fail)
+                                ;    (np.maximum (- 25.0))
+                                ;    (.item))
+
         #_/ ]
     (when (np.isnan reward) 
       (setv tk   (-> target (.keys) (list) (sorted))
@@ -579,6 +596,51 @@
     
     (dict (zip inputs sa))))
 
+(defn discrete-step ^(of tuple np.array float bool dict) [ ^(of list str) inputs
+          ^(of list str) design-constraints ^np.array action-scale-min
+          ^np.array action-scale-max ace sizing-fun 
+          ^int num-gmid ^int num-fug ^int num-ib
+          ^int action-idx 
+          &optional [blocklist []] ]
+    """
+    Takes an array of descrete electric parameters for each building block and 
+    converts them to sizing parameters for each parameter specified in the
+    netlist. 
+    """
+    (if (= 0 action-idx)
+        (ac.current-sizing ace)
+        (let [current-performance (ac.current-performance ace)
+
+              current-params (np.array (lfor p inputs
+                                             (cond [(.endswith p ":fug") 
+                                                    (np.log10 (get current-performance p))]
+                                                   [(.endswith p ":id") 
+                                                    (* (get current-performance p) 1.0e6)]
+                                                   [True (get current-performance p)])))
+
+              grid-action (np.array 
+                            (+ (-> design-constraints (get "gmoverid" "grid") 
+                                                     (repeat num-gmid) 
+                                                     (list))
+                               (-> design-constraints (get "fug" "grid") 
+                                                      (repeat num-fug) 
+                                                      (list))
+                               (-> 1.0 (repeat num-ib) (list))))
+
+              (, up dn) (np.array-split (get (np.eye (* 2 (len inputs))) 
+                                             (- action-idx 1)) 2)
+              
+              action (-> (- up dn)
+                         (* grid-action)
+                         (+ current-params) 
+                         (np.maximum action-scale-min)
+                         (np.minimum action-scale-max)
+                         (scale-value action-scale-min 
+                                      action-scale-max))
+
+              #_/ ]
+
+          (sizing-fun action :blocklist blocklist))))
 
 (defn action-space ^(of tuple) [ace ^dict dc ^str ace-id  ^int ace-variant]
   """

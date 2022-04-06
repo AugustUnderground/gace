@@ -18,10 +18,12 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op2-xh035-v2"))
+(setv env (gym.make "gace:op2-xh035-v0"))
 (setv obs (.reset env))
 
-(setv env (gym.make "gace:op2-xh035-v2" :target-filter ["a_0" "ugbw"]))
+(setv env (gym.make "gace:op2-xh035-v2")); :target-filter ["a_0" "ugbw"]))
+(setv obs (.reset env))
+(setv (, o r d i) (.random-step env)) (pp o)
 
 (for [i (range 50)] 
   (setv (, o r d _) (env.random-step))
@@ -37,7 +39,7 @@
 (setv envs (gace.vector-make-same "gace:op2-xh035-v0" n :target-filter ["a_0" "ugbw"])) 
 
 (setv n 5)
-(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n)) 
+(setv envs (gace.vector-make-same "gace:op2-xh035-v2" n)) 
 (setv obs (.reset envs))
 (for [i (range 10)] (envs.reset) (pp (ac.current-sizing (. (first envs) ace))) (for [i (range 10)] (envs.random-step)))
 

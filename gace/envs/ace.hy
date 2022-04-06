@@ -100,6 +100,10 @@
     (setv self.max-steps max-steps
           self.num-steps (int 0))
 
+    ;; Initialize the Reset counter and Restart Intervall
+    (setv self.reset-count -1
+          self.restart-intervall restart-intervall)
+    
     ;; If a target was provided, use it during but add some noise during each iteration.
     (setv self.random-target random-target
           self.noisy-target  noisy-target
@@ -108,7 +112,8 @@
                                  (target-specification self.ace-id 
                                                        self.design-constraints
                                                        self.target-filter
-                                                       :random self.random-target
+                                                       :random (or self.random-target 
+                                                                   (> self.reset-count 100))
                                                        :noisy self.noisy-target))
           self.reltol        reltol
           self.reward        (or custom-reward absolute-reward)
@@ -134,10 +139,6 @@
     (setv self.input-parameters (input-parameters self.ace self.ace-id 
                                                   self.ace-variant))
 
-    ;; Initialize the Reset counter and Restart Intervall
-    (setv self.reset-count -1
-          self.restart-intervall restart-intervall)
-    
     ;; Empty last action
     (setv self.last-action {})
 
@@ -148,7 +149,8 @@
             dlp f"/tmp/{(.getlogin os)}/gace/{ts}-{ace-id}/env_0"
             self.data-log-path (or data-log-path dlp)
             self.data-logger (initialize-data-logger self.ace self.ace-variant 
-                                                     self.target self.input-parameters
+                                                     self.target 
+                                                     self.input-parameters
                                                      self.data-log-path)))
 
     ;; Override step function
@@ -157,11 +159,20 @@
                               (partial sizing-step self.input-parameters 
                                                    self.action-scale-min 
                                                    self.action-scale-max)]
-                             [(= self.ace-variant 2) self.step-v2]
+                             [(= self.ace-variant 2) 
+                              (fn [a] (discrete-step self.input-parameters
+                                                     self.design-constraints
+                                                     self.action-scale-min
+                                                     self.action-scale-max 
+                                                     self.ace 
+                                                     self.step-v0
+                                                     self.num-gmid 
+                                                     self.num-fug 
+                                                     self.num-ib a))]
                              [(= self.ace-variant 3)
-                              (partial sizing-step-relative self.input-parameters
+                              (fn [a] (sizing-step-relative self.input-parameters
                                                             self.design-constraints  
-                                                            self.ace)])
+                                                            self.ace a))])
           self.step 
             (fn [^np.array action &optional [blocklist []]]
               (-> action (self.step-fn) (self.size-circuit :blocklist blocklist))))
@@ -206,13 +217,13 @@
     ;; If ace does not exist or reset intervall is reached, create a new env.
     (when (or (not self.ace) (= 0 (% self.reset-count self.restart-intervall)))
       (self.ace.clear)
-      (del self.ace)
+      ;(del self.ace)
       (setv self.ace (eval self.ace-constructor)))
 
     ;; Target can be random or close to a known acheivable.
     (setv self.target (if self.random-target
       (target-specification self.ace-id self.design-constraints self.target-filter
-                            :random self.random-target 
+                            :random (or self.random-target (> self.reset-count 100)) 
                             :noisy self.noisy-target)
       (dfor (, p v) (.items self.target) 
             [p (* v (if self.noisy-target (np.random.normal 1.0 0.01) 1.0))])))
@@ -258,7 +269,11 @@
                            steps self.max-steps)
           td  (target-distance curr-perf self.target self.condition)
 
-          don (or (>= steps self.max-steps) (all (second td)))
+          ;don (or (>= steps self.max-steps) (all (second td)))
+          don (or (>= steps self.max-steps) 
+                  (all (second td))
+                  (all (list (map #%(bool (- 1 %1)) (second td)))))
+
           inf (info curr-perf self.target self.input-parameters) ]
 
       ;; Data Logging
