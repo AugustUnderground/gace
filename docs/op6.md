@@ -8,9 +8,9 @@ Registered as `gace:op6-<tech>-<variant>`.
 
 | Technology | Dimensions     |
 |------------|----------------|
-| `xh035`    | `ℝ²³⁵∈(-∞ ;∞)` |
-| `xh018`    | `ℝ²³⁵∈(-∞ ;∞)` |
-| `xt018`    | `ℝ²³⁵∈(-∞ ;∞)` |
+| `xh035`    | `ℝ²³⁷∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²³⁷∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²³⁷∈(-∞ ;∞)` |
 | `sky130`   | `ℝ²³⁵∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ³⁰⁵∈(-∞ ;∞)` |
 
@@ -21,7 +21,7 @@ returned by `step()`.
 # xh035
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (235 , )
+              , shape = (237 , )
               , dtype = np.float32
               , )
 
@@ -46,11 +46,11 @@ gym.spaces.Box( low   = -np.inf
 | Variant | Dimensions       | Parameters                                                                                                                                     |
 |---------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹⁴∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1", "fug-cm1", "fug-cm2", "fug-cs", "fug-d", "fug-r1", "fug-c1", "i1", "i2"]` |
-| `v1`    | `ℝ¹⁸∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lc1", "Lr1", "Wd", "Wcm1", "Wcm2", "Wcs", "Wc1", "Wr1", "Mcm11", "Mcs", "Mc1", "Mr1", "Mcm12", "Mcm13"]`       |
-| `v2`    | `ℝ¹⁴∈[0,1,2]`    | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1", "fug-cm1", "fug-cm2", "fug-cs", "fug-d", "fug-r1", "fug-c1", "i1", "i2"]` |
-| `v3`    | `ℝ¹⁸∈[0,1,2]`    | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lc1", "Lr1", "Wd", "Wcm1", "Wcm2", "Wcs", "Wc1", "Wr1", "Mcm11", "Mcs", "Mc1", "Mr1", "Mcm12", "Mcm13"]`       |
+| `v1`    | `ℝ²¹∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lc1", "Lr1", "Wd", "Wcm1", "Wcm2", "Wcs", "Wc1", "Wr1", "Mcm11", "Mcs", "Mc1", "Mr1", "Mcm12", "Mcm13"]`       |
+| `v2`    | `ℝ²⁹∈[0,1]`      | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "gmid-r1", "gmid-c1", "fug-cm1", "fug-cm2", "fug-cs", "fug-d", "fug-r1", "fug-c1", "i1", "i2"]` |
+| `v3`    | `ℝ⁴³∈[0,1]`      | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lc1", "Lr1", "Wd", "Wcm1", "Wcm2", "Wcs", "Wc1", "Wr1", "Mcm11", "Mcs", "Mc1", "Mr1", "Mcm12", "Mcm13"]`       |
 
-Where `i1` is the drian current through `MNCM12` and `i2` is the drain current
+Where `i1` is the drain current through `MNCM12` and `i2` is the drain current
 through `MNCM13`.
 
 ```python
@@ -64,18 +64,14 @@ gym.spaces.Box( low   = -1.0
 # v1 action space
 gym.spaces.Box( low   = -1.0
               , high  = 1.0
-              , shape = (18 , )
+              , shape = (21 , )
               , dtype = np.float32
               , )
 
 # v2 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 14))
-                        , dtype = np.int32
-                        , )
+gym.spaces.Discrete( 29 )
 
 # v3 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 18))
-                        , dtype = np.int32
-                        , )
+gym.spaces.Discrete( 43 )
 ```
 

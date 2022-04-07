@@ -42,14 +42,16 @@ and operating point characteristics for all devices in the circuit.
 
 Action Spaces in `v0` and `v1` are _continuous_ and implemented with
 `gym.spaces.Box`. For further details, see the descriptions for specific
-environments.
+environments. The Discrete action spaces in `v2` and `v3` are twice the size of
+the continuous spaces plus the `None` action. The first half is for one grid
+step up, the second half is for one grid step down.
 
-| Variant | Description                                                          |
-|---------|----------------------------------------------------------------------|
-| `v0`    | Absolute Continuous Electrical design space (`gmoverid`, `fug`, ...) |
-| `v1`    | Absolute Continuous Geometric Design Space (`W`, `L`, ...)           |
-| `v2`    | Relative Discrete Electrical design space (`gmoverid`, `fug`, ...)   |
-| `v3`    | Relative Discrete Geometric Design Space (`W`, `L`, ...)             |
+| Variant | Description                                                     |
+|---------|-----------------------------------------------------------------|
+| `v0`    | Continuous Electrical design space (`gmoverid`, `fug`, ...)     |
+| `v1`    | Continuous Geometric Design Space (`W`, `L`, ...)               |
+| `v2`    | Discrete Electrical design space (None, `gmoverid`, `fug`, ...) |
+| `v3`    | Discrete Geometric Design Space (None, `W`, `L`, ...)           |
 
 ### Reward
 
@@ -57,7 +59,8 @@ By default the overall reward `r` is calculated based on individual performance
 parameters:
 
 ```
-r = ∑ ( (tanh(| l |) · m) + (- l² · (1 - m)) )
+   - ∑ | l |
+- e         + 1
 ```
 
 Where `l` is the vector with normalized losses for each performance `p` and

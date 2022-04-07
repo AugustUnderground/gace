@@ -9,9 +9,9 @@ Registered as `gace:op1-<tech>-<variant>`.
 
 | Technology | Dimensions     |
 |------------|----------------|
-| `xh035`    | `ℝ²¹¹∈(-∞ ;∞)` |
-| `xh018`    | `ℝ²¹¹∈(-∞ ;∞)` |
-| `xt018`    | `ℝ²¹¹∈(-∞ ;∞)` |
+| `xh035`    | `ℝ²¹³∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²¹³∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²¹³∈(-∞ ;∞)` |
 | `sky130`   | `ℝ²²⁹∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ²⁶¹∈(-∞ ;∞)` |
 
@@ -22,7 +22,7 @@ returned by `step()`.
 # xh035
 gym.spaces.Box(low   = -np.inf
               , high  = np.inf
-              , shape = (211 , )
+              , shape = (213 , )
               , dtype = np.float32
               , )
 
@@ -46,9 +46,7 @@ gym.spaces.Box(low   = -np.inf
 | Variant | Dimensions       | Parameters                                                                                                          |
 |---------|------------------|---------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹²∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "fug-cm1", "fug-cm2", "fug-cs", "fug-d" , "rc", "cc", "i1", "i2"]`   |
-| `v1`    | `ℝ¹⁵∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lrc", "Wd", "Wcm1", "Wcm2", "Wcs", "Wcc", "Wrc", "Mcm11", "Mcs", "Mcm12", "Mcm13"]` |
-| `v2`    | `ℝ¹²∈[0,1,2]`    | `["gmid-cm1", "gmid-cm2", "gmid-cs", "gmid-d", "fug-cm1", "fug-cm2", "fug-cs", "fug-d" , "rc", "cc", "i1", "i2"]`   |
-| `v3`    | `ℝ¹⁵∈[0,1,2]`    | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lrc", "Wd", "Wcm1", "Wcm2", "Wcs", "Wcc", "Wrc", "Mcm11", "Mcs", "Mcm12", "Mcm13"]` |
+| `v1`    | `ℝ¹⁹∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcs", "Lrc", "Wd", "Wcm1", "Wcm2", "Wcs", "Wcc", "Wrc", "Mcm11", "Mcs", "Mcm12", "Mcm13"]` |
 
 Where `i1` is the drain current through `MNCM1A` and `i2` is the drain current
 through `MNCM1B`.
@@ -64,18 +62,8 @@ gym.spaces.Box( low   = -1.0
 # v1 action space
 gym.spaces.Box( low   = -1.0
               , high  = 1.0
-              , shape = (14 , )
+              , shape = (19 , )
               , dtype = np.float32
               , )
-
-# v2 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 12))
-                        , dtype = np.int32
-                        , )
-
-# v3 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 14))
-                        , dtype = np.int32
-                        , )
 ```
 

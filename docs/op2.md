@@ -8,9 +8,9 @@ Registered as `gace:op2-<tech>-<variant>`.
 
 | Technology | Dimensions     |
 |------------|----------------|
-| `xh035`    | `ℝ²¹⁴∈(-∞ ;∞)` |
-| `xh018`    | `ℝ²¹⁴∈(-∞ ;∞)` |
-| `xt018`    | `ℝ²¹⁴∈(-∞ ;∞)` |
+| `xh035`    | `ℝ²⁴⁸∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²⁴⁸∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²⁴⁸∈(-∞ ;∞)` |
 | `sky130`   | `ℝ²⁷⁴∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ³¹⁴∈(-∞ ;∞)` |
 
@@ -21,7 +21,7 @@ returned by `step()`.
 # xh035
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (214 , )
+              , shape = (248 , )
               , dtype = np.float32
               , )
 
@@ -45,9 +45,9 @@ gym.spaces.Box( low   = -np.inf
 | Variant | Dimensions       | Parameters                                                                                            |
 |---------|------------------|-------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹⁰∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1" "i2"]` |
-| `v1`    | `ℝ¹²∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
-| `v2`    | `ℝ¹⁰∈[0,1,2]`    | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1" "i2"]` |
-| `v3`    | `ℝ¹²∈[0,1,2]`    | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
+| `v1`    | `ℝ¹⁵∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
+| `v2`    | `ℝ²¹∈[0,1]`      | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1" "i2"]` |
+| `v3`    | `ℝ³¹∈[0,1]`      | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm21", "Mcm12", "Mcm22"]`    |
 
 Where `i1` is the drain current through `MNCM12` and `i2` is the drain current
 through `MPCM212` and `MPCM222`.
@@ -63,18 +63,14 @@ gym.spaces.Box( low   = -1.0
 # v1 action space
 gym.spaces.Box( low   = -1.0
               , high  = 1.0
-              , shape = (12 , )
+              , shape = (15 , )
               , dtype = np.float32
               , )
 
 # v2 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 10))
-                        , dtype = np.int32
-                        , )
+gym.spaces.Discrete( 21 )
 
 # v3 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 12))
-                        , dtype = np.int32
-                        , )
+gym.spaces.Discrete( 31 )
 ```
 

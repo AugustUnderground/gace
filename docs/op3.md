@@ -8,9 +8,9 @@ Registered as `gace:op3-<tech>-<variant>`.
 
 | Technology | Dimensions     |
 |------------|----------------|
-| `xh035`    | `ℝ²⁴⁶∈(-∞ ;∞)` |
-| `xh018`    | `ℝ²⁴⁶∈(-∞ ;∞)` |
-| `xt018`    | `ℝ²⁴⁶∈(-∞ ;∞)` |
+| `xh035`    | `ℝ²⁴⁸∈(-∞ ;∞)` |
+| `xh018`    | `ℝ²⁴⁸∈(-∞ ;∞)` |
+| `xt018`    | `ℝ²⁴⁸∈(-∞ ;∞)` |
 | `sky130`   | `ℝ²⁶⁶∈(-∞ ;∞)` |
 | `gpdk180`  | `ℝ³⁰⁶∈(-∞ ;∞)` |
 
@@ -21,7 +21,7 @@ returned by `step()`.
 # xh035
 gym.spaces.Box( low   = -np.inf
               , high  = np.inf
-              , shape = (246 , )
+              , shape = (248 , )
               , dtype = np.float32
               , )
 
@@ -45,9 +45,9 @@ gym.spaces.Box( low   = -np.inf
 | Variant | Dimensions       | Parameters                                                                                                                       |
 |---------|------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `v0`    | `ℝ¹¹∈[-1.0;1.0]` | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1", "i2", "i3" ]`                    |
-| `v1`    | `ℝ¹⁵∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm212", "Mcm31", "Mcm12", "Mcm222", "Mcm32", "Mcm2x1"]` |
-| `v2`    | `ℝ¹¹∈[0,1,2]`    | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1", "i2", "i3" ]`                    |
-| `v3`    | `ℝ¹⁵∈[0,1,2]`    | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm212", "Mcm31", "Mcm12", "Mcm222", "Mcm32", "Mcm2x1"]` |
+| `v1`    | `ℝ¹⁶∈[-1.0;1.0]` | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm212", "Mcm31", "Mcm12", "Mcm222", "Mcm32", "Mcm2x1"]` |
+| `v2`    | `ℝ²³∈[0,1]`      | `["gmid-cm1", "gmid-cm2", "gmid-cm3", "gmid-d", "fug-cm1", "fug-cm2", "fug-cm3", "fug-d", "i1", "i2", "i3" ]`                    |
+| `v3`    | `ℝ³³∈[0,1]`    | `["Ld", "Lcm1", "Lcm2", "Lcm3", "Wd", "Wcm1", "Wcm2", "Wcm3", "Mcm11", "Mcm212", "Mcm31", "Mcm12", "Mcm222", "Mcm32", "Mcm2x1"]` |
 
 Where `i1` is the drain current through `MNCM12`, `i2` is the drain current
 through `MPCM212` and `i3` is the drain current through `MPCM222`.
@@ -63,18 +63,14 @@ gym.spaces.Box( low   = -1.0
 # v1 action space
 gym.spaces.Box( low   = -1.0
               , high  = 1.0
-              , shape = (15 , )
+              , shape = (16 , )
               , dtype = np.float32
               , )
 
 # v2 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 11))
-                        , dtype = np.int32
-                        , )
+gym.spaces.Discrete( 23 )
 
 # v3 action space
-gym.spaces.MultiDiscrete( list(repeat(3, 15))
-                        , dtype = np.int32
-                        , )
+gym.spaces.Discrete( 33 )
 ```
 
