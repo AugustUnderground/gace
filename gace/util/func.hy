@@ -312,7 +312,7 @@
         action-loss   (-> (lfor a (.keys last-act)
                                   (/ (-  (get last-act a) (get curr-perf a)) 
                                      (get curr-perf a)))
-                          (np.array) (np.sum) (* 1.0e-4))
+                          (np.array) (np.sum) (* 1.0e-3))
 
         sizing-loss   (-> (lfor s (.keys curr-sizing)
                                   (/ (- (get set-sizing s) (get curr-sizing s)) 
@@ -331,7 +331,6 @@
         reward        (-> perf-loss (- action-loss)
                                     ;(- sizing-loss)
                                     (- step-loss)
-                                    ;(+ step-bonus)
                                     (+ finish-bonus)
                                     (- finish-fail)
                                     (np.maximum (- 25.0))
@@ -345,7 +344,6 @@
                                 ;    (- finish-fail)
                                 ;    (np.maximum (- 25.0))
                                 ;    (.item))
-
         #_/ ]
     (when (np.isnan reward) 
       (setv tk   (-> target (.keys) (list) (sorted))

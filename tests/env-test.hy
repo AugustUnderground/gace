@@ -18,6 +18,17 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
+
+(for [i [2 3 4 5 6 8 9]]
+  (for [e [0 1 2 3]]
+    (setv env (gym.make f"gace:op{i}-xh035-v{e}"))
+    (print f"gace:op{i}-xh035-v{e}")
+    (print f"\tAction Space:      {(if (< e 2) env.action-space.shape env.action-space)}")
+    (print f"\tObservation Space: {env.observation-space.shape}")
+    (print f"\n")))
+
+
+
 (setv env (gym.make "gace:op2-xh035-v0"))
 (setv obs (.reset env))
 

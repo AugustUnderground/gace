@@ -142,6 +142,14 @@
     (.__init__ (super OP9XH035V1Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3"  "ace_variant" 1}))))
 
+(defclass OP9XH035V2Env [OP9Env]
+  """
+  Implementation: xh035-3V3
+  """
+  (defn __init__ [self &kwargs kwargs]
+    (.__init__ (super OP9XH035V2Env self) #**
+               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 2}))))
+
 (defclass OP9XH035V3Env [OP9Env]
   """
   Implementation: xh035-3V3
