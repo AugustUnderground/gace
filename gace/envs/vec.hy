@@ -117,11 +117,13 @@
               ;:do (unless e.ace (setv e.ace (eval e.ace-constructor)))
 
               ;; Target can be random or close to a known acheivable.
-              :do (setv e.target (target-specification e.ace-id e.design-constraints
-                                                    e.target-filter
-                                                    :random (or e.random-target 
-                                                                (> e.reset-count 100))
-                                                    :noisy e.noisy-target))
+              :do (setv e.target (target-specification e.ace-id 
+                                                       e.design-constraints
+                                                       e.target-filter
+                                                       :random (or e.random-target 
+                                                                  (> e.reset-count 
+                                                                     1000))
+                                                       :noisy e.noisy-target))
 
               ;; Log new target
               :do (when e.logging-enabled
@@ -187,7 +189,7 @@
                          curr-sizings set-sizings last-actions steps max-steps)
                     (rf cp pp t c cs ss a s m))
 
-          td  (list (ap-map (-> (target-distance #* it) (second) (all)) 
+          td  (list (ap-map (-> (target-distance #* it) (second) (np.all) (bool)) 
                             (zip curr-perfs targets conds)))
 
           ss  (lfor e self.gace-envs (>= e.num-steps e.max-steps))

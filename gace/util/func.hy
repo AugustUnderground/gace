@@ -319,23 +319,22 @@
                                      (get curr-sizing s)))
                           (np.array) (np.sum) (* 1.0e-4))
 
-        ;step-loss     (* steps bonus 1.0e-1)
-        step-loss     (* steps 1.0e-2)
+        step-loss     (* steps 5.0e-2)
         step-bonus    (* (- max-steps steps) bonus 1.0e-1)
 
-        finish-bonus  (* (np.all mask) 2.0 bonus)
+        finish-bonus  (* (np.all mask) 3.0 bonus)
 
         ;finish-fail   (* (or (np.all (np.invert mask)) (>= steps max-steps)) bonus)
-        finish-fail   (* (and (np.any (np.invert mask)) (>= steps max-steps)) bonus)
+        finish-fail   (* (or (np.any (np.invert mask)) 
+                            (>= steps max-steps)) 
+                            3.0 bonus)
 
-        reward        (-> perf-loss (- action-loss)
-                                    ;(- sizing-loss)
-                                    (- step-loss)
-                                    (+ finish-bonus)
-                                    (- finish-fail)
-                                    (np.maximum (- 25.0))
-                                    ;(np.minimum 2.0)
-                                    (.item))
+        loss          (* (np.tanh (/ (- perf-loss action-loss step-loss) 10.0)) 
+                         10.0)
+
+        reward        (-> loss (- finish-fail) (+ finish-bonus) 
+                               (np.minimum 25.0) (np.maximum (- 25.0))
+                               (.item))
 
                                 ;(-> perf-loss 
                                 ;    (- action-loss)
@@ -362,8 +361,8 @@
                             ^(of dict str float) set-sizing
                             ^(of dict str float) last-action
                             ^int steps ^int max-steps
-                            &optional ^float [bonus 10.0]
-                                      ^float [improv-fact 2.0]]
+                            &optional float [tolerance 1e-3]
+                            #_/ ]
   """
   Calculates a reward based on the relative improvement, compared to previous
   performance. Arguments:
@@ -377,47 +376,8 @@
     steps:        Number of steps taken in the environment.
     max-steps:    Maximum number of steps allowed.
   """
-  (let [(, curr-dist curr-mask) (target-distance curr-perf target condition)
-        (, prev-dist prev-mask) (target-distance prev-perf target condition)
-  
-        better (| (& (np.invert prev-mask) curr-mask)
-                  (& (np.invert curr-mask)
-                     (np.invert prev-mask)
-                     (< curr-dist prev-dist)))
-
-        stayed (& prev-mask curr-mask)
-
-        worse (& (np.invert prev-mask) 
-                 (np.invert curr-mask)
-                 (>= curr-dist prev-dist))
-
-        worst (& prev-mask (np.invert curr-mask))
-
-        ;simple (+ (-> better (.astype float) (* 1.0)) 
-        ;          (-> stayed (.astype float) (* steps) (np.clip 1.0 5.0))
-        ;          (-> worse (.astype float) (* steps) (np.clip 1.0 10.0) (-))
-        ;          (-> worst (.astype float) (* steps) (-))) 
-
-        simple (+ (-> better (.astype float) (* 1.0)) 
-                  (-> stayed (.astype float) (* 2.0))
-                  (-> worse (.astype float) (* -1.0))
-                  (-> worst (.astype float) (* -3.0)))
-        
-        last-act    (dfor (, k v) (.items last-action) 
-                          [k (cond [(.endswith k ":fug") (np.power 10 v)]
-                                   [(.endswith k ":id") (* v 1e-6)] 
-                                   [True v])])
-
-        act-loss (-> (lfor a (.keys last-act)
-                             (/ (-  (get last-act a) (get curr-perf a)) 
-                                (get curr-perf a)))
-                     (np.array) (np.sum))
-
-        finish-bonus (* (and (np.all curr-mask) (<= steps max-steps)) bonus)
-        #_/ ]
-
-    (-> simple (.astype float) (np.sum) (np.nan-to-num) (+ finish-bonus) (- act-loss))))
-    ;(-> simple (.astype float) (np.sum) (- steps) (np.nan-to-num))))
+  (let [(, _ curr-mask) (target-distance curr-perf target condition)]
+    (if (and (< steps max-steps) (np.all curr-mask)) 0.0 (- 1.0))))
 
 (defn relative-reward ^float [^(of dict str float) curr-perf
                               ^(of dict str float) prev-perf
@@ -728,8 +688,8 @@
   """
   (-> ace (ac.parameter-dict)
     (| { "gmoverid" { "init" 10.0
-                      "max"  15.0
-                      "min"  5.0
+                      "max"  14.0
+                      "min"  6.0
                       "grid" 0.5 }
          "fug" { "init" 7.5 ;; 1.0e8
                  "max"  9.0 ;; 1.0e9

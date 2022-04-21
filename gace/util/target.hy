@@ -172,7 +172,7 @@
                             (os.strerror errno.ENOSYS) 
                             (.format "There is no target for {} in {}"
                                      ace-id ace-backend))) ])
-        factor (cond [random (np.abs (np.random.normal 1 0.5))]
+        factor (cond [random (np.abs (np.random.normal 1 0.1))]
                      [noisy  (np.random.normal 1 0.01)]
                      [True   1.0])]
     (dfor (, p v) (.items ts)

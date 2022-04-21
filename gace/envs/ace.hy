@@ -33,7 +33,7 @@
     pdk-path: str (None)                -> Path to PDK
     obs-lo: Union[float, np.array] -Inf -> Lower bound of obs
     obs-hi: Union[float, np.array] +Inf -> Upper bound of obs
-    max-steps: int (150)                -> Maximum number of steps before reset
+    max-steps: int (100)                -> Maximum number of steps before reset
     target: Dict[str, float] ({})       -> Specific Target to reach
     random-target: bool (False)         -> Randomize Target each episode
     noisy-target: bool  (True)          -> Add some noise after each reset

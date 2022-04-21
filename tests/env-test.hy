@@ -19,15 +19,33 @@
 (import [hy.contrib.pprint [pp pprint]])
 
 
-(for [i [2 3 4 5 6 8 9]]
-  (for [e [0 1 2 3]]
-    (setv env (gym.make f"gace:op{i}-xh035-v{e}"))
-    (print f"gace:op{i}-xh035-v{e}")
-    (print f"\tAction Space:      {(if (< e 2) env.action-space.shape env.action-space)}")
-    (print f"\tObservation Space: {env.observation-space.shape}")
-    (print f"\n")))
 
 
+
+(setv v1 (pt.tensor [[-0.3788   ]
+                     [-0.3660   ]
+                     [-0.3933   ]
+                     [-0.3278   ]
+                     [-0.3926   ]
+                     [-0.3283   ]
+                     [-0.2981   ]
+                     [-0.3444   ]
+                     [-0.3304   ]
+                     [-0.3511   ]]))
+
+(setv v2 (pt.tensor [[-0.3379   ]
+                     [-0.3612   ]
+                     [-0.4282   ]
+                     [-0.3548   ]
+                     [-0.3583   ]
+                     [-0.3349   ]
+                     [-0.3935   ]
+                     [-0.4062   ]
+                     [-0.3648   ]
+                     [-0.4122   ]]))
+
+
+(pt.min v1 v2)
 
 (setv env (gym.make "gace:op2-xh035-v0"))
 (setv obs (.reset env))
@@ -51,6 +69,19 @@
 
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op2-xh035-v2" n)) 
+(setv obs (.reset envs))
+
+(for [i (range 50)] 
+  (setv (, o r d _) (envs.random-step))
+  (print f"{d} -> {r}")
+  (when (any d)
+    (print "RESET")
+    (env.reset)))
+
+
+
+
+
 (setv obs (.reset envs))
 (for [i (range 10)] (envs.reset) (pp (ac.current-sizing (. (first envs) ace))) (for [i (range 10)] (envs.random-step)))
 

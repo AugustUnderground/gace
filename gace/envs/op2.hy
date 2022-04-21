@@ -47,7 +47,7 @@
                                                       (get it (slice 4 8))
                                                       (np.power 10 it))
           (, i1 i2 )                              (as-> unscaled-action it
-                                                      (get it (slice -2 None))
+                                                      (get it (slice (- 2) None))
                                                       (np.array it)
                                                       (* it 1e-6))
 
@@ -148,14 +148,6 @@
   (defn __init__ [self &kwargs kwargs]
     (.__init__ (super OP2XH035V3Env self) #**
                (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 3}))))
-
-;(defclass OP2XH035V2Env [OP2Env]
-;  """
-;  Implementation: xh035-3V3
-;  """
-;  (defn __init__ [self &kwargs kwargs]
-;    (.__init__ (super OP2XH035V2Env self) #**
-;               (| kwargs {"ace_backend" "xh035-3V3" "ace_variant" 2}))))
 
 (defclass OP2XH018V0Env [OP2Env]
   """
