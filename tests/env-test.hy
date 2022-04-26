@@ -6,6 +6,7 @@
 (import [fractions [Fraction]])
 (import [datetime [datetime :as dt]])
 (import [numpy :as np])
+(import [matplotlib [pyplot :as plt]])
 (import [h5py :as h5])
 (import [pyarrow :as pa])
 (import [pyarrow [feather :as ft]])
@@ -18,37 +19,65 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-
-
-
-
-(setv v1 (pt.tensor [[-0.3788   ]
-                     [-0.3660   ]
-                     [-0.3933   ]
-                     [-0.3278   ]
-                     [-0.3926   ]
-                     [-0.3283   ]
-                     [-0.2981   ]
-                     [-0.3444   ]
-                     [-0.3304   ]
-                     [-0.3511   ]]))
-
-(setv v2 (pt.tensor [[-0.3379   ]
-                     [-0.3612   ]
-                     [-0.4282   ]
-                     [-0.3548   ]
-                     [-0.3583   ]
-                     [-0.3349   ]
-                     [-0.3935   ]
-                     [-0.4062   ]
-                     [-0.3648   ]
-                     [-0.4122   ]]))
-
-
-(pt.min v1 v2)
-
 (setv env (gym.make "gace:op2-xh035-v0"))
 (setv obs (.reset env))
+
+(list (.keys env.target))
+(gace.target.target-predicate env.ace-id) ; 
+
+(setv ok (get i0 "observations"))
+
+(setv ttf (lfor o ok :if (o.startswith "target_") o))
+(setv tf (lfor t ttf (.removeprefix t "target_")))
+
+(setv idx (lfor i ok :if (in i (+ tf ttf)) (ok.index i)))
+
+(lfor i ok :if (in i tf) (ok.index i))
+
+(setv env (gym.make "gace:op2-xh035-v0" :target-filter tf :max-steps 50))
+
+(setv obs (.reset env))
+
+(setv o (np.stack (lfor _ (range 100) (-> (env.random-step) (first) (get idx)))))
+
+
+(plt.hist (get o.T 3) :bins 100) (plt.show)
+
+(lfor i (range 14) (plt.hist (get o.T i) :bins 100)) (plt.show)
+
+(setv tf ["a_0" "ugbw" "pm" "voff_stat" "cmrr" "psrr_p" "A"])
+(setv ttf (lfor t tf f"target_{t}"))
+
+(gace.unscale-value (np.full [1 10] 1.0) env.action-scale-min env.action-scale-max)
+
+(setv (, o0 r0 d0 i0) (env.step (np.full [10] 1.0)))
+(setv (, o1 r1 d1 i1) (env.step (np.full [10] 0.0)))
+(setv (, o2 r2 d2 i2) (env.step (np.full [10] -1.0)))
+
+(setv la (np.array (list (.values env.last-action))))
+(setv lala env.last-action)
+
+(pp (dfor k (.keys lala) [k (get (ac.current-performance env.ace) k)]))
+(pp lala)
+
+(setv action (np.hstack (, (np.array [10.0 10.0 10.0 10.0]) 
+                          (np.array [6.0 6.0 6.0 6.0])
+                           (np.array [3.0 3.0]))))
+
+(setv a (gace.scale-value action env.action-scale-min env.action-scale-max))
+
+(setv (, o3 r3 d3 i3) (env.step a))
+
+(setv la (np.array (list (.values env.last-action))))
+(setv lala env.last-action)
+
+(pp (dfor k (.keys lala) [k (get (ac.current-performance env.ace) k)]))
+(pp lala)
+
+
+
+
+
 
 (setv env (gym.make "gace:op2-xh035-v2")); :target-filter ["a_0" "ugbw"]))
 (setv obs (.reset env))

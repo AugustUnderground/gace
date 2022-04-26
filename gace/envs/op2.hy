@@ -60,8 +60,8 @@
           M1 (-> (/ i0     i1) (Fraction) (.limit-denominator M1-lim))
           M2 (-> (/ i1 2.0 i2) (Fraction) (.limit-denominator M2-lim))
 
-          Mcm11 M1.numerator Mcm12 M1.denominator
-          Mcm21 M2.numerator Mcm22 M2.denominator
+          Mcm11 (max M1.numerator 1) Mcm12 (max M1.denominator 1)
+          Mcm21 (max M2.numerator 1) Mcm22 (max M2.denominator 1)
           
           Mdp1  (get self.design-constraints "Md"    "init")
           Mcm31 (get self.design-constraints "Mcm31" "init") 
@@ -87,7 +87,10 @@
           Wcm2 (/ i1 2.0 (get cm2-out 0) Mcm21)
           Wcm3 (/ i2     (get cm3-out 0) Mcm31) ]
 
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1 
+         fug-cm1  fug-cm2  fug-cm3  fug-dp1 
+         i1 i2 ])))
 
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcm3"  Lcm3 
       "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcm3"  Wcm3 

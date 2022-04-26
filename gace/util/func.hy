@@ -183,16 +183,16 @@
 
         ;perf (np.nan-to-num (np.array (lfor pp targets (get performance pp))))
         ;targ (np.nan-to-num (np.array (lfor pp targets (get target pp))))
+
         perf (np.array (lfor pp targets (get performance pp)))
         targ (np.array (lfor pp targets (get target pp)))
-
         crit (if condition (lfor pp targets (get condition pp)) [])
         
         ;dist (/ (np.abs (- perf targ)) targ)
         ;dist (/ (- perf targ) targ)
         dist (/ (- (np.abs perf) (np.abs targ)) (np.abs targ))
 
-        mask (np.array (lfor (, c p t) (zip crit perf targ) (c t p)))
+        mask (np.array (lfor (, c t p) (zip crit targ perf) (c t p)))
         #_/ ]
       
     (, dist mask)))
@@ -646,7 +646,7 @@
                                         (num-params "r" ip))
                              (np.repeat (get dc "cc" "min")  
                                         (num-params "c" ip))
-                             (np.repeat (* (get dc "i0" "init") 0.3 1e6)
+                             (np.repeat (* (get dc "i0" "init") 0.33 1e6)
                                         (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
@@ -668,7 +668,7 @@
                                         (num-params "r" ip))
                              (np.repeat (get dc "cc" "max")  
                                         (num-params "c" ip))
-                             (np.repeat (* (get dc "i0" "init") 5.0 1e6) 
+                             (np.repeat (* (get dc "i0" "init") 10.0 1e6) 
                                         (num-params "id" ip))))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]

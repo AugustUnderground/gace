@@ -12,6 +12,41 @@
 (import [hy.contrib.sequences [Sequence end-sequence]])
 (import [hy.contrib.pprint [pp pprint]])
 
+(defn performance-scaler [^str ace-id ^str ace-backend]
+  (cond [(and (in ace-backend ["xh035-3V3"]) (in ace-id ["op2" "op3"]))
+         {"a_0"         [25.0 70.0] ; 55.0
+          "ugbw"        [5.0 10.0]  ; 3500000.0
+          "pm"          [0.0 120.0] ; 65.0
+          "gm"          [0.0 80.0] ; -20.0
+          "sr_r"        [4.0 8.0] ; 3500000.0
+          "sr_f"        [4.0 8.0] ; -3500000.0
+          "vn_1Hz"      [-10.0 -4.0] ; 5e-06
+          "vn_10Hz"     [-10.0 -4.0] ; 2e-06
+          "vn_100Hz"    [-10.0 -4.0] ; 5e-07
+          "vn_1kHz"     [-10.0 -4.0] ; 1.5e-07
+          "vn_10kHz"    [-10.0 -4.0] ; 5e-08
+          "vn_100kHz"   [-10.0 -4.0] ; 2.5e-08
+          "cmrr"        [70 150.0] ; 80.0
+          "psrr_n"      [30.0 70.0] ; 60.0
+          "psrr_p"      [40.0 140.0] ; 80.0
+          "v_il"        [0.0 (* 2.0 3.3)] ; (* vdd 0.25) ; 0.9
+          "v_ih"        [0.0 (* 2.0 3.3)] ; (* vdd 0.95) ; 3.2
+          "v_ol"        [0.0 (* 2.0 3.3)] ; (* vdd 0.50) ; 1.65
+          "v_oh"        [0.0 (* 2.0 3.3)] ; (* vdd 0.95) ; 3.2
+          "i_out_min"   [-6.0 -3.0] ; -7e-5
+          "i_out_max"   [-6.0 -3.0] ; 7e-5
+          "overshoot_r" [0.0 130.0] ; 2.0
+          "overshoot_f" [0.0 130.0] ; 2.0
+          "cof"         [5.0 9.0] ;  48000000.0
+          "voff_stat"   [-5.0 0.0] ; 0.003
+          "voff_sys"    [-5.0 0.0] ; -0.003
+          "A"           [-15.0 -5.0] ; 5.5e-10
+          #_/ }]
+         [True (raise (NotImplementedError errno.ENOSYS
+                                        (os.strerror errno.ENOSYS) 
+                                        (.format "There is no target scaling for {} in {}"
+                                                 ace-id ace-backend)))]))
+
 (defn target-specification [^str ace-id ^dict dc ^(of list str) target-filter
                   &optional ^bool [random False] 
                             ^bool [noisy True]]
@@ -68,6 +103,7 @@
                    "i_out_max"   7e-5
                    "overshoot_r" 2.0
                    "overshoot_f" 2.0
+                   ;"cof"         48000000.0
                    "voff_stat"   0.003
                    "voff_sys"    -0.003
                    "A"           5.5e-10
@@ -179,7 +215,51 @@
           :if (or (in p target-filter) (empty? target-filter))
           [ p (if noisy (* v factor) v) ])))
 
-(defn reward-condition ^dict [^str ace-id &optional ^float [tolerance 1e-2]]
+(defn target-predicate ^(of dict str bool) [^str ace-id]
+  """
+  Returns True for t < p == 0 and False for t > p == 0.
+  """
+  (cond [(.startswith ace-id "op")
+         {"A"           False
+          "a_0"         True 
+          "cmrr"        True 
+          "cof"         True 
+          "gm"          True 
+          "i_out_max"   True 
+          "i_out_min"   False
+          "overshoot_f" False
+          "overshoot_r" False
+          "pm"          True 
+          "psrr_n"      True 
+          "psrr_p"      True 
+          "sr_f"        False
+          "sr_r"        True 
+          "ugbw"        True 
+          "v_ih"        True 
+          "v_il"        False
+          "v_oh"        True 
+          "v_ol"        False
+          "vn_1hz"      True 
+          "vn_10hz"     False
+          "vn_100hz"    False
+          "vn_1khz"     False
+          "vn_10khz"    False
+          "vn_100khz"   False
+          "voff_stat"   False
+          "voff_sys"    True } ]
+        [True
+         (raise (NotImplementedError errno.ENOSYS
+                     (os.strerror errno.ENOSYS) 
+                     (.format "There is no target predicate for {}."
+                              ace-id)))]))
+
+(defn reward-condition ^dict [^str ace-id &optional ^float [tolerance 1e-3]]
+  """
+  For ace-id ≠ 'op' performance must be met within `tolerance` intervall.
+  Otherwise it is a function (λ :: Performance -> Target -> Bool) that returns
+  true if the performance is 'better' than target and false otherwise.
+  Depending on the parameter, 'better' can mean higher or lower.
+  """
   (setv == (fn [a b] (<= (/ (np.abs (- a b)) b) tolerance)))
   (cond [(.startswith ace-id "op")
          { "a_0"         <=
@@ -207,8 +287,9 @@
            "i_out_max"   >=
            "overshoot_r" >=
            "overshoot_f" >=
+           "cof"         <=
            "voff_stat"   >=
-           ;; "voff_sys"    <=
+           ;;"voff_sys"    <=
            "voff_sys"    >=
            "A"           >=
            #_/ }]
@@ -225,6 +306,6 @@
            "t_phl" ==
            #_/ }]
         [True (raise (NotImplementedError errno.ENOSYS
-                      (os.strerror errno.ENOSYS) 
-                      (.format "There is no reward condition for {}."
-                               ace-id)))]))
+                     (os.strerror errno.ENOSYS) 
+                     (.format "There is no reward condition for {}."
+                              ace-id)))]))
