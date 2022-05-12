@@ -67,25 +67,27 @@
           Mcm31 (get self.design-constraints "Mcm31" "init") 
           Mcm32 (get self.design-constraints "Mcm32" "init")
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) (- (/ vdd 4.0))]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 4.0)           0.0  ]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 3.0)           0.0  ]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 4.0)           0.0  ]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 4.0)               0.0  ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (- (/ vdd 3.0))           0.0  ]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 4.0)               0.0  ]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0)     (- (/ vdd 4.0))]])
 
-          dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
           cm2-out (first (self.pmos.predict cm2-in))
           cm3-out (first (self.nmos.predict cm3-in))
+          dp1-out (first (self.nmos.predict dp1-in))
 
-          Ldp1 (get dp1-out 1)
           Lcm1 (get cm1-out 1)
           Lcm2 (get cm2-out 1)
           Lcm3 (get cm3-out 1)
+          Ldp1 (get dp1-out 1)
 
-          Wdp1 (/ i1 2.0 (get dp1-out 0) Mdp1) 
           Wcm1 (/ i0     (get cm1-out 0) Mcm11)
           Wcm2 (/ i1 2.0 (get cm2-out 0) Mcm21)
-          Wcm3 (/ i2     (get cm3-out 0) Mcm31) ]
+          Wcm3 (/ i2     (get cm3-out 0) Mcm31)
+          Wdp1 (/ i1 2.0 (get dp1-out 0) Mdp1) 
+
+          #_/ ]
 
     (setv self.last-action (dict (zip self.input-parameters
         [gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1 

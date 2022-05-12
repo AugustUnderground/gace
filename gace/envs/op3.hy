@@ -70,10 +70,10 @@
           Mcm2x1 (get self.design-constraints "Mcm2x1" "init") 
           Mdp1   (get self.design-constraints "Md"     "init")
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 2) 0.0]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 2) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 4.0)               0.0  ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (- (/ vdd 3.0))           0.0  ]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 4.0)               0.0  ]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0)     (- (/ vdd 4.0))]])
 
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -90,7 +90,11 @@
           Wcm2 (/ i1 2.0 (get cm2-out 0))
           Wcm3 (/ i2     (get cm3-out 0)) ]
 
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [ gmid-cm1 gmid-cm2 gmid-cm3 gmid-dp1
+          fug-cm1  fug-cm2  fug-cm3  fug-dp1
+          i1 i2 i3 ])))
 
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3 
       "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3 

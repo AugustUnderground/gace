@@ -8,9 +8,11 @@
 (import [numpy :as np])
 (import [matplotlib [pyplot :as plt]])
 (import [h5py :as h5])
+(import json)
 (import [pyarrow :as pa])
 (import [pyarrow [feather :as ft]])
 (import [pyarrow [parquet :as pq]])
+(import [pandas :as pd])
 (import [hace :as ac])
 (import gym)
 (import gace)
@@ -19,8 +21,55 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op2-xh035-v0"))
+(setv env (gym.make "gace:op1-xh035-v0"))
 (setv obs (.reset env))
+
+(setv perf (ac.current-performance env.ace))
+
+(pp (dfor (, k v) (.items (ac.current-performance env.ace)) 
+        :if (in k (list (.keys env.target))) 
+        [k v]))
+
+
+(get perf "MNCM1A:id")
+
+(setv (, o r d i) (env.random-step))
+(len (lfor k (get i "observations") :if (.startswith k "target_") k))
+
+(setv vs ["MNCM51:vds" "MND11:vds" "MPCM41:vds" "MPCM31:vds" "MNCM21:vds" "MNCM11:vds"])
+
+(pp (dfor (, k v) (.items perf) :if (in k vs) [k (/ 3.3 v)]))
+
+(setv gs ["MNCM41:gmoverid" "MND11:gmoverid" "MPCM31:gmoverid" "MNCM44:gmoverid" "MNCM11:gmoverid" "MNLS11:gmoverid" "MNR1:gmoverid" "MNR2:gmoverid"])
+
+(pp (dfor (, k v) (.items perf) :if (in k gs) [k v]))
+
+(setv iss ["MNCM41:id" "MND11:id" "MPCM31:id" "MNCM44:id" "MNCM11:id" "MNLS11:id" "MNR1:id" "MNR2:id"])
+
+(pp (dfor (, k v) (.items perf) :if (.startswith k "MNCM5") [k v]))
+
+(setv pdat (lfor _ (range 100) 
+  :do (env.random-step)
+  (dfor (, k v) (.items (ac.current-performance env.ace)) 
+        :if (in k (list (.keys env.target))) 
+        [k v])))
+
+(setx pdf (pd.DataFrame.from-records pdat))
+
+
+(setv logs [ "A" "cof" "i_out_max" "i_out_min" "sr_f" "sr_r" "ugbw"
+             "voff_stat" "voff_sys" "vn_1Hz" "vn_10Hz" "vn_100Hz"
+             "vn_1kHz" "vn_10kHz" "vn_100kHz"])
+
+(for [c pdf.columns] 
+(print f"{c}:")
+(print (.describe (if (in c logs) 
+                      (np.log10 (np.abs (get pdf c)) 
+                                :where (> (np.abs (get pdf c)) 0.0))
+                      (get pdf c))))
+(print "\n"))
+
+(.describe (get pdf "A"))
 
 (list (.keys env.target))
 (gace.target.target-predicate env.ace-id) ; 
@@ -34,11 +83,14 @@
 
 (lfor i ok :if (in i tf) (ok.index i))
 
-(setv env (gym.make "gace:op2-xh035-v0" :target-filter tf :max-steps 50))
+(setv env (gym.make "gace:op2-xh035-v0" :max-steps 10))
 
 (setv obs (.reset env))
 
-(setv o (np.stack (lfor _ (range 100) (-> (env.random-step) (first) (get idx)))))
+(setv o (np.stack 
+  (lfor i (range 20) 
+    (let [(, o r d _) (env.random-step)]
+      (pp (.format "{}: {} {}" i d r))))))
 
 
 (plt.hist (get o.T 3) :bins 100) (plt.show)
@@ -48,11 +100,11 @@
 (setv tf ["a_0" "ugbw" "pm" "voff_stat" "cmrr" "psrr_p" "A"])
 (setv ttf (lfor t tf f"target_{t}"))
 
-(gace.unscale-value (np.full [1 10] 1.0) env.action-scale-min env.action-scale-max)
+(gace.unscale-value (np.full [12] 1.0) env.action-scale-min env.action-scale-max)
 
-(setv (, o0 r0 d0 i0) (env.step (np.full [10] 1.0)))
-(setv (, o1 r1 d1 i1) (env.step (np.full [10] 0.0)))
-(setv (, o2 r2 d2 i2) (env.step (np.full [10] -1.0)))
+(setv (, o0 r0 d0 i0) (env.step (np.full [12] 1.0)))
+(setv (, o1 r1 d1 i1) (env.step (np.full [12] 0.0)))
+(setv (, o2 r2 d2 i2) (env.step (np.full [12] -1.0)))
 
 (setv la (np.array (list (.values env.last-action))))
 (setv lala env.last-action)
@@ -60,9 +112,11 @@
 (pp (dfor k (.keys lala) [k (get (ac.current-performance env.ace) k)]))
 (pp lala)
 
+(pp (ac.current-sizing env.ace))
+
 (setv action (np.hstack (, (np.array [10.0 10.0 10.0 10.0]) 
-                          (np.array [6.0 6.0 6.0 6.0])
-                           (np.array [3.0 3.0]))))
+                           (np.array [5.5 7.5 7.5 7.5])
+                           (np.array [6.0 12.0]))))
 
 (setv a (gace.scale-value action env.action-scale-min env.action-scale-max))
 
@@ -70,13 +124,42 @@
 
 (setv la (np.array (list (.values env.last-action))))
 (setv lala env.last-action)
-
 (pp (dfor k (.keys lala) [k (get (ac.current-performance env.ace) k)]))
 (pp lala)
+(pp (ac.current-sizing env.ace))
 
 
 
+(for [i1 (.tolist (np.arange (- 1.0) 1.0 0.1))]
+  (for [i2 (.tolist (np.arange (- 1.0) 1.0 0.1))]
+    (setv a (np.hstack (, (np.zeros 8) (np.array [i1 i2]))))
+    (setv (, o3 r3 d3 i3) (env.step a))
+    (setv la (np.array (list (.values env.last-action))))
+    (setv input env.last-action)
+    (setv output (dfor k (.keys input) [k (get (ac.current-performance env.ace) k)]))
+    (setv setting {"input" input "output" output})
+    (pp setting)
+    (with [af (open "actions.json" "a")]
+      (json.dump setting af))))
 
+
+(setv i0  (get env.design-constraints "i0"   "init"))
+(setv vdd (get env.design-constraints "vsup" "init"))
+
+(setv M1-lim (-> env (. design-constraints) (get "Mcm12" "max") (int)))
+(setv M2-lim (-> env (. design-constraints) (get "Mcm22" "max") (int)))
+
+(setv i1 1.20e-6)
+(setv i2 3.0e-6)
+
+(setv M1 (-> (/ i0     i1) (round) (Fraction) (.limit-denominator M1-lim)))
+(setv M2 (-> (/ i1 2.0 i2) (Fraction) (.limit-denominator M2-lim)))
+
+(setv Mcm11 (max M1.numerator 1)) 
+(setv Mcm12 (max M1.denominator 1))
+(setv Mcm21 (max M2.numerator 1)) 
+(setv Mcm22 (max M2.denominator 1))
+ 
 
 
 (setv env (gym.make "gace:op2-xh035-v2")); :target-filter ["a_0" "ugbw"]))
@@ -93,11 +176,20 @@
 
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
 
-(setv n 5)
-(setv envs (gace.vector-make-same "gace:op2-xh035-v0" n :target-filter ["a_0" "ugbw"])) 
+(setv n 10)
+(setv envs (gace.vector-make-same "gace:op1-xh035-v0" n)) 
+(setv _ (envs.reset))
+
+(for [_ (range 10)]
+  (setv tic (.time time))
+  (setv (, obs rew don inf) (envs.step (lfor as envs.action-space (.sample as))))
+  (setv toc (.time time))
+  (print f"Evaluating {n} envs took {(- toc tic):.4}s -> {(/ n (- toc tic)):.3} FPS."))
+
+
 
 (setv n 5)
-(setv envs (gace.vector-make-same "gace:op2-xh035-v2" n)) 
+(setv envs (gace.vector-make-same "gace:op9-xh035-v0" n)) 
 (setv obs (.reset envs))
 
 (for [i (range 50)] 
@@ -108,6 +200,11 @@
     (env.reset)))
 
 
+(pp (ac.current-performance (. (first envs) ace)))
+
+(setv a (list (repeat (np.random.randn 22) n)))
+
+(setv obs (envs.step a))
 
 
 

@@ -40,7 +40,7 @@
           self.scale-y  (fn [Y] (self.scaler-y.inverse-transform Y)))
 
     (setv self.trafo-x  (fn [X] (+ (* (np.log10 (np.abs X) 
-                                                :where (> (np.abs X) 0)) 
+                                                :where (> (np.abs X) 0.0)) 
                                       self.mask-x) 
                                    (* X (- 1 self.mask-x))))
           self.trafo-y  (fn [Y] (+ (* (np.power 10 Y) self.mask-y) 
@@ -134,7 +134,7 @@
           self.scale-y  (fn [Y] (self.scaler-y.inverse-transform Y)))
 
     (setv self.trafo-x  (fn [X] (+ (* (np.log10 (np.abs X) 
-                                                :where (> (np.abs X) 0)) 
+                                                :where (> (np.abs X) 0.0)) 
                                       self.mask-x) 
                                    (* X (- 1 self.mask-x))))
           self.trafo-y  (fn [Y] (+ (* (np.power 10 Y) self.mask-y) 

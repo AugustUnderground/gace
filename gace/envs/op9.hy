@@ -45,10 +45,10 @@
 
           (, gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 
              gmid-dp1 gmid-ls1 gmid-re1 gmid-re2) (as-> unscaled-action it
-                                                      (get it (slice None 6)))
+                                                      (get it (slice None 8)))
           (, fug-cm4  fug-cm3  fug-cm2  fug-cm1  
              fug-dp1  fug-ls1  fug-re1  fug-re2)  (as-> unscaled-action it
-                                                      (get it (slice 6 12))
+                                                      (get it (slice 8 16))
                                                       (np.power 10 it))
           (, i1 i2 i3 i4 i5 i6)                   (as-> unscaled-action it
                                                       (get it (slice -6 None))
@@ -80,14 +80,14 @@
           Mcm2 (get self.design-constraints "Mcm2" "init") 
           Mls1 (get self.design-constraints "Mls1" "init") 
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2.0) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 2.0) 0.0]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 2.0) 0.0]])
-          cm4-in (np.array [[gmid-cm4 fug-cm4 (/ vdd 2.0) 0.0]])
-          ls1-in (np.array [[gmid-ls1 fug-ls1 (/ vdd 2.0) 0.0]])
-          re1-in (np.array [[gmid-re1 fug-re1 (/ vdd 2.0) 0.0]])
-          re2-in (np.array [[gmid-re1 fug-re1 (/ vdd 2.0) 0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0)     (- (/ vdd 4.0))]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 4.0)               0.0  ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (- (/ vdd 2.0))           0.0  ]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (- (/ vdd 3.0))           0.0  ]])
+          cm4-in (np.array [[gmid-cm4 fug-cm4 (/ vdd 4.0)               0.0  ]])
+          ls1-in (np.array [[gmid-ls1 fug-ls1 (/ vdd 6.0)               0.0  ]])
+          re1-in (np.array [[gmid-re1 fug-re1 (/ vdd 3.0)               0.0  ]])
+          re2-in (np.array [[gmid-re1 fug-re1 (- (/ vdd 2.0))           0.0  ]])
 
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -116,7 +116,11 @@
           Wre1 (/ i2     (get re1-out 0))
           Wre2 (/ i4     (get re2-out 0)) ]
 
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [ gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1 gmid-ls1 gmid-re1 gmid-re2
+          fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1  fug-ls1  fug-re1  fug-re2
+          i1 i2 i3 i4 i5 i6 ])))
 
     { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3"  Lcm3  "Lcm4"  Lcm4  "Lls1" Lls1 "Lr1" Lre1 "Lr2" Lre2
       "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3"  Wcm3  "Wcm4"  Wcm4  "Wls1" Wls1 "Wr2" Wre1 "Wr1" Wre2

@@ -105,7 +105,11 @@
           Wls1 (/ i3     (get ls1-out 0)) 
           Wref (/ i4     (get ref-out 0)) ]
 
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [ gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1 gmid-ls1 gmid-ref
+          fug-cm1  fug-cm2  fug-cs1  fug-dp1  fug-ls1  fug-ref
+          i1 i2 i3 i4 ])))
 
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"   Lcm2   "Lcm3"  Lcm3  "Lc1"  Lls1  "Lr" Lref
       "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"   Wcm2   "Wcm3"  Wcm3  "Wc1"  Wls1  "Wr" Wref

@@ -76,12 +76,12 @@
           Mcm51 M1.numerator Mcm52 M2.denominator Mcm53 M1.denominator
           Mcm41 M3.numerator Mcm42 M3.denominator Mcm43 M4.denominator
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2.0) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 2.0) 0.0]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (/ vdd 2.0) 0.0]])
-          cm4-in (np.array [[gmid-cm4 fug-cm4 (/ vdd 2.0) 0.0]])
-          cm5-in (np.array [[gmid-cm5 fug-cm5 (/ vdd 2.0) 0.0]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0)     (- (/ vdd 4.0))]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 5.0)               0.0  ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 3.5)               0.0  ]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (- (/ vdd 3.0))           0.0  ]])
+          cm4-in (np.array [[gmid-cm4 fug-cm4 (- (/ vdd 3.3))           0.0  ]])
+          cm5-in (np.array [[gmid-cm5 fug-cm5 (/ vdd 4.5)               0.0  ]])
 
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -104,7 +104,11 @@
           Wcm4 (/ i2     (get cm4-out 0))
           Wcm5 (/ i0     (get cm5-out 0)) ]
     
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [ gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1
+          fug-cm5  fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1
+          i1 i2 i3 i4 ])))
 
     { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
       "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wcm4"  Wcm4  "Wcm5"  Wcm5

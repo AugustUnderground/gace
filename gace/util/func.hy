@@ -130,36 +130,38 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (if (and (not-in ace-variant [0 1]) 
-             (or (<= num-steps 0) (>= num-steps max-steps)))
-        (ac.initial-sizing ace)
-        (let [sizing (if (or (> reset-count 150) random) 
+    (cond [(or (<= num-steps 0) (>= num-steps max-steps))
+           (ac.initial-sizing ace)]
+          [(in ace-variant [0 1]) 
+           (ac.random-sizing ace)]
+        [True
+         (let [sizing (if (or (> reset-count 50) random) 
                          (ac.random-sizing ace) 
                          (ac.initial-sizing ace))]
-          (if noise
-              (dfor (, p s) (.items sizing) 
-                    [p (cond [(or (.startswith p "W") (.startswith p "L"))
-                              (let [l (* (get constraints p "grid") 10.0)
-                                    m (+ (* l (np.tanh (- (/ reset-count 35.0) 2.0))) l)
-                                    n (np.random.normal 0.0 (np.abs m))]
-                                (np.abs (+ s n)))]
-                             [(.startswith p "M")
-                              (let [vals (np.arange (get constraints p "min")
-                                                    (get constraints p "max")
-                                                    (get constraints p "grid"))
-                                    choices (if (not vals.size)
-                                                (np.array [s]) vals)
-                                    weights (+ (np.full (len vals) 
-                                                        (+ (- (np.exp (/ (- reset-count) 
-                                                                         25.0))) 
-                                                           1.0))
-                                               (* (np.random.rand (len vals)) 1e-3))
-                                    w       (np.where (= vals s) 1.0 weights)
-                                    probs   (/ w (.sum w)) ]
-                                (if (not vals.size) s
-                                  (-> vals (np.random.choice 1 :p probs) (.item))))]
-                             [True s])])
-              sizing))))
+            (if noise
+                (dfor (, p s) (.items sizing) 
+                      [p (cond [(or (.startswith p "W") (.startswith p "L"))
+                                (let [l (* (get constraints p "grid") 10.0)
+                                      m (+ (* l (np.tanh (- (/ reset-count 35.0) 2.0))) l)
+                                      n (np.random.normal 0.0 (np.abs m))]
+                                  (np.abs (+ s n)))]
+                               [(.startswith p "M")
+                                (let [vals (np.arange (get constraints p "min")
+                                                      (get constraints p "max")
+                                                      (get constraints p "grid"))
+                                      choices (if (not vals.size)
+                                                  (np.array [s]) vals)
+                                      weights (+ (np.full (len vals) 
+                                                          (+ (- (np.exp (/ (- reset-count) 
+                                                                           25.0))) 
+                                                             1.0))
+                                                 (* (np.random.rand (len vals)) 1e-3))
+                                      w       (np.where (= vals s) 1.0 weights)
+                                      probs   (/ w (.sum w)) ]
+                                  (if (not vals.size) s
+                                    (-> vals (np.random.choice 1 :p probs) (.item))))]
+                               [True s])])
+              sizing)) ]))
 
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
                                             ^(of dict str float) target
@@ -615,6 +617,8 @@
   (let [ip (input-parameters ace ace-id ace-variant)
 
         num-params (fn [p ps] (len (list (filter #%(.endswith %1 (+ ":" p)) ps))))
+        num-caps (fn [ps] (len (list (filter #%(in "cap" %1) ps))))
+        num-ress (fn [ps] (len (list (filter #%(in "res" %1) ps))))
 
         abs-space (Box :low -1.0 :high 1.0 :shape (, (len ip)) :dtype np.float32)
         ;rel-space (MultiDiscrete (->> ip (len) (repeat 3) (list)) :dtype np.int32)
@@ -642,15 +646,14 @@
                                         (num-params "gmoverid" ip))
                              (np.repeat (get dc "fug" "min")  
                                         (num-params "fug" ip))
-                             (np.repeat (get dc "rc" "min")  
-                                        (num-params "r" ip))
-                             (np.repeat (get dc "cc" "min")  
-                                        (num-params "c" ip))
+                             (np.repeat (get dc "rc" "min") (num-ress ip))
+                             (np.repeat (get dc "cc" "min") (num-caps ip))
                              (np.repeat (* (get dc "i0" "init") 0.33 1e6)
-                                        (num-params "id" ip))))]
+                                        (num-params "id" ip))
+                             ))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
-                        [(in ace-variant [3])   ; relative Geometrical
+                        [(in ace-variant [3])     ; relative Geometrical
                          None]
                         [True
                           (raise (NotImplementedError errno.ENOSYS
@@ -664,15 +667,14 @@
                                         (num-params "gmoverid" ip))
                              (np.repeat (get dc "fug" "max")  
                                         (num-params "fug" ip))
-                             (np.repeat (get dc "rc" "max")  
-                                        (num-params "r" ip))
-                             (np.repeat (get dc "cc" "max")  
-                                        (num-params "c" ip))
-                             (np.repeat (* (get dc "i0" "init") 10.0 1e6) 
-                                        (num-params "id" ip))))]
+                             (np.repeat (get dc "rc" "max") (num-ress ip))
+                             (np.repeat (get dc "cc" "max") (num-caps ip))
+                             (np.repeat (* (get dc "i0" "init") 10.0 1e6)
+                                        (num-params "id" ip))
+                             ))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
-                        [(in ace-variant [3])   ; relative Geometrical
+                        [(in ace-variant [3])     ; relative Geometrical
                          None]
                         [True
                           (raise (NotImplementedError errno.ENOSYS
@@ -682,27 +684,46 @@
 
     (, space scale-min scale-max)))
 
+
+(defn cap2wid [^str ace-backend ^float C]
+  """
+  Convert a capacitance value to width
+  """
+  (cond [(= ace-backend "xh035-3V3")
+          (- (/ (np.sqrt (+ 7.056e-21 (* 3.4e-3 C))) 1.7e-3) 49e-9)]
+        [True 
+         (* (np.sqrt (/ C 5e-12)) 1) ]))
+
+(defn res2len [^str ace-backend ^float R]
+  """
+  Convert a resistance value to length
+  """
+  (cond [(= ace-backend "xh035-3V3")
+         (+ (* 9.7e-9 R) 3.819e-7)]
+        [True 
+         (* (/ R 100) 2.0e-6)]))
+
 (defn design-constraints ^dict [ace ^str ace-id]
   """
   Returns a dictionary containing technology constraints.
   """
   (-> ace (ac.parameter-dict)
     (| { "gmoverid" { "init" 10.0
-                      "max"  14.0
-                      "min"  6.0
+                      "max"  17.0
+                      "min"  4.0
                       "grid" 0.5 }
-         "fug" { "init" 7.5 ;; 1.0e8
-                 "max"  9.0 ;; 1.0e9
-                 "min"  6.0 ;; 1.0e6
+         "fug" { "init" 7.5 ;; 1.0e7.5
+                 "max"  9.0 ;; 1.0e9.0
+                 "min"  6.0 ;; 1.0e6.0
                  "grid" 0.1 }
-         "rc"  { "init" 5e3
-                 "max"  50e3
-                 "min"  0.5e3
-                 "grid" 0.5e3 }
-         "cc" { "init" 1.0e-12
-                "max"  5.0e-12
-                "min"  0.5e-12
-                "grid" 0.2e-12 }
+         "rc"  { "init" 50.0
+                 "max"  100.0
+                 "min"  0.5
+                 "grid" 1.0 }
+         "cc" { "init" 1.2
+                "max"  5.0
+                "min"  0.5
+                "grid" 0.2 }
          #_/ })))
 
 (defn op-to-args [^(of dict str float) op]

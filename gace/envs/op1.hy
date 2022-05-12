@@ -45,16 +45,16 @@
           (, fug-cm1  fug-cm2  fug-cs1  fug-dp1 ) (as-> unscaled-action it
                                                       (get it (slice 4 8))
                                                       (np.power 10 it))
-          (, res cap )                              (as-> unscaled-action it
-                                                      (get it (slice 8 10))
-                                                      (np.array it))
+          res                                     (as-> unscaled-action it
+                                                      (get it 8)
+                                                      (* it 1e3))
+          cap                                     (as-> unscaled-action it
+                                                      (get it 9)
+                                                      (* it 1e-12))
           (, i1 i2 )                              (as-> unscaled-action it
                                                       (get it (slice -2 None))
-                                                      (np.array it)
                                                       (* it 1e-6))
 
-          rc   (get self.design-constraints "rc"   "init")
-          cc   (get self.design-constraints "cc"   "init")
           i0   (get self.design-constraints "i0"   "init")
           vdd  (get self.design-constraints "vsup" "init")
           Wres (get self.design-constraints "Wres" "init")
@@ -73,13 +73,15 @@
           Mcap  (get self.design-constraints "Mcap"  "init")
           Mcs1  Mcm13
 
-          Lres (* (/ res rc) Wres)
-          Wcap (* (np.sqrt (/ cap cc)) Mcap)
+          ;Lres (* (/ res rc) Wres)
+          ;Wcap (* (np.sqrt (/ cap cc)) Mcap)
+          Lres (res2len self.ace-backend res)
+          Wcap (cap2wid self.ace-backend cap)
 
-          dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2) 0.0]])
-          cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 2) 0.0]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 2) 0.0]])
-          cs1-in (np.array [[gmid-cs1 fug-cs1 (/ vdd 2) 0.0]])
+          cm1-in (np.array [[gmid-cm1 fug-cm1    (/ vdd 4.0)               0.0  ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (- (/ vdd 3.0))              0.0  ]])
+          cs1-in (np.array [[gmid-cs1 fug-cs1 (- (/ vdd 2.0))              0.0  ]])
+          dp1-in (np.array [[gmid-dp1 fug-dp1    (/ vdd 2.0)     (- (/ vdd 4.0))]])
 
           dp1-out (first (self.nmos.predict dp1-in))
           cm1-out (first (self.nmos.predict cm1-in))
@@ -96,7 +98,11 @@
           Wdp1 (/ i1 2.0 (get dp1-out 0))
           Wcs1 (/ i2     (get cs1-out 0)  Mcs1) ]
 
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [ gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1
+          fug-cm1  fug-cm2  fug-cs1  fug-dp1
+          res cap i1 i2 ])))
 
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lcs" Lcs1 "Lres" Lres  
       "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wres" Wres "Wcap" Wcap

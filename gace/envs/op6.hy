@@ -100,7 +100,11 @@
           Wcap (/ i2     (get cap-out 0)) 
           Wres (/ i2     (get res-out 0)) ]
 
-    (setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
+    (setv self.last-action (dict (zip self.input-parameters
+        [ gmid-cm1 gmid-cm2 gmid-cs1 gmid-dp1 gmid-res gmid-cap
+          fug-cm1  fug-cm2  fug-cs1  fug-dp1  fug-res  fug-cap
+          i1 i2 ])))
 
     { "Ld" Ldp1 "Lcm1"  Lcm1  "Lcm2"  Lcm2  "Lr1" Lres "Lc1" Lcap "Lcs" Lcs1  
       "Wd" Wdp1 "Wcm1"  Wcm1  "Wcm2"  Wcm2  "Wcs" Wcs1 "Wr1" Wres "Wc1" Wcap
