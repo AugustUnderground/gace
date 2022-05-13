@@ -648,8 +648,8 @@
                                         (num-params "fug" ip))
                              (np.repeat (get dc "rc" "min") (num-ress ip))
                              (np.repeat (get dc "cc" "min") (num-caps ip))
-                             (np.repeat (* (get dc "i0" "init") 0.33 1e6)
-                                        (num-params "id" ip))
+                             ;(np.repeat (get dc "ib" "min") (num-params "id" ip))
+                             (get dc "ib" "min")
                              ))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "min")))]
@@ -669,8 +669,8 @@
                                         (num-params "fug" ip))
                              (np.repeat (get dc "rc" "max") (num-ress ip))
                              (np.repeat (get dc "cc" "max") (num-caps ip))
-                             (np.repeat (* (get dc "i0" "init") 10.0 1e6)
-                                        (num-params "id" ip))
+                             ;(np.repeat (get dc "ib" "max") (num-params "id" ip))
+                             (get dc "ib" "max")
                              ))]
                         [(in ace-variant [1])     ; Absolute Geometrical
                          (np.array (lfor p ip (get dc p "max")))]
@@ -683,7 +683,6 @@
                                      ace-id ace-variant)))])]
 
     (, space scale-min scale-max)))
-
 
 (defn cap2wid [^str ace-backend ^float C]
   """
@@ -703,27 +702,82 @@
         [True 
          (* (/ R 100) 2.0e-6)]))
 
-(defn design-constraints ^dict [ace ^str ace-id]
+(defn design-constraints ^dict [ace ^str ace-id ^str ace-backend]
   """
   Returns a dictionary containing technology constraints.
   """
   (-> ace (ac.parameter-dict)
     (| { "gmoverid" { "init" 10.0
-                      "max"  17.0
-                      "min"  4.0
+                      "max"  15.0
+                      "min"  5.0
                       "grid" 0.5 }
-         "fug" { "init" 7.5 ;; 1.0e7.5
-                 "max"  9.0 ;; 1.0e9.0
-                 "min"  6.0 ;; 1.0e6.0
+         "fug" (cond [(= ace-backend "xh035-3V3")
+                      { "init" 7.5 ;; 1.0e7.5
+                        "max"  9.0 ;; 1.0e9.0
+                        "min"  6.0 ;; 1.0e6.0
+                        "grid" 0.1 }] 
+                     [True
+                      { "init" 7.5 ;; 1.0e7.5
+                        "max"  9.0 ;; 1.0e9.0
+                        "min"  6.0 ;; 1.0e6.0
+                        "grid" 0.1 }])
+         "ib"  (cond [(and (= ace-backend "xh035-3V3") (= ace-id "op1"))
+                      { "init" [6.0 12.0]
+                        "min" [1.0 3.0]
+                        "max" [30.0 90.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op2"))
+                      { "init" [6.0 12.0]
+                        "min" [1.0 1.0]
+                        "max" [30.0 30.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op3"))
+                      { "init" [6.0 12.0 12.0]
+                        "min" [1.0 1.0 1.0]
+                        "max" [30.0 30.0 30.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op4"))
+                      { "init" [6.0 12.0 12.0]
+                        "min" [1.0 1.0 1.0]
+                        "max" [30.0 60.0 60.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op5"))
+                      { "init" [6.0 12.0 12.0 30.0]
+                        "min" [1.0 1.0 1.0 3.0]
+                        "max" [30.0 60.0 60.0 90.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op6"))
+                      { "init" [6.0 12.0]
+                        "min" [1.0 3.0]
+                        "max" [30.0 90.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op8"))
+                      { "init" [6.0 12.0 12.0 24.0]
+                        "min" [1.0 1.0 1.0 3.0]
+                        "max" [30.0 30.0 30.0 60.0]
+                        "grid" 1.0 }]
+                     [(and (= ace-backend "xh035-3V3") (= ace-id "op9"))
+                      { "init" [6.0 12.0 12.0 12.0 12.0 24.0]
+                        "min" [1.0 1.0 1.0 1.0 1.0 3.0]
+                        "max" [30.0 30.0 30.0 30.0 30.0 60.0]
+                        "grid" 1.0 }]
+                     [True (dfor (, k v) {"init" 3.0 "min" 1.0 "max" 30.0 "grid" 1.0}
+                                 [k (cond [(= ace-id "op1") (np.repeat v 2) ]
+                                          [(= ace-id "op2") (np.repeat v 2) ]
+                                          [(= ace-id "op3") (np.repeat v 3) ]
+                                          [(= ace-id "op4") (np.repeat v 3) ]
+                                          [(= ace-id "op5") (np.repeat v 4) ]
+                                          [(= ace-id "op6") (np.repeat v 2) ]
+                                          [(= ace-id "op8") (np.repeat v 4) ]
+                                          [(= ace-id "op9") (np.repeat v 6) ])]) ])
+         "rc"  { "init" 4.0
+                 "max"  4.6
+                 "min"  0.0
                  "grid" 0.1 }
-         "rc"  { "init" 50.0
-                 "max"  100.0
-                 "min"  0.5
-                 "grid" 1.0 }
          "cc" { "init" 1.2
-                "max"  5.0
+                "max"  15.0
                 "min"  0.5
-                "grid" 0.2 }
+                "grid" 0.5 }
          #_/ })))
 
 (defn op-to-args [^(of dict str float) op]

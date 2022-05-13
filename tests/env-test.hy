@@ -31,7 +31,7 @@
         [k v]))
 
 
-(get perf "MNCM1A:id")
+(get perf "MNCM1R:vds")
 
 (setv (, o r d i) (env.random-step))
 (len (lfor k (get i "observations") :if (.startswith k "target_") k))
@@ -185,7 +185,6 @@
   (setv (, obs rew don inf) (envs.step (lfor as envs.action-space (.sample as))))
   (setv toc (.time time))
   (print f"Evaluating {n} envs took {(- toc tic):.4}s -> {(/ n (- toc tic)):.3} FPS."))
-
 
 
 (setv n 5)

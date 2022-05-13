@@ -13,7 +13,7 @@
 (import [hy.contrib.pprint [pp pprint]])
 
 (defn performance-scaler [ace ^str ace-id ^str ace-backend]
-  (let [vdd (get (design-constraints ace ace-id) "vsup" "init")]
+  (let [vdd (get (design-constraints ace ace-id ace-backend) "vsup" "init")]
     (cond [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) 
                 (in ace-id ["op1" "op6"]))
            {"a_0"         [25.0 120.0]  ; 100.0

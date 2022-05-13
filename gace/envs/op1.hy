@@ -47,7 +47,7 @@
                                                       (np.power 10 it))
           res                                     (as-> unscaled-action it
                                                       (get it 8)
-                                                      (* it 1e3))
+                                                      (np.power 10 it))
           cap                                     (as-> unscaled-action it
                                                       (get it 9)
                                                       (* it 1e-12))
@@ -71,7 +71,7 @@
           Mcm22 (get self.design-constraints "Mcm22" "init")
           Mdp1  (get self.design-constraints "Md"    "init")            
           Mcap  (get self.design-constraints "Mcap"  "init")
-          Mcs1  Mcm13
+          Mcs1  (get self.design-constraints "Mcs"   "init")
 
           ;Lres (* (/ res rc) Wres)
           ;Wcap (* (np.sqrt (/ cap cc)) Mcap)
