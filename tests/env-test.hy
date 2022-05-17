@@ -6,6 +6,7 @@
 (import [fractions [Fraction]])
 (import [datetime [datetime :as dt]])
 (import [numpy :as np])
+(import [scipy.optimize [minimize]])
 (import [matplotlib [pyplot :as plt]])
 (import [h5py :as h5])
 (import json)
@@ -21,17 +22,28 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op1-xh035-v0"))
+(setx M1 (-> (/ 3e-6 1.55e-5) (Fraction) (.limit-denominator 20)))
+(setx M2 (-> (/ 3e-6 3.15e-5) (Fraction) (.limit-denominator 40)))
+(setx M2 (-> (/ 1.55e-5 3.15e-5) (Fraction) (.limit-denominator 20)))
+
+(setv env (gym.make "gace:op8-xh035-v0"))
 (setv obs (.reset env))
 
 (setv perf (ac.current-performance env.ace))
+
+(get perf "A")
+
+(pp (ac.current-sizing env.ace))
+
 
 (pp (dfor (, k v) (.items (ac.current-performance env.ace)) 
         :if (in k (list (.keys env.target))) 
         [k v]))
 
 
-(get perf "MNCM1R:vds")
+(get perf "MPCS1:id")
+
+(pp (dfor (, k v) (.items perf) :if (.islower k) [k v]))
 
 (setv (, o r d i) (env.random-step))
 (len (lfor k (get i "observations") :if (.startswith k "target_") k))
@@ -48,10 +60,11 @@
 
 (pp (dfor (, k v) (.items perf) :if (.startswith k "MNCM5") [k v]))
 
-(setv pdat (lfor _ (range 100) 
+(setv pdat (lfor stp (range 100) 
   :do (env.random-step)
+  :do (print f"Step {stp}")
   (dfor (, k v) (.items (ac.current-performance env.ace)) 
-        :if (in k (list (.keys env.target))) 
+        :if (in k (+ (list (.keys env.target)) env.input-parameters))
         [k v])))
 
 (setx pdf (pd.DataFrame.from-records pdat))
@@ -61,13 +74,27 @@
              "voff_stat" "voff_sys" "vn_1Hz" "vn_10Hz" "vn_100Hz"
              "vn_1kHz" "vn_10kHz" "vn_100kHz"])
 
-(for [c pdf.columns] 
+(for [c pdf.columns] :if (not-in c env.input-parameters)
 (print f"{c}:")
 (print (.describe (if (in c logs) 
                       (np.log10 (np.abs (get pdf c)) 
                                 :where (> (np.abs (get pdf c)) 0.0))
                       (get pdf c))))
 (print "\n"))
+
+
+
+
+(for [c env.input-parameters] 
+(print f"{c}:")
+(print (.describe (if (in c logs) 
+                      (np.log10 (np.abs (get pdf c)) 
+                                :where (> (np.abs (get pdf c)) 0.0))
+                      (get pdf c))))
+(print "\n"))
+
+
+
 
 (.describe (get pdf "A"))
 
@@ -100,19 +127,46 @@
 (setv tf ["a_0" "ugbw" "pm" "voff_stat" "cmrr" "psrr_p" "A"])
 (setv ttf (lfor t tf f"target_{t}"))
 
-(gace.unscale-value (np.full [12] 1.0) env.action-scale-min env.action-scale-max)
+(gace.unscale-value (np.full [10] -1.0) env.action-scale-min env.action-scale-max)
 
-(setv (, o0 r0 d0 i0) (env.step (np.full [12] 1.0)))
-(setv (, o1 r1 d1 i1) (env.step (np.full [12] 0.0)))
-(setv (, o2 r2 d2 i2) (env.step (np.full [12] -1.0)))
+(setv (, o0 r0 d0 i0) (env.step (np.full [10] 1.0)))
+(setv (, o1 r1 d1 i1) (env.step (np.full [10] 0.0)))
+(setv (, o2 r2 d2 i2) (env.step (np.full [10] -1.0)))
 
 (setv la (np.array (list (.values env.last-action))))
 (setv lala env.last-action)
-
-(pp (dfor k (.keys lala) [k (get (ac.current-performance env.ace) k)]))
+(setv perf (ac.current-performance env.ace))
+(pp (dfor k (.keys lala) :if (not-in k ["res" "cap"]) [k (get perf k)]))
 (pp lala)
 
+(setx sr   (get env.target "sr_r"))
+(setx cl   (get env.design-constraints "cl" "init"))
+(setx cap  (/ 30e-6 sr))
+(setx res  (* (/ 1 (* 10 60e-6)) (/ (+ cap cl) cap)))
+
+(gace.func.res2len "xh035-3V3" res)
+(gace.func.cap2wid "xh035-3V3" cap)
+(gace.func.cap2wid "foo" cap)
+(gace.func.res2len "foo" res)
+
+
+(get perf "MNCM1R:vds")
+(get perf "MNCM1A:vds")
+(get perf "MPCS1:gmoverid")
+
+(get perf "MNCM1R:vgs")
+(get perf "MNCM1A:vgs")
+(get perf "MNCM1B:vgs")
+
 (pp (ac.current-sizing env.ace))
+
+
+
+
+(setv input (np.array [[10.0  31622776.60168379 (/ 3.3 3.0) 0.0 ]]))
+(setx output (first (env.nmos.predict input)))
+(get (env.nmos.predict input) 0 3) 
+
 
 (setv action (np.hstack (, (np.array [10.0 10.0 10.0 10.0]) 
                            (np.array [5.5 7.5 7.5 7.5])

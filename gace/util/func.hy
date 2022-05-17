@@ -130,38 +130,38 @@
       noise:       Add noise to found starting point. (default = True)
     Returns: Starting point sizing.
     """
-    (cond [(or (<= num-steps 0) (>= num-steps max-steps))
-           (ac.initial-sizing ace)]
-          [(in ace-variant [0 1]) 
+    (cond [(in ace-variant [0 1]) 
            (ac.random-sizing ace)]
-        [True
-         (let [sizing (if (or (> reset-count 50) random) 
-                         (ac.random-sizing ace) 
-                         (ac.initial-sizing ace))]
-            (if noise
-                (dfor (, p s) (.items sizing) 
-                      [p (cond [(or (.startswith p "W") (.startswith p "L"))
-                                (let [l (* (get constraints p "grid") 10.0)
-                                      m (+ (* l (np.tanh (- (/ reset-count 35.0) 2.0))) l)
-                                      n (np.random.normal 0.0 (np.abs m))]
-                                  (np.abs (+ s n)))]
-                               [(.startswith p "M")
-                                (let [vals (np.arange (get constraints p "min")
-                                                      (get constraints p "max")
-                                                      (get constraints p "grid"))
-                                      choices (if (not vals.size)
-                                                  (np.array [s]) vals)
-                                      weights (+ (np.full (len vals) 
-                                                          (+ (- (np.exp (/ (- reset-count) 
-                                                                           25.0))) 
-                                                             1.0))
-                                                 (* (np.random.rand (len vals)) 1e-3))
-                                      w       (np.where (= vals s) 1.0 weights)
-                                      probs   (/ w (.sum w)) ]
-                                  (if (not vals.size) s
-                                    (-> vals (np.random.choice 1 :p probs) (.item))))]
-                               [True s])])
-              sizing)) ]))
+          [(or (<= num-steps 0) (>= num-steps max-steps))
+           (ac.initial-sizing ace)]
+          [True
+           (let [sizing (if (or (> reset-count 50) random) 
+                           (ac.random-sizing ace) 
+                           (ac.initial-sizing ace))]
+              (if noise
+                  (dfor (, p s) (.items sizing) 
+                        [p (cond [(or (.startswith p "W") (.startswith p "L"))
+                                  (let [l (* (get constraints p "grid") 10.0)
+                                        m (+ (* l (np.tanh (- (/ reset-count 35.0) 2.0))) l)
+                                        n (np.random.normal 0.0 (np.abs m))]
+                                    (np.abs (+ s n)))]
+                                 [(.startswith p "M")
+                                  (let [vals (np.arange (get constraints p "min")
+                                                        (get constraints p "max")
+                                                        (get constraints p "grid"))
+                                        choices (if (not vals.size)
+                                                    (np.array [s]) vals)
+                                        weights (+ (np.full (len vals) 
+                                                            (+ (- (np.exp (/ (- reset-count) 
+                                                                             25.0))) 
+                                                               1.0))
+                                                   (* (np.random.rand (len vals)) 1e-3))
+                                        w       (np.where (= vals s) 1.0 weights)
+                                        probs   (/ w (.sum w)) ]
+                                    (if (not vals.size) s
+                                      (-> vals (np.random.choice 1 :p probs) (.item))))]
+                                 [True s])])
+                sizing)) ]))
 
 (defn target-distance ^(of tuple np.array) [^(of dict str float) performance 
                                             ^(of dict str float) target
@@ -722,9 +722,9 @@
                         "min"  6.0 ;; 1.0e6.0
                         "grid" 0.1 }])
          "ib"  (cond [(and (= ace-backend "xh035-3V3") (= ace-id "op1"))
-                      { "init" [6.0 12.0]
-                        "min" [1.0 3.0]
-                        "max" [30.0 90.0]
+                      { "init" [15.0 60.0]
+                        "min" [10.0 40.0]
+                        "max" [30.0 80.0]
                         "grid" 1.0 }]
                      [(and (= ace-backend "xh035-3V3") (= ace-id "op2"))
                       { "init" [6.0 12.0]
@@ -752,9 +752,9 @@
                         "max" [30.0 90.0]
                         "grid" 1.0 }]
                      [(and (= ace-backend "xh035-3V3") (= ace-id "op8"))
-                      { "init" [6.0 12.0 12.0 24.0]
-                        "min" [1.0 1.0 1.0 3.0]
-                        "max" [30.0 30.0 30.0 60.0]
+                      { "init" [3.0 3.0 6.0]
+                        "min" [1.0 1.0 3.0 ]
+                        "max" [6.0 6.0 9.0]
                         "grid" 1.0 }]
                      [(and (= ace-backend "xh035-3V3") (= ace-id "op9"))
                       { "init" [6.0 12.0 12.0 12.0 12.0 24.0]
@@ -771,11 +771,11 @@
                                           [(= ace-id "op8") (np.repeat v 4) ]
                                           [(= ace-id "op9") (np.repeat v 6) ])]) ])
          "rc"  { "init" 4.0
-                 "max"  4.6
-                 "min"  0.0
+                 "max"  15.0
+                 "min"  1.0
                  "grid" 0.1 }
          "cc" { "init" 1.2
-                "max"  15.0
+                "max"  12.0
                 "min"  0.5
                 "grid" 0.5 }
          #_/ })))
@@ -795,7 +795,8 @@
         [(and (= ace-id "op1") (in ace-variant [0 2])) 
           [ "MNCM1R:gmoverid" "MPCM2R:gmoverid" "MPCS1:gmoverid" "MND1A:gmoverid"
             "MNCM1R:fug"      "MPCM2R:fug"      "MPCS1:fug"      "MND1A:fug" 
-            "res" "cap" "MNCM1A:id" "MNCM1B:id" ]]
+            ;"res" "cap" 
+            "MNCM1A:id" "MNCM1B:id" ]]
         [(and (= ace-id "op2") (in ace-variant [0 2])) 
           [ "MNCM11:gmoverid" "MPCM221:gmoverid" "MNCM31:gmoverid" "MND11:gmoverid"
             "MNCM11:fug"      "MPCM221:fug"      "MNCM31:fug"      "MND11:fug" 
@@ -826,7 +827,7 @@
             "MNCM11:gmoverid" "MND11:gmoverid" 
             "MNCM51:fug"      "MPCM41:fug"      "MPCM31:fug"      "MNCM21:fug" 
             "MNCM11:fug"      "MND11:fug"
-            "MNCM53:id"       "MNCM52:id"       "MNCM11:id"       "MNCM12:id" ]]
+            "MNCM53:id"       "MNCM52:id"       "MPCM42:id" ]]
         [(and (= ace-id "op9") (in ace-variant [0 2])) 
           [ "MNCM41:gmoverid" "MPCM31:gmoverid" "MPCM21:gmoverid" "MNCM11:gmoverid" 
             "MND11:gmoverid"  "MNLS11:gmoverid" "MNR1:gmoverid"   "MPR2:gmoverid"
