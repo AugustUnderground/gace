@@ -22,19 +22,16 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setx M1 (-> (/ 3e-6 1.55e-5) (Fraction) (.limit-denominator 20)))
-(setx M2 (-> (/ 3e-6 3.15e-5) (Fraction) (.limit-denominator 40)))
-(setx M2 (-> (/ 1.55e-5 3.15e-5) (Fraction) (.limit-denominator 20)))
-
-(setv env (gym.make "gace:op8-xh035-v0"))
+(setv env (gym.make "gace:op2-xh018-v0"))
 (setv obs (.reset env))
 
 (setv perf (ac.current-performance env.ace))
 
+(pp perf)
+
 (get perf "A")
 
 (pp (ac.current-sizing env.ace))
-
 
 (pp (dfor (, k v) (.items (ac.current-performance env.ace)) 
         :if (in k (list (.keys env.target))) 
@@ -74,9 +71,9 @@
              "voff_stat" "voff_sys" "vn_1Hz" "vn_10Hz" "vn_100Hz"
              "vn_1kHz" "vn_10kHz" "vn_100kHz"])
 
-(for [c pdf.columns] :if (not-in c env.input-parameters)
-(print f"{c}:")
-(print (.describe (if (in c logs) 
+(lfor c pdf.columns :if (not-in c env.input-parameters)
+:do (print f"{c}:")
+:do (print (.describe (if (in c logs) 
                       (np.log10 (np.abs (get pdf c)) 
                                 :where (> (np.abs (get pdf c)) 0.0))
                       (get pdf c))))
@@ -127,9 +124,7 @@
 (setv tf ["a_0" "ugbw" "pm" "voff_stat" "cmrr" "psrr_p" "A"])
 (setv ttf (lfor t tf f"target_{t}"))
 
-(gace.unscale-value (np.full [10] -1.0) env.action-scale-min env.action-scale-max)
-
-(setv (, o0 r0 d0 i0) (env.step (np.full [10] 1.0)))
+(setv (, o1 r1 d1 i1) (env.step (np.full [10] 1.0)))
 (setv (, o1 r1 d1 i1) (env.step (np.full [10] 0.0)))
 (setv (, o2 r2 d2 i2) (env.step (np.full [10] -1.0)))
 
@@ -138,6 +133,8 @@
 (setv perf (ac.current-performance env.ace))
 (pp (dfor k (.keys lala) :if (not-in k ["res" "cap"]) [k (get perf k)]))
 (pp lala)
+
+(pp (ac.current-sizing env.ace))
 
 (setx sr   (get env.target "sr_r"))
 (setx cl   (get env.design-constraints "cl" "init"))
@@ -158,7 +155,6 @@
 (get perf "MNCM1A:vgs")
 (get perf "MNCM1B:vgs")
 
-(pp (ac.current-sizing env.ace))
 
 
 
@@ -231,7 +227,7 @@
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
 
 (setv n 10)
-(setv envs (gace.vector-make-same "gace:op1-xh035-v0" n)) 
+(setv envs (gace.vector-make-same "gace:op8-xh018-v0" n)) 
 (setv _ (envs.reset))
 
 (for [_ (range 10)]

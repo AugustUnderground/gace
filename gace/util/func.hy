@@ -702,6 +702,14 @@
         [True 
          (* (/ R 100) 2.0e-6)]))
 
+(defn scale-sizing [^(of dict str float) sizing ^float factor]
+  """
+  Scales sizing for netlist.
+  """
+  (dfor (, k v) (.items sizing) 
+        [k (if (or (.startswith k "W") (.startswith k "L")) 
+               (* v (/ 1 factor)) v)]))
+
 (defn design-constraints ^dict [ace ^str ace-id ^str ace-backend]
   """
   Returns a dictionary containing technology constraints.
@@ -721,47 +729,48 @@
                         "max"  9.0 ;; 1.0e9.0
                         "min"  6.0 ;; 1.0e6.0
                         "grid" 0.1 }])
-         "ib"  (cond [(and (= ace-backend "xh035-3V3") (= ace-id "op1"))
+         "ib"  (cond [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op1"))
                       { "init" [15.0 60.0]
                         "min" [10.0 40.0]
                         "max" [30.0 80.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op2"))
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op2"))
                       { "init" [6.0 12.0]
                         "min" [1.0 1.0]
                         "max" [30.0 30.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op3"))
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op3"))
                       { "init" [6.0 12.0 12.0]
                         "min" [1.0 1.0 1.0]
                         "max" [30.0 30.0 30.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op4"))
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op4"))
                       { "init" [6.0 12.0 12.0]
                         "min" [1.0 1.0 1.0]
                         "max" [30.0 60.0 60.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op5"))
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op5"))
                       { "init" [6.0 12.0 12.0 30.0]
                         "min" [1.0 1.0 1.0 3.0]
                         "max" [30.0 60.0 60.0 90.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op6"))
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op6"))
                       { "init" [6.0 12.0]
                         "min" [1.0 3.0]
                         "max" [30.0 90.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op8"))
-                      { "init" [3.0 3.0 6.0]
-                        "min" [1.0 1.0 3.0 ]
-                        "max" [6.0 6.0 9.0]
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op8"))
+                      { "init" [3.0 6.0]
+                        "min" [1.0 4.0 ]
+                        "max" [4.0 8.0]
                         "grid" 1.0 }]
-                     [(and (= ace-backend "xh035-3V3") (= ace-id "op9"))
+                     [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op9"))
                       { "init" [6.0 12.0 12.0 12.0 12.0 24.0]
                         "min" [1.0 1.0 1.0 1.0 1.0 3.0]
                         "max" [30.0 30.0 30.0 30.0 30.0 60.0]
                         "grid" 1.0 }]
-                     [True (dfor (, k v) {"init" 3.0 "min" 1.0 "max" 30.0 "grid" 1.0}
+                     [True (dfor (, k v) 
+                                 (.items {"init" 3.0 "min" 1.0 "max" 30.0 "grid" 1.0})
                                  [k (cond [(= ace-id "op1") (np.repeat v 2) ]
                                           [(= ace-id "op2") (np.repeat v 2) ]
                                           [(= ace-id "op3") (np.repeat v 3) ]
@@ -827,7 +836,7 @@
             "MNCM11:gmoverid" "MND11:gmoverid" 
             "MNCM51:fug"      "MPCM41:fug"      "MPCM31:fug"      "MNCM21:fug" 
             "MNCM11:fug"      "MND11:fug"
-            "MNCM53:id"       "MNCM52:id"       "MPCM42:id" ]]
+            "MNCM53:id"       "MPCM42:id" ]]
         [(and (= ace-id "op9") (in ace-variant [0 2])) 
           [ "MNCM41:gmoverid" "MPCM31:gmoverid" "MPCM21:gmoverid" "MNCM11:gmoverid" 
             "MND11:gmoverid"  "MNLS11:gmoverid" "MNR1:gmoverid"   "MPR2:gmoverid"

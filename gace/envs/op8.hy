@@ -50,20 +50,22 @@
              fug-cm1  fug-dp1)                    (as-> unscaled-action it
                                                       (get it (slice 6 12))
                                                       (np.power 10 it))
-          (, i1 i2 i3)                            (as-> unscaled-action it
-                                                      (get it (slice -3 None))
+          (, i1 i4)                               (as-> unscaled-action it
+                                                      (get it (slice -2 None))
                                                       (np.array it)
                                                       (* it 1e-6))
 
+          i2  i1
+          i3  (+ (/ i1 2.0) i4)
           i0  (get self.design-constraints "i0"   "init")
           vdd (get self.design-constraints "vsup" "init")
           
           M1-lim (-> self (. design-constraints) (get "Mcm53" "max") (int))
-          M2-lim (-> self (. design-constraints) (get "Mcm52" "max") (int))
-          M3-lim (-> self (. design-constraints) (get "Mcm42" "max") (int))
+          ;M2-lim (-> self (. design-constraints) (get "Mcm52" "max") (int))
+          M3-lim (-> self (. design-constraints) (get "Mcm43" "max") (int))
 
           M1 (-> (/ i0 i1) (Fraction) (.limit-denominator M1-lim))
-          M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))
+          ;M2 (-> (/ i0 i2) (Fraction) (.limit-denominator M2-lim))
           M3 (-> (/ i2 i3) (Fraction) (.limit-denominator M3-lim))
 
           Mdp1 (get self.design-constraints "Md1"  "init") 
@@ -71,14 +73,15 @@
           ;Mcm2 (get self.design-constraints "Mcm2" "init") 
           ;Mcm3 (get self.design-constraints "Mcm3" "init")
 
-          Mcm51 (max M1.numerator 1) Mcm52 (max M2.denominator 1)
-          Mcm53 (// (* Mcm51 Mcm52) (max M2.numerator 1)) ; Mcm53 M1.denominator
+          ;Mcm51 (max M1.numerator 1) Mcm53 (max M1.denominator 1)
+          ;Mcm52 (// (* (max M2.denominator 1) Mcm51) (max M2.numerator 1))
+          Mcm51 (max M1.numerator 1) Mcm52 (max M1.denominator 1) Mcm53 Mcm52
           Mcm41 (max M3.numerator 1) Mcm42 (max M3.denominator 1) Mcm43 Mcm42
 
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0)     (- (/ vdd 4.5))]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 5.0)               0.0  ]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 3.5)               0.0  ]])
-          cm3-in (np.array [[gmid-cm3 fug-cm3 (- (/ vdd 3.0))           0.0  ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 3.5)        (/ vdd 5.0) ]])
+          cm3-in (np.array [[gmid-cm3 fug-cm3 (- (/ vdd 3.0))    (/ vdd 5.0) ]])
           cm4-in (np.array [[gmid-cm4 fug-cm4 (- (/ vdd 3.5))           0.0  ]])
           cm5-in (np.array [[gmid-cm5 fug-cm5 (/ vdd 4.5)               0.0  ]])
 
@@ -96,24 +99,23 @@
           Lcm4 (get cm4-out 1)
           Lcm5 (get cm5-out 1)
 
-          Wdp1 (/ i1 2.0            (get dp1-out 0) Mdp1) 
-          Wcm4 (/ i2                (get cm4-out 0) Mcm41)
-          Wcm5 (/ i0                (get cm5-out 0) Mcm51) 
+          Wdp1 (/ i1 2.0 (get dp1-out 0) Mdp1) 
+          Wcm4 (/ i2     (get cm4-out 0) Mcm41)
+          Wcm5 (/ i0     (get cm5-out 0) Mcm51) 
 
-          Wc1  (/ (- i3 (/ i1 2.0)) (get cm1-out 0))
-          Wc2  (/ (- i3 (/ i1 2.0)) (get cm2-out 0)) 
-          Wc3  (/ (- i3 (/ i1 2.0)) (get cm3-out 0)) 
+          Wc1  (/ i4 (get cm1-out 0))
+          Wc2  (/ i4 (get cm2-out 0)) 
+          Wc3  (/ i4 (get cm3-out 0)) 
 
-          Mcm1 (-> Wc1 (/ (get self.design-constraints "Wcm1" "max")) (np.ceil) (.item) (int))
+          Mcm1 (-> Wc1 (/ (get self.design-constraints "Wcm1" "max")) (np.ceil))
           Wcm1 (/ Wc1 Mcm1)
-          Mcm2 (-> Wc2 (/ (get self.design-constraints "Wcm2" "max")) (np.ceil) (.item) (int))
+          Mcm2 (-> Wc2 (/ (get self.design-constraints "Wcm2" "max")) (np.ceil))
           Wcm2 (/ Wc2 Mcm2)
-          Mcm3 (-> Wc3 (/ (get self.design-constraints "Wcm3" "max")) (np.ceil) (.item) (int))
+          Mcm3 (-> Wc3 (/ (get self.design-constraints "Wcm3" "max")) (np.ceil))
           Wcm3 (/ Wc3 Mcm3)
 
           #_/ ]
     
-    ;(setv self.last-action (->> unscaled-action (zip self.input-parameters) (dict)))
     (setv self.last-action (dict (zip self.input-parameters
         [ gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1
           fug-cm5  fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1

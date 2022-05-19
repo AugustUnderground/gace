@@ -93,6 +93,9 @@
     (setv self.scale-action #%(scale-value %1 self.action-scale-min self.action-scale-max))
     (setv self.unscale-action #%(unscale-value %1 self.action-scale-min self.action-scale-max))
 
+    ;; Technology scale factor
+    (setv self.tech-scale (ac.scale-factor self.ace))
+
     ;; Set training mode by default
     (setv self.train-mode train-mode)
 
@@ -175,7 +178,8 @@
                                                             self.ace a))])
           self.step 
             (fn [^np.array action &optional [blocklist []]]
-              (-> action (self.step-fn) (self.size-circuit :blocklist blocklist))))
+              (-> action (self.step-fn) (scale-sizing self.tech-scale) 
+                         (self.size-circuit :blocklist blocklist))))
 
     ;; Get an unscaled sample of the action space. This gives actual values,
     ;; i.e. not ∈ [-1;1]
@@ -255,8 +259,8 @@
 
   (defn size-circuit [self sizing &optional [blocklist []]]
     (let [prev-perf (ac.current-performance self.ace)
-          curr-perf (ac.evaluate-circuit self.ace :params sizing
-                                                  :blocklist blocklist) 
+          curr-perf (ac.evaluate-circuit self.ace :params    sizing
+                                                  :blocklist blocklist)
 
           curr-sizing (ac.current-sizing self.ace)
 

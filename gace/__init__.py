@@ -37,18 +37,18 @@ register( id          = 'op1-xh035-v3'
         , entry_point = 'gace.envs:OP1XH035V3Env'
         , )
 
-#register( id          = 'op1-xh018-v0'
-#        , entry_point = 'gace.envs:OP1XH018V0Env'
-#        , )
-#
-#register( id          = 'op1-xh018-v1'
-#        , entry_point = 'gace.envs:OP1XH018V1Env'
-#        , )
-#
-#register( id          = 'op1-xh018-v3'
-#        , entry_point = 'gace.envs:OP1XH018V3Env'
-#        , )
-#
+register( id          = 'op1-xh018-v0'
+        , entry_point = 'gace.envs:OP1XH018V0Env'
+        , )
+
+register( id          = 'op1-xh018-v1'
+        , entry_point = 'gace.envs:OP1XH018V1Env'
+        , )
+
+register( id          = 'op1-xh018-v3'
+        , entry_point = 'gace.envs:OP1XH018V3Env'
+        , )
+
 #register( id          = 'op1-xt018-v0'
 #        , entry_point = 'gace.envs:OP1XT018V0Env'
 #        , )
@@ -102,18 +102,18 @@ register( id          = 'op2-xh035-v3'
         , entry_point = 'gace.envs:OP2XH035V3Env'
         , )
 
-#register( id          = 'op2-xh018-v0'
-#        , entry_point = 'gace.envs:OP2XH018V0Env'
-#        , )
-#
-#register( id          = 'op2-xh018-v1'
-#        , entry_point = 'gace.envs:OP2XH018V1Env'
-#        , )
-#
-#register( id          = 'op2-xh018-v3'
-#        , entry_point = 'gace.envs:OP2XH018V3Env'
-#        , )
-#
+register( id          = 'op2-xh018-v0'
+        , entry_point = 'gace.envs:OP2XH018V0Env'
+        , )
+
+register( id          = 'op2-xh018-v1'
+        , entry_point = 'gace.envs:OP2XH018V1Env'
+        , )
+
+register( id          = 'op2-xh018-v3'
+        , entry_point = 'gace.envs:OP2XH018V3Env'
+        , )
+
 #register( id          = 'op2-xt018-v0'
 #        , entry_point = 'gace.envs:OP2XT018V0Env'
 #        , )
@@ -167,18 +167,18 @@ register( id          = 'op3-xh035-v3'
         , entry_point = 'gace.envs:OP3XH035V3Env'
         , )
 
-#register( id          = 'op3-xh018-v0'
-#        , entry_point = 'gace.envs:OP3XH018V0Env'
-#        , )
-#
-#register( id          = 'op3-xh018-v1'
-#        , entry_point = 'gace.envs:OP3XH018V1Env'
-#        , )
-#
-#register( id          = 'op3-xh018-v3'
-#        , entry_point = 'gace.envs:OP3XH018V3Env'
-#        , )
-#
+register( id          = 'op3-xh018-v0'
+        , entry_point = 'gace.envs:OP3XH018V0Env'
+        , )
+
+register( id          = 'op3-xh018-v1'
+        , entry_point = 'gace.envs:OP3XH018V1Env'
+        , )
+
+register( id          = 'op3-xh018-v3'
+        , entry_point = 'gace.envs:OP3XH018V3Env'
+        , )
+
 #register( id          = 'op3-xt018-v0'
 #        , entry_point = 'gace.envs:OP3XT018V0Env'
 #        , )
@@ -232,18 +232,18 @@ register( id          = 'op4-xh035-v3'
         , entry_point = 'gace.envs:OP4XH035V3Env'
         , )
 
-#register( id          = 'op4-xh018-v0'
-#        , entry_point = 'gace.envs:OP4XH018V0Env'
-#        , )
-#
-#register( id          = 'op4-xh018-v1'
-#        , entry_point = 'gace.envs:OP4XH018V1Env'
-#        , )
-#
-#register( id          = 'op4-xh018-v3'
-#        , entry_point = 'gace.envs:OP4XH018V3Env'
-#        , )
-#
+register( id          = 'op4-xh018-v0'
+        , entry_point = 'gace.envs:OP4XH018V0Env'
+        , )
+
+register( id          = 'op4-xh018-v1'
+        , entry_point = 'gace.envs:OP4XH018V1Env'
+        , )
+
+register( id          = 'op4-xh018-v3'
+        , entry_point = 'gace.envs:OP4XH018V3Env'
+        , )
+
 #register( id          = 'op4-xt018-v0'
 #        , entry_point = 'gace.envs:OP4XT018V0Env'
 #        , )
@@ -297,18 +297,18 @@ register( id          = 'op5-xh035-v3'
         , entry_point = 'gace.envs:OP5XH035V3Env'
         , )
 
-#register( id          = 'op5-xh018-v0'
-#        , entry_point = 'gace.envs:OP5XH018V0Env'
-#        , )
-#
-#register( id          = 'op5-xh018-v1'
-#        , entry_point = 'gace.envs:OP5XH018V1Env'
-#        , )
-#
-#register( id          = 'op5-xh018-v3'
-#        , entry_point = 'gace.envs:OP5XH018V3Env'
-#        , )
-#
+register( id          = 'op5-xh018-v0'
+        , entry_point = 'gace.envs:OP5XH018V0Env'
+        , )
+
+register( id          = 'op5-xh018-v1'
+        , entry_point = 'gace.envs:OP5XH018V1Env'
+        , )
+
+register( id          = 'op5-xh018-v3'
+        , entry_point = 'gace.envs:OP5XH018V3Env'
+        , )
+
 #register( id          = 'op5-xt018-v0'
 #        , entry_point = 'gace.envs:OP5XT018V0Env'
 #        , )
@@ -362,18 +362,18 @@ register( id          = 'op6-xh035-v3'
         , entry_point = 'gace.envs:OP6XH035V3Env'
         , )
 
-#register( id          = 'op6-xh018-v0'
-#        , entry_point = 'gace.envs:OP6XH018V0Env'
-#        , )
-#
-#register( id          = 'op6-xh018-v1'
-#        , entry_point = 'gace.envs:OP6XH018V1Env'
-#        , )
-#
-#register( id          = 'op6-xh018-v3'
-#        , entry_point = 'gace.envs:OP6XH018V3Env'
-#        , )
-#
+register( id          = 'op6-xh018-v0'
+        , entry_point = 'gace.envs:OP6XH018V0Env'
+        , )
+
+register( id          = 'op6-xh018-v1'
+        , entry_point = 'gace.envs:OP6XH018V1Env'
+        , )
+
+register( id          = 'op6-xh018-v3'
+        , entry_point = 'gace.envs:OP6XH018V3Env'
+        , )
+
 #register( id          = 'op6-xt018-v0'
 #        , entry_point = 'gace.envs:OP6XT018V0Env'
 #        , )
@@ -430,18 +430,18 @@ register( id          = 'op8-xh035-v3'
         , entry_point = 'gace.envs:OP8XH035V3Env'
         , )
 
-#register( id          = 'op8-xh018-v0'
-#        , entry_point = 'gace.envs:OP8XH018V0Env'
-#        , )
-#
-#register( id          = 'op8-xh018-v1'
-#        , entry_point = 'gace.envs:OP8XH018V1Env'
-#        , )
-#
-#register( id          = 'op8-xh018-v3'
-#        , entry_point = 'gace.envs:OP8XH018V3Env'
-#        , )
-#
+register( id          = 'op8-xh018-v0'
+        , entry_point = 'gace.envs:OP8XH018V0Env'
+        , )
+
+register( id          = 'op8-xh018-v1'
+        , entry_point = 'gace.envs:OP8XH018V1Env'
+        , )
+
+register( id          = 'op8-xh018-v3'
+        , entry_point = 'gace.envs:OP8XH018V3Env'
+        , )
+
 #register( id          = 'op8-xt018-v0'
 #        , entry_point = 'gace.envs:OP8XT018V0Env'
 #        , )
@@ -483,14 +483,14 @@ register( id          = 'op9-xh035-v3'
         , entry_point = 'gace.envs:OP9XH035V3Env'
         , )
 
-#register( id          = 'op9-xh018-v0'
-#        , entry_point = 'gace.envs:OP9XH018V0Env'
-#        , )
-#
-#register( id          = 'op9-xh018-v1'
-#        , entry_point = 'gace.envs:OP9XH018V1Env'
-#        , )
-#
+register( id          = 'op9-xh018-v0'
+        , entry_point = 'gace.envs:OP9XH018V0Env'
+        , )
+
+register( id          = 'op9-xh018-v1'
+        , entry_point = 'gace.envs:OP9XH018V1Env'
+        , )
+
 #register( id          = 'op9-xt018-v0'
 #        , entry_point = 'gace.envs:OP9XT018V0Env'
 #        , )
