@@ -80,7 +80,7 @@
 
           dp1-in (np.array [[gmid-dp1 fug-dp1 (/ vdd 2.0)     (- (/ vdd 4.5))]])
           cm1-in (np.array [[gmid-cm1 fug-cm1 (/ vdd 5.0)               0.0  ]])
-          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 3.5)        (/ vdd 5.0) ]])
+          cm2-in (np.array [[gmid-cm2 fug-cm2 (/ vdd 3.5)     (- (/ vdd 5.0))]])
           cm3-in (np.array [[gmid-cm3 fug-cm3 (- (/ vdd 3.0))    (/ vdd 5.0) ]])
           cm4-in (np.array [[gmid-cm4 fug-cm4 (- (/ vdd 3.5))           0.0  ]])
           cm5-in (np.array [[gmid-cm5 fug-cm5 (/ vdd 4.5)               0.0  ]])
@@ -119,7 +119,7 @@
     (setv self.last-action (dict (zip self.input-parameters
         [ gmid-cm5 gmid-cm4 gmid-cm3 gmid-cm2 gmid-cm1 gmid-dp1
           fug-cm5  fug-cm4  fug-cm3  fug-cm2  fug-cm1  fug-dp1
-          i1 i2 i3 ])))
+          i1 i4 ])))
 
     { "Ld1" Ldp1 "Lcm1" Lcm1 "Lcm2" Lcm2 "Lcm3" Lcm3 "Lcm4"  Lcm4  "Lcm5"  Lcm5
       "Wd1" Wdp1 "Wcm1" Wcm1 "Wcm2" Wcm2 "Wcm3" Wcm3 "Wcm4"  Wcm4  "Wcm5"  Wcm5

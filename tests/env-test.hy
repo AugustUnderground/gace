@@ -22,16 +22,35 @@
 (require [hy.extra.anaphoric [*]])
 (import [hy.contrib.pprint [pp pprint]])
 
-(setv env (gym.make "gace:op2-xh018-v0"))
+
+
+(setv env (gym.make "gace:op1-xh018-v0"))
 (setv obs (.reset env))
 
-(setv perf (ac.current-performance env.ace))
-
-(pp perf)
+(setv perf (ac.evaluate-circuit env.ace :params (ac.initial-sizing env.ace)))
 
 (get perf "A")
 
+
+(setv c (fn [w] (- (+ (* 0.85e-3 (** w 2)) (* 8.33e-11 w)) 3.44e-20)))
+(c 69e-6)
+
 (pp (ac.current-sizing env.ace))
+
+(setv pdat (lfor stp (range 20) 
+  :do (env.random-step)
+  :do (print f"Step {stp}")
+  (dfor (, k v) (.items (ac.current-performance env.ace)) 
+        :if (or (.endswith k ":vds") (.endswith k ":id") (.islower k) (= k "A")) [k v])))
+
+(setx pdf (pd.DataFrame.from-records pdat))
+
+(.describe (np.log10 pdf.A))
+
+(for [c pdf.columns] (print f"{c}: {(.mean (get pdf c))}"))
+
+
+
 
 (pp (dfor (, k v) (.items (ac.current-performance env.ace)) 
         :if (in k (list (.keys env.target))) 
@@ -56,15 +75,6 @@
 (setv iss ["MNCM41:id" "MND11:id" "MPCM31:id" "MNCM44:id" "MNCM11:id" "MNLS11:id" "MNR1:id" "MNR2:id"])
 
 (pp (dfor (, k v) (.items perf) :if (.startswith k "MNCM5") [k v]))
-
-(setv pdat (lfor stp (range 100) 
-  :do (env.random-step)
-  :do (print f"Step {stp}")
-  (dfor (, k v) (.items (ac.current-performance env.ace)) 
-        :if (in k (+ (list (.keys env.target)) env.input-parameters))
-        [k v])))
-
-(setx pdf (pd.DataFrame.from-records pdat))
 
 
 (setv logs [ "A" "cof" "i_out_max" "i_out_min" "sr_f" "sr_r" "ugbw"
@@ -134,7 +144,17 @@
 (pp (dfor k (.keys lala) :if (not-in k ["res" "cap"]) [k (get perf k)]))
 (pp lala)
 
+ "MNCM51:fug" 100000.0
+ "MNCM51:fug" 1451025.1523418513
+
 (pp (ac.current-sizing env.ace))
+
+(get perf "voff_stat")
+
+(-> (/ 2e-6 5.5e-6) (Fraction) (.limit-denominator 16))
+
+(setv inp (np.array [[10.0 2.5e8 (- 0.9) 0.4]]))
+(setv out (env.pmos.predict inp))
 
 (setx sr   (get env.target "sr_r"))
 (setx cl   (get env.design-constraints "cl" "init"))
@@ -226,8 +246,8 @@
 
 (for [i (range 10)] (setv (, o r d _) (env.random-step)) (print f"{i}: {d} -> {r}"))
 
-(setv n 10)
-(setv envs (gace.vector-make-same "gace:op8-xh018-v0" n)) 
+(setv n 5)
+(setv envs (gace.vector-make-same "gace:op2-xh018-v0" n)) 
 (setv _ (envs.reset))
 
 (for [_ (range 10)]
@@ -236,6 +256,8 @@
   (setv toc (.time time))
   (print f"Evaluating {n} envs took {(- toc tic):.4}s -> {(/ n (- toc tic)):.3} FPS."))
 
+(pp (ac.current-performance (. (first envs) ace)))
+(pp (ac.current-sizing (. (first envs) ace)))
 
 (setv n 5)
 (setv envs (gace.vector-make-same "gace:op9-xh035-v0" n)) 

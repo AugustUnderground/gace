@@ -119,8 +119,8 @@
                                                                    (> self.reset-count 100))
                                                        :noisy self.noisy-target))
           self.reltol        reltol
-          ;self.reward        (or custom-reward absolute-reward)
-          self.reward        (or custom-reward simple-reward)
+          self.reward        (or custom-reward absolute-reward)
+          ;self.reward        (or custom-reward simple-reward)
           ;self.reward        (or custom-reward relative-reward)
           self.condition     (reward-condition self.ace-id :tolerance self.reltol))
 
@@ -178,7 +178,7 @@
                                                             self.ace a))])
           self.step 
             (fn [^np.array action &optional [blocklist []]]
-              (-> action (self.step-fn) (scale-sizing self.tech-scale) 
+              (-> action (self.step-fn) 
                          (self.size-circuit :blocklist blocklist))))
 
     ;; Get an unscaled sample of the action space. This gives actual values,

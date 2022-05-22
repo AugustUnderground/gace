@@ -66,7 +66,7 @@
     (setv self.step 
           (fn [^(of list np.array) actions]
             (let [sizings (->> actions (zip self.gace-envs)
-                                       (ap-map (-> it (first) (.step-fn (second it))))
+                                       (ap-map (-> it (first) (.step-fn (second it)) ))
                                        (enumerate) (dict))]
               (self.size-circuit-pool sizings)))))
 

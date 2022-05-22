@@ -719,16 +719,25 @@
                       "max"  15.0
                       "min"  5.0
                       "grid" 0.5 }
-         "fug" (cond [(= ace-backend "xh035-3V3")
-                      { "init" 7.5 ;; 1.0e7.5
+         "fug" { "init" 7.5 ;; 1.0e7.5
                         "max"  9.0 ;; 1.0e9.0
                         "min"  6.0 ;; 1.0e6.0
-                        "grid" 0.1 }] 
-                     [True
-                      { "init" 7.5 ;; 1.0e7.5
-                        "max"  9.0 ;; 1.0e9.0
-                        "min"  6.0 ;; 1.0e6.0
-                        "grid" 0.1 }])
+                        "grid" 0.1 }
+                  ;(cond [(= ace-backend "xh035-3V3")
+                  ;    { "init" 7.5 ;; 1.0e7.5
+                  ;      "max"  9.0 ;; 1.0e9.0
+                  ;      "min"  6.0 ;; 1.0e6.0
+                  ;      "grid" 0.1 }] 
+                  ;   [(= ace-backend "xh018-1V8")
+                  ;    { "init" 7.5 
+                  ;      "max"  9.3 
+                  ;      "min"  5.0
+                  ;      "grid" 0.1 }]
+                  ;   [True
+                  ;    { "init" 7.5 ;; 1.0e7.5
+                  ;      "max"  9.0 ;; 1.0e9.0
+                  ;      "min"  6.0 ;; 1.0e6.0
+                  ;      "grid" 0.1 }])
          "ib"  (cond [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op1"))
                       { "init" [15.0 60.0]
                         "min" [10.0 40.0]
@@ -759,11 +768,17 @@
                         "min" [1.0 3.0]
                         "max" [30.0 90.0]
                         "grid" 1.0 }]
+                     ;[(and (= ace-backend "xh035-3V3") (= ace-id "op8"))
                      [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op8"))
                       { "init" [3.0 6.0]
                         "min" [1.0 4.0 ]
                         "max" [4.0 8.0]
                         "grid" 1.0 }]
+                     ;[(and (= ace-backend "xh018-1V8") (= ace-id "op8"))
+                     ; { "init" [0.3 0.6]
+                     ;   "min" [0.1 0.4 ]
+                     ;   "max" [0.4 0.8]
+                     ;   "grid" 0.1 }]
                      [(and (in ace-backend ["xh035-3V3" "xh018-1V8"]) (= ace-id "op9"))
                       { "init" [6.0 12.0 12.0 12.0 12.0 24.0]
                         "min" [1.0 1.0 1.0 1.0 1.0 3.0]
@@ -836,14 +851,14 @@
             "MNCM11:gmoverid" "MND11:gmoverid" 
             "MNCM51:fug"      "MPCM41:fug"      "MPCM31:fug"      "MNCM21:fug" 
             "MNCM11:fug"      "MND11:fug"
-            "MNCM53:id"       "MPCM42:id" ]]
+            "MNCM53:id"       "MNCM21:id" ]]
         [(and (= ace-id "op9") (in ace-variant [0 2])) 
           [ "MNCM41:gmoverid" "MPCM31:gmoverid" "MPCM21:gmoverid" "MNCM11:gmoverid" 
             "MND11:gmoverid"  "MNLS11:gmoverid" "MNR1:gmoverid"   "MPR2:gmoverid"
             "MNCM41:fug"      "MPCM31:fug"      "MPCM21:fug"      "MNCM11:fug" 
             "MND11:fug"       "MNLS11:fug"      "MNR1:fug"        "MPR2:fug"
             "MNCM43:id"       "MNCM44:id"       "MNCM42:id"       "MPCM32:id" 
-            "MPCM33:id" "MPCM34:id" ]]
+            "MPCM33:id"       "MPCM34:id" ]]
         [True 
          (raise (NotImplementedError errno.ENOSYS
                                      (os.strerror errno.ENOSYS) 
